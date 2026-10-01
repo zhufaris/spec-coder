@@ -2,7 +2,7 @@
 
 `spec-coder` 是一组面向 Codex 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
-它参考 Matt Pocock skills 的“小而可组合”结构，但不复制上游 skill 内容。仓库中的 wrapper 负责固定阶段、审批门禁、产物位置和 Git 安全策略。
+它参考 Matt Pocock skills 的“小而可组合”结构。插件负责阶段编排、审批门禁、产物位置和 Git 安全策略；`plan-coder` 使用本插件维护的模板完成规格合成与任务拆分，其余阶段组合允许模型调用的上游能力。
 
 ## Skills
 
@@ -45,11 +45,13 @@ codex plugin add spec-coder@spec-coder
 
 本仓库保持 wrapper 精简，因此运行时需要以下上游 skills：
 
-- Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`to-spec`、`to-tickets`、`tdd`、`code-review`
+- Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
 - Superpowers：`brainstorming`、`verification-before-completion`；选择 worktree 隔离路径时另需 `using-git-worktrees`
 - Architecture：`clean-architecture`
 
-缺少或不兼容的必需依赖会让工作流明确停止，不会静默降级。`using-git-worktrees` 按执行路径检查，原地执行不因缺少该可选能力而停止。版本基线见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
+必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 按执行路径检查，原地执行不因缺少该可选能力而停止。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
+
+从 `0.2.1` 起，规划不再依赖手动专用的 `to-spec` / `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；无需为 spec-coder 安装它们或手动调用它们。
 
 ## Default routing
 
@@ -69,7 +71,7 @@ Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属�
 
 DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Bounded Context、各自的语言和状态所有权，以及必要的 Entity、Value Object、Aggregate 和 Domain Service；区分领域规则、应用编排与 adapter 转换。涉及并发、重试或跨上下文协作时，明确原子性、冲突结果、幂等与恢复责任。模型角色不必逐一对应类，小任务使用简短描述。
 
-`to-spec` 保存这些决策，`to-tickets` 按业务能力切出可验证增量并引用相关模型、规则、接口和测试证据。Gate 2 检查设计信息是否完整，Gate 3 检查场景覆盖与实施条件；实现和交付分别验证行为、规则归属与实际依赖。具体要求见 [Domain Design Contract](./references/domain-design-contract.md)，模型、并发与架构反例见 [Domain Design Examples](./references/domain-design-examples.md)。
+`plan-coder` 用本地[规格模板](./references/specification-template.md)保存这些决策，再用[ticket 模板](./references/ticket-template.md)按业务能力切出可验证增量，引用相关模型、规则、接口和测试证据。Gate 2 检查设计信息是否完整，Gate 3 检查场景覆盖与实施条件；实现和交付分别验证行为、规则归属与实际依赖。具体要求见 [Domain Design Contract](./references/domain-design-contract.md)，模型、并发与架构反例见 [Domain Design Examples](./references/domain-design-examples.md)。
 
 ```text
 grill-coder

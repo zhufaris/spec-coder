@@ -2,7 +2,7 @@
 
 Carry one scenario-driven design through specification, tickets, implementation, and delivery. DDD clarifies meaning, rules, and ownership; Clean Architecture clarifies module interfaces and source dependency direction. Apply both while synthesizing and slicing, rather than treating architecture as a completed preliminary checklist.
 
-This reference adapts the existing upstream templates inside spec-coder. Keep the workflow contract's stages, artifact locations, and three approval gates. The approved specification is the design authority; tickets reference their relevant decisions instead of maintaining another copy of the model.
+This reference governs spec-coder's native planning templates. Keep the workflow contract's stages, artifact locations, and three approval gates. The approved specification is the design authority; tickets reference their relevant decisions instead of maintaining another copy of the model.
 
 ## Contents
 
@@ -70,9 +70,9 @@ Define the module responsible for each rule, the public interface, allowed cross
 
 In `design-coder`, start from concrete success, rejection, and relevant retry scenarios. Work out their domain rules and architecture together. Distinguish confirmed decisions, evidence from existing code, and unresolved questions.
 
-Use the existing `to-spec` headings. Put the following content in their indicated sections; a small task can express several rows in one paragraph.
+Use the bundled [specification template](./specification-template.md). Put the following content in the indicated sections; a small task can express several rows in one paragraph.
 
-| Design content | Placement in the upstream specification | Preserve |
+| Design content | Placement in the local specification | Preserve |
 | --- | --- | --- |
 | User scenarios | User Stories; Implementation Decisions / Behavior & Failure Modes | Triggers, observable outcomes, rejection and relevant retry behavior |
 | Domain model | Implementation Decisions / Domain Model | Affected context map and local model descriptions, canonical terms, enforcing owners, invariants and consistency boundaries |
@@ -82,11 +82,11 @@ Use the existing `to-spec` headings. Put the following content in their indicate
 
 Record an interface's preconditions, outputs, and failure semantics, not just a method name. Describe architecture by module responsibility rather than a list of directories. Runtime calls may go out to an adapter while source dependencies point toward an internally owned interface.
 
-Before Gate 2, reconcile every relevant approved scenario, context/model responsibility, invariant, consistency/interaction decision, dependency rule, and testing seam with its specification location. Fix omissions. If synthesis reveals a new business or architecture decision, return to `design-coder` and reopen the affected gate; `to-spec` must not invent entities, services or recovery policies. Ordinary wording corrections do not create a new design gate.
+Before Gate 2, reconcile every relevant approved scenario, context/model responsibility, invariant, consistency/interaction decision, dependency rule, and testing seam with its specification location. Fix omissions. If synthesis reveals a new business or architecture decision, return to `design-coder` and reopen the affected gate; specification synthesis must not invent entities, services or recovery policies. Ordinary wording corrections do not create a new design gate.
 
 ## Ticket decomposition
 
-Use `to-tickets` to select the smallest independently verifiable business capability or use-case increment. Each ticket fits one agent context window; this is a sizing limit, not a requirement to stay in one DDD bounded context.
+Use the bundled [ticket template](./ticket-template.md) to select the smallest independently verifiable business capability or use-case increment. Each ticket fits one agent context window; this is a sizing limit, not a requirement to stay in one DDD bounded context.
 
 Within the existing ticket format, retain these fields (combine them for small tasks):
 
@@ -98,7 +98,7 @@ Within the existing ticket format, retain these fields (combine them for small t
 | Acceptance criteria and verification | Success/rejection/concurrency/retry examples as applicable, public test seams, and dependency checks relevant to this slice |
 | Blocked by | Only tickets that supply a genuinely required capability or agreed interface; otherwise None |
 
-Walk the use case across the necessary implementation parts. Do not create one ticket for all entities, another for all use cases, and another for all adapters. The first business slice introduces only the supporting abstractions it needs. A prerequisite refactor is separate only if necessary for independently green delivery, with its preservation checks explained. Retain upstream expand-contract handling for wide mechanical migrations.
+Walk the use case across the necessary implementation parts. Do not create one ticket for all entities, another for all use cases, and another for all adapters. The first business slice introduces only the supporting abstractions it needs. A prerequisite refactor is separate only if necessary for independently green delivery, with its preservation checks explained. Use the local ticket template's expand-contract guidance for wide mechanical migrations while keeping required checks green.
 
 A ticket may span business contexts when it is a coherent verifiable increment and the specification defines each participant's ownership, interaction contract, consistency, and failure behavior. Split only where increments remain independently meaningful; do not mandate a separate orchestration ticket.
 

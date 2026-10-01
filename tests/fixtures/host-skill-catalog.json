@@ -1,0 +1,18 @@
+{
+  "description": "Regression snapshot: relevant model-visible Host capabilities and separately installed manual-only skills. This fixture is not a live Host discovery API.",
+  "model_visible": [
+    "grilling",
+    "brainstorming",
+    "domain-modeling",
+    "codebase-design",
+    "clean-architecture",
+    "using-git-worktrees",
+    "tdd",
+    "code-review",
+    "verification-before-completion"
+  ],
+  "manual_only": {
+    "to-spec": {"disable-model-invocation": true},
+    "to-tickets": {"disable-model-invocation": true}
+  }
+}

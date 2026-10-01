@@ -94,14 +94,16 @@ codex plugin list --json
 
 ## 5. 检查运行时依赖
 
-`spec-coder` 只编排上游 skills，不会复制或自动安装它们。启动一个新的 Codex 会话，通过 `/skills` 确认本插件和当前执行路径所需的上游 skills 可见：
+`plan-coder` 的规划能力和模板包含在插件内；其他阶段所需的上游 skills 不会自动安装。启动一个新的 Codex 会话，通过 `/skills` 确认本插件和当前执行路径所需的上游 skills 可见且允许模型调用：
 
 - 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`
-- Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`to-spec`、`to-tickets`、`tdd`、`code-review`
+- Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
 - Superpowers：`brainstorming`、`verification-before-completion`；选择 worktree 隔离路径时另需 `using-git-worktrees`
 - Architecture：`clean-architecture`
 
-若六个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失，停止并向用户报告缺失名称；不要用名称相近的 skill 替代。原地执行不要求 `using-git-worktrees`；选定隔离路径后才检查该能力，无法使用时按 workspace 规则决定是否有符合用户要求的安全替代方案。已验证的依赖版本基线见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+若六个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不要求 `using-git-worktrees`；选定隔离路径后才检查该能力，无法使用时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+
+`to-spec` 和 `to-tickets` 不是 `0.2.1` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；重开会话或启用配置不会改变这个边界。不要修改 upstream 标志或通过文件读取间接执行；原生 `plan-coder` 使用随插件安装的模板。
 
 ## 6. 可选：启用默认路由
 
@@ -125,7 +127,7 @@ codex plugin list --json
 在新的 Codex 会话中完成以下检查：
 
 1. `/skills` 能看到六个 `spec-coder` skills。
-2. 当前执行路径必需的上游依赖 skills 都可见；原地执行无需 `using-git-worktrees`。
+2. 当前执行路径必需的上游依赖 skills 都可见且允许模型调用；原地执行无需 `using-git-worktrees`，规划无需两个手动专用 skills。
 3. 发起一个只读问题时，不应自动进入 `spec-coder`。
 4. 发起一个代码修改请求时，应进入 `spec-coder`；如果未配置默认路由，则显式要求“使用 spec-coder”。
 
@@ -153,4 +155,4 @@ codex plugin list --json
 
 ### 上游依赖缺失
 
-先判断依赖是否属于当前执行路径。原地执行缺少 `using-git-worktrees` 不构成阻塞；必需依赖缺失时，列出精确名称以及 [Upstream Compatibility](./references/upstream-compatibility.md) 中的验证基线，然后停止。依赖恢复后重新启动会话并再次检查 `/skills`。
+先判断依赖是否属于当前执行路径。原地执行缺少 `using-git-worktrees` 不构成阻塞，两个手动专用规划 skills 也不在依赖集合中。必需依赖缺失或禁止模型调用时，列出精确名称、Host 可见性和调用资格证据，并按 [Upstream Compatibility](./references/upstream-compatibility.md) 停止；仅恢复实际必需且允许调用的能力。重启不会解除 `disable-model-invocation: true`。

@@ -20,6 +20,10 @@ EXPECTED_SKILLS = {
 DESIGN_STAGES = ("grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
 DESIGN_REFERENCE = "../../references/domain-design-contract.md"
 EXAMPLE_REFERENCE = "../../references/domain-design-examples.md"
+PLANNING_REFERENCES = (
+    "../../references/specification-template.md",
+    "../../references/ticket-template.md",
+)
 
 
 def read_text(path: Path) -> str:
@@ -57,7 +61,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.2.0")
+        self.assertEqual(manifest["version"], "0.2.1")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -159,6 +163,40 @@ class PluginContractTests(unittest.TestCase):
                         self.assertTrue(target.is_file())
                         self.assertEqual(target.read_bytes(), source.read_bytes())
             self.assert_domain_reference_resolves(installed_root)
+            self.assert_planning_templates_resolve(installed_root)
+
+    def assert_planning_templates_resolve(self, root: Path) -> None:
+        skill = root / "skills" / "plan-coder" / "SKILL.md"
+        links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
+        for link in PLANNING_REFERENCES:
+            with self.subTest(template=link):
+                self.assertIn(link, links)
+                target = (skill.parent / link).resolve()
+                self.assertTrue(target.is_relative_to(root.resolve()))
+                self.assertTrue(target.is_file())
+
+    def test_declared_dependencies_match_model_visible_host_fixture(self) -> None:
+        catalog = json.loads(read_text(ROOT / "tests/fixtures/host-skill-catalog.json"))
+        compatibility = read_text(ROOT / "references/upstream-compatibility.md")
+        capability_map = compatibility.split("## Capability Map\n", 1)[1].split(
+            "\n## ", 1
+        )[0]
+        declared = {
+            name
+            for line in capability_map.splitlines()
+            if line.startswith("- ") and " -> " in line
+            for name in re.findall(r"`([^`]+)`", line.split(" -> ", 1)[0])
+        }
+        self.assertTrue(declared, "no declared upstream capabilities found")
+        visible = set(catalog["model_visible"])
+        self.assertEqual(declared - visible, set(), "upstream absent from Host catalog")
+        self.assertFalse(declared & set(catalog["manual_only"]))
+        for skill in (ROOT / "skills").glob("*/SKILL.md"):
+            self.assertNotEqual(
+                parse_frontmatter(skill).get("disable-model-invocation", "false").lower(),
+                "true",
+                f"suite stage is manual-only: {skill}",
+            )
 
     def assert_domain_reference_resolves(self, root: Path) -> None:
         for stage in DESIGN_STAGES:
@@ -205,8 +243,6 @@ class PluginContractTests(unittest.TestCase):
             "codebase-design",
             "clean-architecture",
             "using-git-worktrees",
-            "to-spec",
-            "to-tickets",
             "tdd",
             "code-review",
             "verification-before-completion",
@@ -240,9 +276,8 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("do not write implementation code", text.lower())
 
     def test_plan_coder_contract(self) -> None:
-        text = self.assert_skill_contract(
-            "plan-coder", ("using-git-worktrees", "to-spec", "to-tickets")
-        )
+        text = self.assert_skill_contract("plan-coder", ("using-git-worktrees",))
+        self.assert_planning_templates_resolve(ROOT)
         worktree = text.lower().index("worktree")
         spec = text.lower().index("write the specification")
         tickets = text.lower().index("vertical tickets")

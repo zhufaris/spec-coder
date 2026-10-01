@@ -18,7 +18,7 @@ An approved specification, approved vertical-ticket plan, one atomic commit per 
 ## Process
 
 1. Inspect repository instructions, Git status, current branch, worktrees, relevant specifications and plans, plan checkboxes, and Git log before changing anything.
-2. Verify required local and upstream skills are installed and materially compatible for the selected path. Defer the optional `using-git-worktrees` check until workspace selection; its absence alone must not block safe in-place work. Stop for other missing required capabilities rather than approximating them.
+2. Verify required local and upstream skills are visible in the current Host catalog, permitted for model invocation and materially compatible for the selected path. A file on disk or an enabled plugin is insufficient; respect `disable-model-invocation: true` without attempting indirect invocation. Planning is native to `plan-coder` and needs its bundled templates, not external planning skills. Defer the optional `using-git-worktrees` check until workspace selection; its absence alone must not block safe in-place work. Stop for other unavailable required capabilities with specific evidence rather than approximating them.
 3. Classify the request:
    - For a new request, start with `grill-coder`.
    - For resumed work, infer the earliest incomplete phase from durable artifacts and fresh verification at the inferred boundary. Never maintain a private workflow-state file.
