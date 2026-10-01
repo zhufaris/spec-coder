@@ -10,6 +10,7 @@ This reference governs spec-coder's native planning templates. Keep the workflow
 - [Discover and evolve domain language](#discover-and-evolve-domain-language)
 - [Bounded contexts and their models](#bounded-contexts-and-their-models)
 - [Protect behavior and valid values](#protect-behavior-and-valid-values)
+- [Aggregate persistence semantics](#aggregate-persistence-semantics)
 - [Consistency and interaction contracts](#consistency-and-interaction-contracts)
 - [Architecture that can be verified](#architecture-that-can-be-verified)
 - [Design content and specification mapping](#design-content-and-specification-mapping)
@@ -66,6 +67,16 @@ Give every significant invariant an authoritative enforcing module and an observ
 - Extract a policy when a decision has an independent business name, varies independently or is reused. Keep a simple condition in its natural owner when extraction adds no value. State how the authoritative operation applies the policy so preview and execution do not acquire divergent rules. A DDD Specification is a decision predicate, not the spec-coder specification document; avoid using the shared name ambiguously. Do not require a policy class hierarchy or generic rule engine.
 - Name domain events after meaningful facts that have occurred. Define which successful transition produces a fact and how rejection behaves when events are part of the approved design; do not add events as generic callbacks merely because a model has state.
 
+## Aggregate persistence semantics
+
+Apply this section when a change affects an aggregate or its persistence mapping. Keep the aggregate as small as the invariants requiring atomic consistency allow. Protect its internal mutations through the root's behavior interface; do not expose mutable children that can bypass those rules. Relationships and joins do not justify absorbing other contexts' records into the aggregate.
+
+Define repositories as collection-like access to the aggregates the use case actually needs, hiding storage shape. Specify identity, absence, save/load results and applicable conditional-write semantics. Reuse existing interfaces; do not create a repository per table or force read-only projections through the write model. Persistence metadata can belong to an enclosing persistence contract rather than the business entity, but required conflict information must survive the round trip.
+
+Restore persisted identity, value meaning, lifecycle state and applicable concurrency information through controlled reconstitution. Preserve intrinsic validity without replaying public business commands, emitting new business facts or rerunning today's creation/eligibility rules on legitimate historical state. Distinguish current transition preconditions from structural validity; define how malformed or incompatible stored values are reported or migrated instead of silently supplying lost currency, version or other business data.
+
+Verify with the appropriate existing adapter/integration seam: save, load, then exercise a domain operation and inspect the observable result. Include identity, value equality/constraints, state and relevant child behavior or version semantics. A field-copy assertion or an always-successful fake is insufficient for actual mapping/atomicity guarantees. Test the approved conflicting interleaving separately when concurrency matters; green sequential round trips alone do not prove it.
+
 ## Consistency and interaction contracts
 
 - For each concurrently mutable invariant, identify the atomic operation or conflict detection mechanism, its consistency scope, and the observable losing outcome. A precondition check followed by an unprotected write cannot by itself guarantee the invariant. Test the relevant interleaving, not only sequential success.
@@ -95,7 +106,7 @@ Use the bundled [specification template](./specification-template.md). Put the f
 | User scenarios | User Stories; Implementation Decisions / Behavior & Failure Modes | Triggers, observable outcomes, rejection and relevant retry behavior |
 | Domain model | Implementation Decisions / Domain Model | Affected contexts, canonical terms, actions, valid values, justified policies, enforcing owners, invariants and consistency boundaries |
 | Architecture | Implementation Decisions / Architecture | Domain/application/adapter responsibilities, public interfaces, source dependency direction, assembly and boundary data |
-| Verification | Testing Decisions | Scenario/invariant to public test seam; separate evidence for dependency rules |
+| Verification | Testing Decisions | Scenario/invariant to public test seam; applicable persistence round trip and subsequent behavior; separate evidence for dependency rules |
 | Limits and unresolved decisions | Out of Scope; Further Notes | Explicit exclusions, open questions, and the decisions they block |
 | Language evolution | Implementation Decisions / Compatibility & Migration | Changed meanings/names, affected public consumers, compatibility constraints and approved migration scope |
 
@@ -128,6 +139,8 @@ Before Gate 3, check coverage in both directions: every in-scope scenario and in
 In `tdd-coder`, resolve a ticket's spec references before writing Red. Identify the contexts/model elements that own the rules and the approved concurrency/interaction semantics. Translate applicable success, rejection, interleaving, duplicate and partial-failure scenarios into behavior tests at approved public seams. During Green, place rules in their enforcing modules and preserve source dependency constraints. A dangling reference or missing behavioral decision must be resolved before implementation.
 
 For applicable modeling changes, verify business actions and rejection outcomes, value construction/equality, independently meaningful policies and relevant bypass paths through public behavior interfaces. Use domain behavior in test names. Delivery checks that these guarantees and context-specific language survive all affected entry paths and approved compatibility mappings; model names alone are not evidence.
+
+When persistence is affected, preserve the approved aggregate/repository and reconstitution semantics in the specification and ticket acceptance. Implementation and delivery require actual mapping and post-load behavior evidence at the appropriate seam, including intrinsic value validity, protected child state and applicable conflict information. A missing stored value or unspecified legacy migration is a decision to resolve, not permission to guess a default.
 
 Behavior tests establish outcomes, not source dependency direction. Use existing import/lint/architecture checks when available; otherwise record a concrete dependency review with module/import evidence. Do not introduce test-only ports just to make a layer diagram look complete.
 

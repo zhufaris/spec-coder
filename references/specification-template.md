@@ -31,9 +31,11 @@ Preserve decisions already made in design. Use subsections where useful:
 
 Describe responsibilities and contracts rather than prescribing every class or method. Refer to evidence without turning a transient file layout into the design. Do not invent a domain service, port, event or recovery policy during synthesis.
 
+When aggregate persistence is affected, preserve approved root/mutation boundaries, repository save/load/conflict semantics and controlled reconstitution in the decisions above. Distinguish intrinsic validity from current transition eligibility; identify missing historical data and required migration decisions.
+
 ### Testing Decisions
 
-Map applicable scenarios/invariants to approved public testing seams and prior test patterns. Include relevant action/refusal and bypass outcomes, value construction/equality and policy behavior. State observable evidence for relevant interleavings, failure and recovery behavior. Record dependency/import/type/assembly evidence separately from outcome tests. For structural-only changes, identify preservation checks and structural evidence. Return a newly required testing seam to design rather than silently selecting it.
+Map applicable scenarios/invariants to approved public testing seams and prior test patterns. Include relevant action/refusal and bypass outcomes, value construction/equality and policy behavior. For persistence changes, preserve approved round-trip and post-load behavior checks at existing adapter/integration seams, including state, value and applicable version semantics. State observable evidence for relevant interleavings, failure and recovery behavior. Record dependency/import/type/assembly evidence separately from outcome tests. For structural-only changes, identify preservation checks and structural evidence. Return a newly required testing seam to design rather than silently selecting it.
 
 ### Out of Scope
 

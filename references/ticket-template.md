@@ -17,7 +17,7 @@ For each ticket, include:
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes, approved public test seams, affected checks and separate dependency evidence |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
 
-For relevant domain changes, references and acceptance preserve the approved business actions, refusal/bypass outcomes, value validity/equality, policy responsibilities and terminology compatibility. Keep these requirements within the capability slice, rather than separate tickets for model classes or a copied domain inventory.
+For relevant domain changes, references and acceptance preserve the approved business actions, refusal/bypass outcomes, value validity/equality, policy responsibilities and terminology compatibility. When persistence is affected, include aggregate save/load, controlled restoration, post-load behavior and applicable conflict verification. Keep these requirements within the capability slice, rather than separate tickets for model classes or a copied domain inventory.
 
 ## Slicing rules
 

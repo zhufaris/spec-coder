@@ -124,3 +124,20 @@ Expected application:
 - Explain immutable EmailAddress construction, approved normalization/equality and the distinction from recipient identity.
 - Justify the shared variable eligibility policy, retain simple expiry with its owner, and distinguish DDD Specification from the workflow document.
 - Carry these constraints into specification and vertical-ticket acceptance without inventing the missing policy rules.
+
+## Aggregate persistence and post-load behavior
+
+Input (use this text verbatim; provide only it and the skill/reference artifacts to the evaluator):
+
+```text
+Use the supplied domain-design-contract and worked examples to propose a compact model and verification strategy; state what a specification and vertical ticket must preserve. Return advice only; do not edit project files.
+
+An Order has identity, lines and a Money total (amount and currency). Cancel is allowed only before shipment; a cancelled order refuses shipment. The approved persistence mechanism uses optimistic versions for competing cancellation and shipment. The adapter has save(order) and load(id); its current mapper restores total as a decimal without currency, discards the version, and attaches publicly mutable line objects. Current tests check only saved ID and numeric amount using an in-memory fake. Loading a cancelled order then calling ship must still refuse. Existing integration tests can use the actual database adapter in an isolated transaction. A developer proposes putting payment/refund/provider history into the Order aggregate because tables join, adding repositories per table, and reconstructing by replaying public business commands. Identify responsibilities, necessary verification and decisions still missing.
+```
+
+Expected application:
+- Keep the aggregate boundary justified by invariants, protect child mutations and reject repositories per table.
+- Identify lost Money currency and version as semantic defects; preserve intrinsic validity, identity and state, using controlled reconstitution without replaying business commands.
+- Use the existing real adapter to verify round trips and post-load shipping refusal; separately verify approved version conflicts and losing outcomes.
+- Identify missing conflict response, historical currency/version data or migration decisions instead of inventing defaults.
+- Carry restoration and mapping checks into specification/ticket acceptance and preserve separate architecture evidence.

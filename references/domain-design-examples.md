@@ -7,6 +7,7 @@ Use these examples to apply the [domain design contract](./domain-design-contrac
 - [Context map and local models](#context-map-and-local-models)
 - [Rule placement and services](#rule-placement-and-services)
 - [Invitation actions, values and policies](#invitation-actions-values-and-policies)
+- [Aggregate round trip](#aggregate-round-trip)
 - [Concurrent cancellation and shipment](#concurrent-cancellation-and-shipment)
 - [Refund timeouts and duplicates](#refund-timeouts-and-duplicates)
 - [Dependencies and boundary data](#dependencies-and-boundary-data)
@@ -61,6 +62,18 @@ If the domain explicitly defines EmailAddress equality as case-sensitive in the 
 If workspace-plan eligibility varies independently and is reused by preview and acceptance, name an eligibility policy and define its result and how the operation enforces it. Keep a simple expiry predicate with the invitation unless it has its own reason to vary. The policy is not a spec-coder specification document. If plan eligibility rules are missing, identify that gap and affected readiness instead of inventing a permission rule.
 
 Keep existing public `status` fields/values when compatibility is required; internal vocabulary can improve through explicit mapping. Verify the domain operation's allowed/rejected transitions, value equality/normalization, relevant bypass paths, and preview/execution consistency at the agreed interfaces. A spec preserves these decisions and compatibility limits; a vertical acceptance ticket references them and includes the rejection/bypass evidence, rather than merely requesting an Invitation class.
+
+## Aggregate round trip
+
+Suppose an Order mapper reloads a Money total as a decimal without currency, drops the optimistic version, and exposes mutable lines. Saving the same ID and amount in a fake does not establish correct domain restoration. Money equality needs the approved amount/currency meaning; the conditional-write contract needs its expected version, whether held on the entity or in a persistence envelope.
+
+Define the minimum aggregate from the rules it must protect; joined payment/provider records do not become its children by default. Repository operations load and save the aggregate needed by the use case, without exposing table-shaped writes that bypass its rules. Read projections can continue to use their authorized query interface.
+
+At the existing real-adapter seam, save an Order, load it and verify identity, Money and state. Load a cancelled order and show that shipping is still refused without changing persisted state. Exercise line changes through the approved root operation; external mutation must not bypass the applicable invariant. Verify conditional writes with the approved competing cancellation/shipment interleaving, including the losing result.
+
+Reconstitution restores a cancelled state without calling `cancel()` again or producing new business effects. Likewise, loading a previously valid but now expired invitation must not apply a new-invitation expiry check. Intrinsic malformed values remain errors to handle under the agreed storage/migration contract. If old rows lack currency or versions, identify the missing decision and affected readiness; do not invent either value.
+
+The spec records restoration and save/conflict semantics; the persistence capability ticket carries the round-trip and post-load behavior acceptance alongside the relevant domain rules. An integration test plan is not proof that those tests have run.
 
 ## Concurrent cancellation and shipment
 
