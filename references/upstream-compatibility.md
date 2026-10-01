@@ -1,5 +1,7 @@
 # Upstream Compatibility
 
+This compatibility contract applies to spec-coder `0.3.0`.
+
 The plugin owns specification synthesis and ticket decomposition through `plan-coder` and its bundled [specification](./specification-template.md) and [ticket](./ticket-template.md) templates. Other stages compose installed, model-callable skills by capability and name.
 
 ## Capability Map
@@ -33,7 +35,7 @@ These source snapshots identify the integration's provenance, not proof that eve
 
 Before a stage delegates, confirm that each required upstream skill is visible in the current Host skill catalog, permitted for model invocation, and materially compatible with the expected input/output contract. Disk presence, plugin enablement and configuration overrides are not proof of invocation eligibility. Inspect the selected entry's metadata when needed: `disable-model-invocation: true` is a hard boundary even if the file can be read. If the catalog entry or invocation eligibility is absent, do not execute that skill indirectly through file reads, renamed wrappers, configuration changes, edited frontmatter or subagents.
 
-The current Matt Pocock `to-spec` and `to-tickets` entries are manual-only and intentionally excluded from the capability map. They are not dependencies of spec-coder 0.2.1. Users may invoke them manually outside this orchestration; do not require their installation, modify their flags, or ask the user to run them to complete native planning.
+The current Matt Pocock `to-spec` and `to-tickets` entries are manual-only and intentionally excluded from the capability map. They are not dependencies of spec-coder 0.3.0. Users may invoke them manually outside this orchestration; do not require their installation, modify their flags, or ask the user to run them to complete native planning.
 
 The initial orchestrator check defers the bundled `using-git-worktrees` path
 until workspace selection. Its mechanics are irrelevant to safe in-place work.

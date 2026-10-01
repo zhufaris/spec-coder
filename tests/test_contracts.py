@@ -67,7 +67,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.2.1")
+        self.assertEqual(manifest["version"], "0.3.0")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -634,6 +634,14 @@ class PluginContractTests(unittest.TestCase):
 
         for skill in EXPECTED_SKILLS:
             self.assertIn(f"`{skill}`", readme)
+        self.assertEqual(len(EXPECTED_SKILLS), 9)
+        for published_doc in (readme, install_guide, compatibility):
+            self.assertIn("0.3.0", published_doc)
+        self.assertNotIn("0.2.1", "\n".join((install_guide, compatibility)))
+        self.assertIn("九个 skill", readme)
+        self.assertIn("九个 skill", install_guide)
+        self.assertNotRegex(readme, r"(?i)trax")
+        self.assertNotIn("global-agents-snippet.md", readme + install_guide)
         self.assertIn("codex plugin marketplace add", readme)
         self.assertIn("codex plugin add spec-coder@spec-coder", readme)
         self.assertIn('codex plugin marketplace add "$REPO_ROOT"', installer)
