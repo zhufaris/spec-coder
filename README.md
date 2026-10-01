@@ -1,6 +1,6 @@
 # spec-coder
 
-`spec-coder` 是一组面向 TraeCode 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
+`spec-coder` 是一组面向 Coding Agent 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
 它参考 Matt Pocock skills 的“小而可组合”结构，但不复制上游 skill 内容。仓库中的 wrapper 负责固定阶段、审批门禁、产物位置和 Git 安全策略。
 
