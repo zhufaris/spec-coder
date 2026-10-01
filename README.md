@@ -14,6 +14,7 @@
 | `plan-coder` | 按任务选择原地执行或 worktree、建立基线、生成规格和垂直 tickets |
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
+| `show-me` | 在每次 suite-owned 审批前生成紧凑的 inline ASCII review map |
 
 ## Install
 
@@ -39,7 +40,7 @@ codex plugin marketplace add zhufaris/spec-coder
 codex plugin add spec-coder@spec-coder
 ```
 
-私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查六个 skill 是否出现。
+私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查七个 skill 是否出现。
 
 ## Dependencies
 
@@ -63,11 +64,13 @@ codex plugin add spec-coder@spec-coder
 ./scripts/validate.sh
 ```
 
-验证包括仓库契约测试、六个 skill 的官方格式检查，以及 Git whitespace 检查。
+验证包括仓库契约测试、七个 skill 的官方格式检查，以及 Git whitespace 检查。
 
 ## Workflow
 
 Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
+
+Gate 1、Gate 2、Gate 3、重新打开的 Gate 以及 suite-owned mutation authorization 都会先调用本地 `show-me`，在对话中显示简短 ASCII review map。完整 artifact 或 diff 仍是审批依据；图不会自动授予批准，也不依赖 tmux、编辑器或浏览器。
 
 DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Bounded Context、各自的语言和状态所有权，以及必要的 Entity、Value Object、Aggregate 和 Domain Service；区分领域规则、应用编排与 adapter 转换。涉及并发、重试或跨上下文协作时，明确原子性、冲突结果、幂等与恢复责任。模型角色不必逐一对应类，小任务使用简短描述。
 

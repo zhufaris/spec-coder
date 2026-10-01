@@ -22,6 +22,19 @@ Stop for explicit user approval after:
 
 Approval applies only to the artifact presented at that gate. A scope or architecture change reopens the relevant gate. After the third gate, in-scope TDD, verification, and atomic commits proceed without another confirmation.
 
+Before asking at Gate 1, Gate 2, or Gate 3, the owning stage must follow the
+[approval review contract](./approval-review-contract.md) and invoke bundled
+`show-me`. Supply the artifact or exact proposed mutation, key decisions,
+risks/blockers, approval effect, and next stage. Present the authoritative
+artifact or diff and the ASCII review map before the explicit approval
+question; the map does not grant approval.
+
+A reopened gate uses the same review contract and must show the prior approval,
+changed fact, affected decision, and returned gate. Any other suite-owned
+mutation authorization follows the same rule. Ordinary clarification, status,
+read-only checks, and work already authorized by Gate 3 are not additional
+approval requests.
+
 ## Artifact Contract
 
 Write target-project artifacts only after `plan-coder` selects a safe workspace and establishes a green baseline. The workspace can be the current checkout or a linked worktree:

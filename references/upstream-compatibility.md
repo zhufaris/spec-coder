@@ -10,6 +10,12 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 - `tdd` -> `tdd-coder`
 - `code-review` and `verification-before-completion` -> `delivery-coder`
 
+## Bundled Capabilities
+
+- `show-me` is a local approval-review adapter used before every suite-owned
+  approval request. It is model-callable with the plugin and does not require
+  an external show-me package, tmux, editor, browser, or executable.
+
 ## Reference Snapshots
 
 These source snapshots identify the integration's provenance, not proof that every skill in them is model-callable or currently compatible. Apply the live checks below.

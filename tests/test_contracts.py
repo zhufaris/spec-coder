@@ -16,6 +16,7 @@ EXPECTED_SKILLS = {
     "plan-coder",
     "tdd-coder",
     "delivery-coder",
+    "show-me",
 }
 DESIGN_STAGES = ("grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
 DESIGN_REFERENCE = "../../references/domain-design-contract.md"
@@ -24,6 +25,7 @@ PLANNING_REFERENCES = (
     "../../references/specification-template.md",
     "../../references/ticket-template.md",
 )
+APPROVAL_REFERENCE = "../../references/approval-review-contract.md"
 
 
 def read_text(path: Path) -> str:
@@ -164,6 +166,12 @@ class PluginContractTests(unittest.TestCase):
                         self.assertEqual(target.read_bytes(), source.read_bytes())
             self.assert_domain_reference_resolves(installed_root)
             self.assert_planning_templates_resolve(installed_root)
+            self.assert_approval_reference_resolves(installed_root)
+            notice = installed_root / "THIRD_PARTY_NOTICES.md"
+            self.assertTrue(notice.is_file())
+            self.assertEqual(
+                notice.read_bytes(), (ROOT / "THIRD_PARTY_NOTICES.md").read_bytes()
+            )
 
     def assert_planning_templates_resolve(self, root: Path) -> None:
         skill = root / "skills" / "plan-coder" / "SKILL.md"
@@ -172,6 +180,16 @@ class PluginContractTests(unittest.TestCase):
             with self.subTest(template=link):
                 self.assertIn(link, links)
                 target = (skill.parent / link).resolve()
+                self.assertTrue(target.is_relative_to(root.resolve()))
+                self.assertTrue(target.is_file())
+
+    def assert_approval_reference_resolves(self, root: Path) -> None:
+        for skill_name in ("show-me", "design-coder", "plan-coder"):
+            with self.subTest(skill=skill_name):
+                skill = root / "skills" / skill_name / "SKILL.md"
+                links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
+                self.assertIn(APPROVAL_REFERENCE, links)
+                target = (skill.parent / APPROVAL_REFERENCE).resolve()
                 self.assertTrue(target.is_relative_to(root.resolve()))
                 self.assertTrue(target.is_file())
 
@@ -216,6 +234,71 @@ class PluginContractTests(unittest.TestCase):
 
     def test_domain_reference_is_available_to_every_design_stage(self) -> None:
         self.assert_domain_reference_resolves(ROOT)
+
+    def test_approval_review_is_available_at_every_gate(self) -> None:
+        self.assert_approval_reference_resolves(ROOT)
+        workflow = read_text(ROOT / "references" / "workflow-contract.md")
+        design = read_text(ROOT / "skills" / "design-coder" / "SKILL.md")
+        plan = read_text(ROOT / "skills" / "plan-coder" / "SKILL.md")
+        orchestrator = read_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
+
+        for text in (workflow, design, plan, orchestrator):
+            self.assertIn("`show-me`", text)
+        for gate in ("Gate 1", "Gate 2", "Gate 3"):
+            self.assertIn(gate, workflow)
+        normalized_workflow = " ".join(workflow.lower().split())
+        for phrase in (
+            "reopened gate",
+            "artifact or exact proposed mutation",
+            "explicit approval question",
+        ):
+            self.assertIn(phrase, normalized_workflow)
+
+    def test_show_me_contract_is_ascii_only_and_non_authorizing(self) -> None:
+        path = ROOT / "skills" / "show-me" / "SKILL.md"
+        fields = parse_frontmatter(path)
+        self.assertEqual(fields["name"], "show-me")
+        self.assertIn("approval", fields["description"].lower())
+        self.assertNotEqual(
+            fields.get("disable-model-invocation", "false").lower(), "true"
+        )
+        text = read_text(path)
+        contract = read_text(ROOT / "references" / "approval-review-contract.md")
+        metadata = read_text(path.parent / "agents" / "openai.yaml")
+
+        for heading in ("## Input", "## Output", "## Process", "## Stop Conditions"):
+            self.assertIn(heading, text)
+        for field in (
+            "approval kind",
+            "artifact or exact proposed mutation",
+            "key decisions",
+            "risks or blockers",
+            "approval effect",
+            "next stage",
+        ):
+            self.assertIn(field, contract.lower())
+        for phrase in (
+            "3-7",
+            "80 columns",
+            "linear fallback",
+            "does not grant approval",
+            "authoritative artifact or diff",
+            "returned gate",
+            "exact diff or replacement bytes",
+        ):
+            self.assertIn(phrase, contract.lower())
+        for dependency in ("tmux", "neovim", "browser", "external executable"):
+            self.assertIn(f"must not require {dependency}", contract.lower())
+        self.assertIn('$show-me', metadata)
+        self.assertIn('display_name: "Show Me"', metadata)
+
+        notice = read_text(ROOT / "THIRD_PARTY_NOTICES.md")
+        for phrase in (
+            "mbailey/show-me",
+            "Copyright (c) 2024 Mike Bailey",
+            "MIT License",
+        ):
+            self.assertIn(phrase, notice)
 
     def test_maintainer_docs_are_repository_ignored(self) -> None:
         ignore_rules = read_text(ROOT / ".gitignore").splitlines()
@@ -359,8 +442,23 @@ class PluginContractTests(unittest.TestCase):
         )
         for heading in headings:
             self.assertIn(heading, scenarios)
+        approval_headings = (
+            "## Approval review at a main gate",
+            "## Reopened gate review",
+            "## Approval review fallback",
+        )
+        for heading in approval_headings:
+            self.assertIn(heading, scenarios)
         for field in ("Starting state:", "Expected route:", "Forbidden action:"):
-            self.assertEqual(scenarios.count(field), len(headings))
+            self.assertEqual(scenarios.count(field), len(headings) + len(approval_headings))
+        approval_section = scenarios.split(approval_headings[0], 1)[1]
+        for phrase in (
+            "ReviewSnapshot",
+            "authoritative artifact",
+            "does not grant approval",
+            "linear ASCII",
+        ):
+            self.assertIn(phrase, approval_section)
 
     def test_repository_is_self_describing_and_installable(self) -> None:
         readme = read_text(ROOT / "README.md")

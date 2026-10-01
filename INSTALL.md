@@ -37,7 +37,7 @@ test -x scripts/install-local.sh
 ./scripts/validate.sh
 ```
 
-该命令会运行契约测试、逐个校验六个 skill，并检查 Git whitespace。只有验证成功后才继续。若验证器路径不是默认位置，可显式传入：
+该命令会运行契约测试、逐个校验七个 skill，并检查 Git whitespace。只有验证成功后才继续。若验证器路径不是默认位置，可显式传入：
 
 ```bash
 SKILL_VALIDATOR=/absolute/path/to/quick_validate.py ./scripts/validate.sh
@@ -96,12 +96,12 @@ codex plugin list --json
 
 `plan-coder` 的规划能力和模板包含在插件内；其他阶段所需的上游 skills 不会自动安装。启动一个新的 Codex 会话，通过 `/skills` 确认本插件和当前执行路径所需的上游 skills 可见且允许模型调用：
 
-- 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`
+- 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`、`show-me`
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
 - Superpowers：`brainstorming`、`verification-before-completion`；选择 worktree 隔离路径时另需 `using-git-worktrees`
 - Architecture：`clean-architecture`
 
-若六个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不要求 `using-git-worktrees`；选定隔离路径后才检查该能力，无法使用时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+若七个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不要求 `using-git-worktrees`；选定隔离路径后才检查该能力，无法使用时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
 `to-spec` 和 `to-tickets` 不是 `0.2.1` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；重开会话或启用配置不会改变这个边界。不要修改 upstream 标志或通过文件读取间接执行；原生 `plan-coder` 使用随插件安装的模板。
 
@@ -126,7 +126,7 @@ codex plugin list --json
 
 在新的 Codex 会话中完成以下检查：
 
-1. `/skills` 能看到六个 `spec-coder` skills。
+1. `/skills` 能看到七个 `spec-coder` skills，包括本地 `show-me`。
 2. 当前执行路径必需的上游依赖 skills 都可见且允许模型调用；原地执行无需 `using-git-worktrees`，规划无需两个手动专用 skills。
 3. 发起一个只读问题时，不应自动进入 `spec-coder`。
 4. 发起一个代码修改请求时，应进入 `spec-coder`；如果未配置默认路由，则显式要求“使用 spec-coder”。

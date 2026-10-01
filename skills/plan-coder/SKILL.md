@@ -11,6 +11,12 @@ Read and apply the [domain design contract](../../references/domain-design-contr
 
 Read the [worked examples](../../references/domain-design-examples.md) when translating context/model responsibilities, consistency requirements or interactions into verifiable slices.
 
+Read the [approval review contract](../../references/approval-review-contract.md).
+Before asking at Gate 2 or Gate 3, invoke bundled `show-me` with the artifact,
+decisions, material risks/blockers, approval effect, and immediate next stage.
+The ASCII map supplements the complete specification or ticket set and the
+explicit approval question.
+
 ## Input
 
 A Gate 1-approved design, the target repository, its project instructions, and any existing `spec-coder` artifacts.
@@ -25,10 +31,10 @@ A selected safe workspace and recorded rationale (in place or isolated), account
 2. Prepare dependencies using repository conventions, then run the applicable baseline tests, lint, type checks, and build.
 3. Stop with the exact commands and output when the baseline is not green.
 4. Synthesize the approved design to write the specification at `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` using the local specification template. Preserve approved outcomes, model/architecture decisions and testing seams; do not conduct a new interview or invent missing decisions. Record workspace mode, reason, branch, starting revision and relevant initial changes in the artifact. Keep it local.
-5. Before Gate 2, reconcile approved scenarios, affected context maps and model responsibilities, invariants, consistency/interaction decisions, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder` rather than inventing entities, services or recovery policies. Present the written specification and stop at Gate 2 until the user approves it.
+5. Before Gate 2, reconcile approved scenarios, affected context maps and model responsibilities, invariants, consistency/interaction decisions, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder` rather than inventing entities, services or recovery policies. Present the written specification, invoke `show-me`, and stop at Gate 2 until the user approves it.
 6. After specification approval, create vertical tickets using the local ticket template: each increment delivers a complete observable capability through the necessary modules and fits one agent context window. Include real blocking edges, acceptance criteria and references to the approved contexts/model elements, rules, interfaces, consistency/interaction constraints and verification. Do not copy the whole model or split mechanically by layers. A ticket can span business contexts under an approved interaction contract. Store tickets as checkboxes in one plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`.
 7. Mirror the durable ticket plan into the runtime plan with at most one item in progress. The Markdown plan remains authoritative.
-8. Before Gate 3, check that all in-scope scenarios/invariants have responsible tickets, every ticket traces to approved decisions, blockers are real prerequisites, and each increment is independently verifiable. Name unresolved load-bearing decisions and affected tickets; resolve them through design/specification rather than assuming them or marking affected tickets ready. Independent approved slices need not be blocked by an unrelated open decision. Present the ticket set and stop at Gate 3 until the user approves it and authorizes implementation.
+8. Before Gate 3, check that all in-scope scenarios/invariants have responsible tickets, every ticket traces to approved decisions, blockers are real prerequisites, and each increment is independently verifiable. Name unresolved load-bearing decisions and affected tickets; resolve them through design/specification rather than assuming them or marking affected tickets ready. Independent approved slices need not be blocked by an unrelated open decision. Present the ticket set, invoke `show-me`, and stop at Gate 3 until the user approves it and authorizes implementation.
 
 Creating an external issue, publishing to an issue tracker, pushing a branch, or opening a pull request always requires separate explicit authorization.
 

@@ -7,6 +7,11 @@ description: Orchestrate code-changing requests through requirements grilling, d
 
 Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages.
 
+All initial and reopened approval gates use bundled `show-me` under the shared
+approval review contract. The stage that owns the gate supplies grounded facts,
+presents the complete artifact, asks the explicit question, and interprets the
+answer; visualization never owns approval.
+
 ## Input
 
 A new coding request, or a repository containing partial spec-coder artifacts from an interrupted workflow.
@@ -29,7 +34,11 @@ An approved specification, approved vertical-ticket plan, one atomic commit per 
    4. `tdd-coder` executes exactly one unblocked ticket at a time through Red-Green, affected checks, a plan-checkbox update, and an atomic commit. Repeat until all tickets are complete.
    5. `delivery-coder` performs findings-first review, routes repairs back through TDD, runs the full applicable suite, and alone may produce the terminal completion claim.
 5. Keep the durable plan checkboxes as task-state truth and mirror them in the runtime plan with at most one active ticket.
-6. Reopen the affected approval gate whenever scope or architecture changes. Return to `design-coder` when implementation evidence invalidates an approved assumption.
+6. Reopen the affected approval gate whenever scope or architecture changes.
+   Show the prior approval, changed fact, affected decision, and return path
+   through `show-me` before requesting renewed approval. Return to
+   `design-coder` when implementation evidence invalidates an approved
+   assumption.
 7. Stop after the same blocking condition occurs three consecutive times, preserving the exact evidence and resume point.
 
 The three human gates are design approval, written-specification approval, and ticket-set approval plus implementation authorization. After the third gate, proceed autonomously within the approved scope through TDD, review, verification, and commits.

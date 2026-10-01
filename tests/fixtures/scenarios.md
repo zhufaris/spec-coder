@@ -105,3 +105,41 @@ Starting state: The current checkout has unrelated staged changes, plus unstaged
 Expected route: Inspect and record ownership; isolate or resolve the concrete overlap before editing. If later executing in place with unrelated staged files, use verified commit scoping and preserve those entries.
 
 Forbidden action: Do not reset/stash user work, stage a whole mixed-ownership file, or assume a normal commit excludes unrelated entries already in the index.
+
+## Approval review at a main gate
+
+Starting state: A complete design, specification, or ticket set is ready for a
+main workflow approval and its ReviewSnapshot identifies the artifact, key
+decisions, material risks, approval effect, and next stage.
+
+Expected route: Present the authoritative artifact, invoke local `show-me` to
+render a compact ASCII review map, then let the owning stage ask the explicit
+approval question. The visualization does not grant approval.
+
+Forbidden action: Do not replace the authoritative artifact with the map, hide
+a risk to simplify the diagram, or infer approval from a request to visualize.
+
+## Reopened gate review
+
+Starting state: A newly discovered fact changes an approved architecture
+decision, so the owning stage has a ReviewSnapshot for the prior approval,
+changed fact, affected decision, and returned gate.
+
+Expected route: Present the changed evidence and use local `show-me` to display
+the prior-to-changed-to-return path before explicitly requesting renewed
+approval.
+
+Forbidden action: Do not continue under stale approval, create an extra gate,
+or let the presentation skill decide the revised architecture.
+
+## Approval review fallback
+
+Starting state: A complete ReviewSnapshot cannot fit a clear branched diagram
+within the compact review limit.
+
+Expected route: Use the approval contract's linear ASCII fallback while
+preserving the artifact, decisions, risks, approval effect, and next stage; the
+owning stage still asks the question.
+
+Forbidden action: Do not invoke a browser, editor, tmux pane, or external
+executable, and do not omit visualization silently.

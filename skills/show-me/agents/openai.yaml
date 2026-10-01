@@ -1,0 +1,4 @@
+interface:
+  display_name: "Show Me"
+  short_description: "Render compact ASCII maps for approval review"
+  default_prompt: "Use $show-me to render this approval request as a compact ASCII review map."
