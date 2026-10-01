@@ -659,7 +659,7 @@ git commit -m "feat: add reviewed delivery stage"
 - Produces: routing to the earliest incomplete phase and a terminal result from `delivery-coder`.
 - Depends on: all five local stage skills and the shared workflow contract.
 
-- [ ] **Step 1: Add failing suite and recovery tests**
+- [x] **Step 1: Add failing suite and recovery tests**
 
 ```python
     def test_exact_skill_set_exists(self) -> None:
@@ -689,7 +689,7 @@ git commit -m "feat: add reviewed delivery stage"
         self.assertNotIn("state.yaml", text.lower())
 ```
 
-- [ ] **Step 2: Run both focused tests and observe failure**
+- [x] **Step 2: Run both focused tests and observe failure**
 
 ```bash
 python3 -m unittest -v tests/test_contracts.py
@@ -697,7 +697,7 @@ python3 -m unittest -v tests/test_contracts.py
 
 Expected: FAIL because `skills/spec-coder/SKILL.md` does not exist and the skill set is incomplete.
 
-- [ ] **Step 3: Initialize and implement `spec-coder`**
+- [x] **Step 3: Initialize and implement `spec-coder`**
 
 Run:
 
@@ -720,7 +720,7 @@ Replace the template with:
 - a rule to stop on missing or incompatible upstream skills;
 - a terminal completion condition reachable only through `delivery-coder`.
 
-- [ ] **Step 4: Validate and run the complete contract suite**
+- [x] **Step 4: Validate and run the complete contract suite**
 
 ```bash
 /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/spec-coder
@@ -729,7 +729,7 @@ python3 -m unittest -v tests/test_contracts.py
 
 Expected: all contract tests pass and exactly six skill directories exist.
 
-- [ ] **Step 5: Commit the orchestrator**
+- [x] **Step 5: Commit the orchestrator**
 
 ```bash
 git add skills/spec-coder tests/test_contracts.py

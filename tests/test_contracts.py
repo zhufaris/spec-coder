@@ -151,6 +151,32 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(phrase, text.lower())
         self.assertIn("tdd-coder", text)
 
+    def test_exact_skill_set_exists(self) -> None:
+        actual = {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()}
+        self.assertEqual(actual, EXPECTED_SKILLS)
+
+    def test_spec_coder_orchestration_contract(self) -> None:
+        text = self.assert_skill_contract(
+            "spec-coder",
+            (
+                "grill-coder",
+                "design-coder",
+                "plan-coder",
+                "tdd-coder",
+                "delivery-coder",
+            ),
+        )
+        for phrase in (
+            "earliest incomplete phase",
+            "current branch",
+            "plan checkboxes",
+            "git log",
+            "fresh verification",
+            "three consecutive",
+        ):
+            self.assertIn(phrase, text.lower())
+        self.assertNotIn("state.yaml", text.lower())
+
 
 if __name__ == "__main__":
     unittest.main()
