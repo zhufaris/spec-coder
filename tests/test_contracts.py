@@ -136,6 +136,21 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(phrase, text.lower())
         self.assertIn("git add -A", text)
 
+    def test_delivery_coder_contract(self) -> None:
+        text = self.assert_skill_contract(
+            "delivery-coder", ("code-review", "verification-before-completion")
+        )
+        for phrase in (
+            "specification",
+            "domain language",
+            "dependency direction",
+            "full test",
+            "fresh evidence",
+            "do not push",
+        ):
+            self.assertIn(phrase, text.lower())
+        self.assertIn("tdd-coder", text)
+
 
 if __name__ == "__main__":
     unittest.main()

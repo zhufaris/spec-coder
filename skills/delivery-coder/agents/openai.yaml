@@ -1,0 +1,4 @@
+interface:
+  display_name: "Delivery Coder"
+  short_description: "Review changes and require fresh full-suite evidence"
+  default_prompt: "Use $delivery-coder to review and verify this completed plan."

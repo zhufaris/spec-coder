@@ -590,7 +590,7 @@ git commit -m "feat: add ticket-level TDD stage"
 - Produces: review findings, TDD-backed repairs when required, fresh full-suite evidence, any final atomic fix commit, and the completion report.
 - Upstream dependencies: `code-review` and `verification-before-completion`.
 
-- [ ] **Step 1: Add the failing `delivery-coder` contract test**
+- [x] **Step 1: Add the failing `delivery-coder` contract test**
 
 ```python
     def test_delivery_coder_contract(self) -> None:
@@ -609,13 +609,13 @@ git commit -m "feat: add ticket-level TDD stage"
         self.assertIn("tdd-coder", text)
 ```
 
-- [ ] **Step 2: Run the focused test and observe failure**
+- [x] **Step 2: Run the focused test and observe failure**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `skills/delivery-coder/SKILL.md` does not exist.
 
-- [ ] **Step 3: Initialize and implement `delivery-coder`**
+- [x] **Step 3: Initialize and implement `delivery-coder`**
 
 Run:
 
@@ -629,7 +629,7 @@ python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/init_s
 
 Replace the template with an ordered review-before-verification process. Require findings-first review against the spec, plan, domain language, architecture boundaries, and diff. Route behavior defects through `tdd-coder`; permit structural refactoring only under passing behavior tests. Run all applicable full test, lint, type-check, and build commands freshly before completion. Prohibit push, PR creation, and external publication.
 
-- [ ] **Step 4: Validate and run tests**
+- [x] **Step 4: Validate and run tests**
 
 ```bash
 /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/delivery-coder
@@ -638,7 +638,7 @@ python3 -m unittest -v tests/test_contracts.py
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit `delivery-coder`**
+- [x] **Step 5: Commit `delivery-coder`**
 
 ```bash
 git add skills/delivery-coder tests/test_contracts.py
