@@ -33,6 +33,20 @@ def parse_frontmatter(path: Path) -> dict[str, str]:
 
 
 class PluginContractTests(unittest.TestCase):
+    def assert_skill_contract(self, name: str, dependencies: tuple[str, ...]) -> str:
+        path = ROOT / "skills" / name / "SKILL.md"
+        fields = parse_frontmatter(path)
+        self.assertEqual(fields["name"], name)
+        self.assertIn("description", fields)
+        self.assertTrue(name.endswith("-coder"))
+        text = read_text(path)
+        for heading in ("## Input", "## Output", "## Process", "## Stop Conditions"):
+            self.assertIn(heading, text)
+        for dependency in dependencies:
+            self.assertIn(f"`{dependency}`", text)
+        self.assertIn("../../references/workflow-contract.md", text)
+        return text
+
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
@@ -79,6 +93,12 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(phrase, routing.lower())
 
         self.assertNotIn("TO" + "DO", workflow + compatibility + routing)
+
+    def test_grill_coder_contract(self) -> None:
+        text = self.assert_skill_contract("grill-coder", ("grilling",))
+        self.assertIn("one question at a time", text.lower())
+        self.assertIn("recommend", text.lower())
+        self.assertIn("original checkout", text.lower())
 
 
 if __name__ == "__main__":

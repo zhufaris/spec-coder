@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grill Coder"
+  short_description: "Interrogate requirements with recommended answers"
+  default_prompt: "Use $grill-coder to stress-test this coding request."

@@ -298,7 +298,7 @@ git commit -m "docs: define spec-coder workflow contracts"
 - Produces: dependency-ordered confirmed decisions in conversation context, or durable glossary/ADR updates only when already in a safe worktree.
 - Upstream dependency: `grilling`.
 
-- [ ] **Step 1: Add a reusable skill assertion and failing `grill-coder` test**
+- [x] **Step 1: Add a reusable skill assertion and failing `grill-coder` test**
 
 Add this helper and test:
 
@@ -324,13 +324,13 @@ Add this helper and test:
         self.assertIn("original checkout", text.lower())
 ```
 
-- [ ] **Step 2: Run the focused test and observe failure**
+- [x] **Step 2: Run the focused test and observe failure**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `skills/grill-coder/SKILL.md` does not exist.
 
-- [ ] **Step 3: Initialize `grill-coder` with the official skill script**
+- [x] **Step 3: Initialize `grill-coder` with the official skill script**
 
 ```bash
 python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/init_skill.py \
@@ -340,20 +340,20 @@ python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/init_s
   --interface 'default_prompt=Use $grill-coder to stress-test this coding request.'
 ```
 
-- [ ] **Step 4: Replace the generated skill body with the approved contract**
+- [x] **Step 4: Replace the generated skill body with the approved contract**
 
 Use only `name` and `description` in frontmatter. Include `Input`, `Output`, `Process`, and `Stop Conditions`. Require repository-first inspection, one question at a time, a recommendation with every question, explicit integration of each answer, and no writes to the original checkout. Link the shared workflow contract and invoke `grilling` rather than copying it.
 
-- [ ] **Step 5: Validate and run the focused contract test**
+- [x] **Step 5: Validate and run the focused contract test**
 
 ```bash
-python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/grill-coder
+/usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/grill-coder
 python3 -m unittest -v tests.test_contracts.PluginContractTests.test_grill_coder_contract
 ```
 
 Expected: both commands pass.
 
-- [ ] **Step 6: Commit `grill-coder`**
+- [x] **Step 6: Commit `grill-coder`**
 
 ```bash
 git add skills/grill-coder tests/test_contracts.py
@@ -419,7 +419,7 @@ Replace the template with a thin contract that:
 - [ ] **Step 4: Validate and run tests**
 
 ```bash
-python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/design-coder
+/usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/design-coder
 python3 -m unittest -v tests/test_contracts.py
 ```
 
@@ -496,7 +496,7 @@ State explicitly that external issue publication requires separate authorization
 - [ ] **Step 4: Validate and run tests**
 
 ```bash
-python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/plan-coder
+/usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/plan-coder
 python3 -m unittest -v tests/test_contracts.py
 ```
 
@@ -563,7 +563,7 @@ Replace the template with the fixed cycle from the design spec. Make the prohibi
 - [ ] **Step 4: Validate and run tests**
 
 ```bash
-python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/tdd-coder
+/usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/tdd-coder
 python3 -m unittest -v tests/test_contracts.py
 ```
 
@@ -632,7 +632,7 @@ Replace the template with an ordered review-before-verification process. Require
 - [ ] **Step 4: Validate and run tests**
 
 ```bash
-python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/delivery-coder
+/usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/delivery-coder
 python3 -m unittest -v tests/test_contracts.py
 ```
 
@@ -723,7 +723,7 @@ Replace the template with:
 - [ ] **Step 4: Validate and run the complete contract suite**
 
 ```bash
-python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/spec-coder
+/usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/spec-coder
 python3 -m unittest -v tests/test_contracts.py
 ```
 
@@ -789,7 +789,7 @@ Expected: all tests pass with zero failures and zero errors.
 
 ```bash
 for skill in skills/*; do
-  python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py "$skill"
+  /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py "$skill"
 done
 ```
 
@@ -833,7 +833,7 @@ Read `~/.trae/AGENTS.md` if it exists. Replace only the content from `<!-- spec-
 ```bash
 python3 -m unittest -v tests/test_contracts.py
 for skill in skills/*; do
-  python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py "$skill"
+  /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py "$skill"
 done
 git status --short --branch
 git log --oneline --decorate -10
