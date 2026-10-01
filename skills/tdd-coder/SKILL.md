@@ -34,7 +34,7 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 
-For relevant domain changes, test approved actions and refusals, value construction/equality, policies and update paths that could bypass rules through their public behavior interfaces. Name tests after domain behavior. Preserve context-specific terminology and approved public mappings; do not replace behavioral evidence with tests for class or method names. For persistence changes, verify save/load and subsequent domain behavior at the existing adapter/integration seam; preserve values, state, child protection and applicable conflict information without replaying business commands during loading.
+Apply the contract's [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery) requirements for relevant domain and persistence changes. Test approved behavior through its public seams, name tests after domain outcomes, and collect the separate mapping/dependency evidence required there; do not substitute class or method-name assertions.
 
 ## Structural verification path
 

@@ -32,7 +32,7 @@ A selected safe workspace and recorded rationale (in place or isolated), account
 
 Creating an external issue, publishing to an issue tracker, pushing a branch, or opening a pull request always requires separate explicit authorization.
 
-At the existing Gate 2/3 checks, preserve applicable business actions, rejected/bypass outcomes, value validity/equality, policy ownership and terminology migration constraints. Carry them into specification sections and ticket references/acceptance, not a second model inventory. For affected persistence, also preserve aggregate/repository and restoration semantics, round-trip and post-load behavior checks, and unresolved legacy-data decisions. Resolve missing decisions through the existing return paths.
+At the existing Gate 2/3 checks, reconcile the approved decisions covered by the contract's [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected-behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) sections against their specification locations and ticket references/acceptance. Do not create a second model inventory; resolve missing decisions through the existing return paths.
 
 ## Stop Conditions
 

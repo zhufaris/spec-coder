@@ -32,7 +32,7 @@ Findings ordered by severity, TDD-backed repair commits when needed, fresh evide
 
 Do not push, create a pull request, publish external tickets, amend pre-existing commits, or make external changes without separate explicit authorization.
 
-For applicable domain changes, review action/bypass protection, value validity, justified policy ownership and context-specific language across affected entry paths. Verify approved public compatibility mappings and migration scope. For persistence changes, inspect root/mutation protection and actual round-trip/post-load evidence, including value, state and conflict semantics. A complete model inventory or renamed operation does not prove that the business rule is enforced.
+Apply the contract's [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery) review requirements to applicable domain and persistence changes. Map approved decisions to actual behavior, mapping and dependency evidence across affected entry paths; a model inventory or renamed operation is not enforcement evidence.
 
 ## Stop Conditions
 
