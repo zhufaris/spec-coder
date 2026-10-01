@@ -126,6 +126,8 @@ A display-label correction can say: "Update the order-history label in its exist
 
 A read-only order summary may use an existing authorized query module returning a projection. Explain access/tenant filtering and applicable business constraints. Do not force aggregate loading merely because the write path uses one, and do not bypass authorization under the label of a projection.
 
+For a tenant-owned saved-search rename, suppose the approved change trims surrounding whitespace before the existing nonempty/80-character validation and displays the normalized name. Use the current authorized update/query interfaces. Verify normalized persistence/display, whitespace-only rejection without mutation, the 80/81-character limits after trimming, and existing authentication/tenant isolation. This does not require a SavedSearchAggregate, SearchNamePolicy, repository interface or domain event. One short spec and one vertical normalization/display ticket can preserve all these requirements.
+
 ## From decisions to a ticket
 
 After the above contracts are approved, a cancellation capability ticket references the applicable scenarios, invariants, context/model responsibilities, conditional-write interface and refund contract. Its acceptance covers the approved successful, rejected, concurrent and duplicate outcomes, plus relevant architecture evidence.

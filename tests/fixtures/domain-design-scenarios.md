@@ -141,3 +141,36 @@ Expected application:
 - Use the existing real adapter to verify round trips and post-load shipping refusal; separately verify approved version conflicts and losing outcomes.
 - Identify missing conflict response, historical currency/version data or migration decisions instead of inventing defaults.
 - Carry restoration and mapping checks into specification/ticket acceptance and preserve separate architecture evidence.
+
+## Normalized saved-search name without extra models
+
+Input (use this text verbatim; provide only it and the skill/reference artifacts to the evaluator):
+
+```text
+Use the supplied domain-design-contract and worked examples to propose a compact design and a candidate vertical ticket. Return advice only; do not edit project files.
+
+An existing tenant-scoped saved-search screen can rename a search and list names. A name must be nonempty after trimming and at most 80 characters. Existing query and update modules already enforce authentication, tenant ownership and those validations. The requested change is to trim surrounding whitespace before applying the existing checks and show the normalized name. No lifecycle, cross-context interaction, competing business rules or concurrent-write guarantee changes are requested. A proposal adds SavedSearchAggregate, SearchNamePolicy, a new repository interface, domain events and four mandatory layers. Give a proportionate implementation and verification plan using existing seams.
+```
+
+Expected application:
+- Reuse existing update/query seams, normalize before the existing nonempty/80-character checks, and display the persisted normalized result.
+- Preserve authentication/tenant checks and unchanged state on invalid input.
+- Reject unjustified aggregate, policy, repository, event and four-layer additions.
+- Keep the specification and vertical ticket compact, with observable acceptance and the same workflow approval gates.
+
+## Transfer to dispatch manifest planning
+
+Input (use this text verbatim; give only it and the named references/templates, not this rubric or other evaluation artifacts):
+
+```text
+Use the supplied domain-design-contract, examples and native specification/ticket templates to draft concise specification sections and one candidate vertical ticket for these confirmed design decisions. This is an advice exercise; do not modify a repository or treat the candidate as approved for implementation.
+
+A dispatch Manifest owns sealing, with immutable Weight(amount, unit) values that compare by both fields; allowed units are kg and lb, and amounts must be positive. No unit conversion is approved. Only an open manifest may be sealed by its assigned dispatcher. The destination-specific capacity policy is independently variable and reused by a preview; its existing implementation is authoritative. Failed sealing leaves the manifest open. HTTP and a scheduled job must use the same sealing rules. Dispatch calls a manifest ready when open with complete items; Compliance calls a permit ready when approved. External clients must keep their current ready/status fields. A generic patch handler can write sealed directly. Persistence currently restores weights as bare numbers and exposes the items list for direct mutation. The approved design routes writes through protected root operations, uses a repository returning manifest plus optimistic version, and rejects stale saves without retry; existing database adapter tests provide isolated transactions. Loading historical sealed manifests must not rerun seal or create new notifications. Your output should carry the supplied decisions into model/architecture/verification sections and candidate ticket acceptance; do not invent capacity rules or permission semantics beyond the supplied decisions.
+```
+
+Expected application:
+- Preserve local meanings and public compatibility; prevent patch/child mutation bypasses through the supplied root operations.
+- Preserve immutable Weight identity-by-value without inventing conversions or inferring that bare numbers contain units.
+- Keep capacity policy authoritative and shared while leaving lifecycle/actor guards with the manifest operation.
+- Specify controlled restoration with no new notifications, version-envelope conditional save, stale rejection and actual adapter round-trip/post-load behavior checks.
+- Carry these decisions through specification sections and a candidate vertical ticket, name any missing storage-data decision, and do not claim implementation approval or executed tests.

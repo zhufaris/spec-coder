@@ -21,6 +21,8 @@ This reference governs spec-coder's native planning templates. Keep the workflow
 
 Inspect evidence before selecting modeling depth. Explain which triggers apply; they can overlap. Use a short paragraph for a small change. Do not require identifiers, a glossary, entities, services, or architecture layers merely to fill a template.
 
+Treat the modeling and persistence checks below as conditional on the affected behavior, not a mandatory inventory for every ticket. Straightforward input normalization or an authorized query can remain in existing modules without new value objects, policies, events or repositories. Retain access/tenant checks, input constraints and observable rejection behavior; simpler structure does not reduce those obligations. Revisit modeling depth only when evidence reveals an additional rule or interaction.
+
 | Observed trigger | Required decisions |
 | --- | --- |
 | Simple CRUD, field or display change | Business meaning, responsible module, input constraints, observable result and verification |
