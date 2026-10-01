@@ -67,6 +67,10 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(plugin["policy"]["installation"], "AVAILABLE")
         self.assertEqual(plugin["policy"]["products"], ["CODEX"])
 
+    def test_maintainer_docs_are_repository_ignored(self) -> None:
+        ignore_rules = read_text(ROOT / ".gitignore").splitlines()
+        self.assertIn("/docs/", ignore_rules)
+
     def test_shared_references_define_required_contracts(self) -> None:
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
         compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
