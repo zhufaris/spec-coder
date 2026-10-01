@@ -27,7 +27,7 @@ A dependency-ordered set of confirmed decisions covering purpose, users, scope, 
 6. Challenge fuzzy or conflicting domain terms, distinguish affected contexts' meanings and state owners, and probe relevant transitions, concurrent requests, retries and partial failures. Inspect existing behavior before asking. Defer detailed entities, services and architecture selection to `design-coder`.
 7. Finish when every load-bearing decision is confirmed, explicitly deferred, or out of scope.
 
-During discovery, extract business nouns, actions, states, roles and constraints from requirements, tests, API/UI behavior and code. Use context glossaries when present; record conflicting meanings and evidence. Clarify public compatibility constraints before proposing terminology changes. Follow the contract's language-discovery guidance without selecting a model merely from database names.
+During discovery, apply the contract's [language guidance](../../references/domain-design-contract.md#discover-and-evolve-domain-language). Return the evidence-backed ambiguities, context-specific meanings and compatibility decisions that constrain design; do not select a model merely from database names.
 
 Protect unrelated work in the user's original checkout. Before workspace selection and a green baseline, collect decisions in conversation rather than writing project files. A prepared workspace may be in place or isolated. Do not write implementation code, create a branch, publish an issue, or imply that later approval gates have passed.
 
