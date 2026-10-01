@@ -111,6 +111,18 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("testing seams", text.lower())
         self.assertIn("do not write implementation code", text.lower())
 
+    def test_plan_coder_contract(self) -> None:
+        text = self.assert_skill_contract(
+            "plan-coder", ("using-git-worktrees", "to-spec", "to-tickets")
+        )
+        worktree = text.lower().index("worktree")
+        spec = text.lower().index("write the specification")
+        tickets = text.lower().index("vertical tickets")
+        self.assertLess(worktree, spec)
+        self.assertLess(spec, tickets)
+        self.assertIn("baseline", text.lower())
+        self.assertIn("external issue", text.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

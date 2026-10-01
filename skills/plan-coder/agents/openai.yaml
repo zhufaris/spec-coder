@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Coder"
+  short_description: "Create isolation, specs, and vertical implementation tickets"
+  default_prompt: "Use $plan-coder to prepare this approved design for implementation."

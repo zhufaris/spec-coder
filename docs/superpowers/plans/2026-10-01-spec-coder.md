@@ -446,7 +446,7 @@ git commit -m "feat: add adaptive architecture design stage"
 - Produces: an isolated worktree, green baseline evidence, reviewed local spec, approved vertical-ticket plan, and implementation authorization.
 - Upstream dependencies: `using-git-worktrees`, `to-spec`, and `to-tickets`.
 
-- [ ] **Step 1: Add the failing `plan-coder` contract test**
+- [x] **Step 1: Add the failing `plan-coder` contract test**
 
 ```python
     def test_plan_coder_contract(self) -> None:
@@ -462,13 +462,13 @@ git commit -m "feat: add adaptive architecture design stage"
         self.assertIn("external issue", text.lower())
 ```
 
-- [ ] **Step 2: Run the focused test and observe failure**
+- [x] **Step 2: Run the focused test and observe failure**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `skills/plan-coder/SKILL.md` does not exist.
 
-- [ ] **Step 3: Initialize and implement `plan-coder`**
+- [x] **Step 3: Initialize and implement `plan-coder`**
 
 Run:
 
@@ -493,7 +493,7 @@ Replace the template with an ordered process that:
 
 State explicitly that external issue publication requires separate authorization.
 
-- [ ] **Step 4: Validate and run tests**
+- [x] **Step 4: Validate and run tests**
 
 ```bash
 /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/plan-coder
@@ -502,7 +502,7 @@ python3 -m unittest -v tests/test_contracts.py
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit `plan-coder`**
+- [x] **Step 5: Commit `plan-coder`**
 
 ```bash
 git add skills/plan-coder tests/test_contracts.py
