@@ -17,6 +17,8 @@
 
 ## Install
 
+供 Agent 执行的完整安装、验证与故障排查流程见 [`INSTALL.md`](./INSTALL.md)。
+
 从已经 clone 的仓库安装：
 
 ```bash
