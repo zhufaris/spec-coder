@@ -34,6 +34,8 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 
+For relevant domain changes, test approved actions and refusals, value construction/equality, policies and update paths that could bypass rules through their public behavior interfaces. Name tests after domain behavior. Preserve context-specific terminology and approved public mappings; do not replace behavioral evidence with tests for class or method names.
+
 ## Structural verification path
 
 For an approved behavior-preserving refactor or dependency-only repair, record the unchanged outcomes and baseline behavior checks. Keep those checks green during structural edits. If a dependency check exposes the violation, observe its failure before repair and its success after repair. Where no such tooling exists, record concrete before/after module/import review evidence. Finish with all affected checks and resume step 7. Do not manufacture a behavior failure for unchanged outcomes; new behavior requires the normal Red-Green path.

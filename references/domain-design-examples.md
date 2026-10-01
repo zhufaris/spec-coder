@@ -6,6 +6,7 @@ Use these examples to apply the [domain design contract](./domain-design-contrac
 
 - [Context map and local models](#context-map-and-local-models)
 - [Rule placement and services](#rule-placement-and-services)
+- [Invitation actions, values and policies](#invitation-actions-values-and-policies)
 - [Concurrent cancellation and shipment](#concurrent-cancellation-and-shipment)
 - [Refund timeouts and duplicates](#refund-timeouts-and-duplicates)
 - [Dependencies and boundary data](#dependencies-and-boundary-data)
@@ -48,6 +49,18 @@ For a rule owned by an order, an operation such as `Order.cancel()` or a domain 
 The CancelOrder application use case coordinates loading, the domain operation, the transaction and the approved interaction with Billing. It does not reproduce the eligibility policy. A payment adapter converts internal requests/results to and from a provider's protocol.
 
 A domain service is warranted when a named domain operation does not naturally belong to a single entity/value object: for example, an approved refund-allocation policy across payment allocations. Describe its rule, input and output before creating it. Do not introduce `OrderService` merely to move all behavior off Order, or assume every application use case needs a matching domain service.
+
+## Invitation actions, values and policies
+
+Suppose the approved rules say only the recipient can accept a pending, unexpired workspace invitation; refusal leaves it unchanged. Extract the business verb **accept**, states **pending/accepted/revoked**, recipient role and expiry constraint. An invitation's "active" means pending and unexpired; Billing's "active subscription" means paid. Preserve those context-specific meanings, not a shared `is_active` policy.
+
+An `Invitation.accept(actor, now, eligibility)` operation, or an equivalent domain function, protects the transition. HTTP and the batch job use the same rule. A generic `update_status` that can still write `accepted` directly is a bypass, even if the new method has good tests. Restrict that entry path or route its applicable behavior through the approved operation, accounting for existing callers.
+
+If the domain explicitly defines EmailAddress equality as case-sensitive in the local part and case-insensitive in the domain, normalization must preserve that distinction. Trim surrounding whitespace if approved, reject embedded whitespace, and expose an immutable valid value. Do not infer lowercasing the whole address or recipient identity from email equality. Identity matching remains a separate supplied rule.
+
+If workspace-plan eligibility varies independently and is reused by preview and acceptance, name an eligibility policy and define its result and how the operation enforces it. Keep a simple expiry predicate with the invitation unless it has its own reason to vary. The policy is not a spec-coder specification document. If plan eligibility rules are missing, identify that gap and affected readiness instead of inventing a permission rule.
+
+Keep existing public `status` fields/values when compatibility is required; internal vocabulary can improve through explicit mapping. Verify the domain operation's allowed/rejected transitions, value equality/normalization, relevant bypass paths, and preview/execution consistency at the agreed interfaces. A spec preserves these decisions and compatibility limits; a vertical acceptance ticket references them and includes the rejection/bypass evidence, rather than merely requesting an Invitation class.
 
 ## Concurrent cancellation and shipment
 

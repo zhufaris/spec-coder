@@ -107,3 +107,20 @@ Expected application:
 - Separate observed storage/model coupling from proposed bounded-context semantics.
 - Explain local language and affected ownership/translation; scope any necessary migration to the feature and surface unresolved contract choices.
 - Do not endorse leakage as target architecture or prescribe a whole-system deployment redesign.
+
+## Invitation language, actions and policies
+
+Input (use this text verbatim; provide only it and the skill/reference artifacts to the evaluator):
+
+```text
+Use the supplied domain-design-contract and worked examples to propose a compact model, public operations and verification for this change; state what an eventual specification and vertical ticket must preserve. Return advice only; do not edit project files.
+
+A workspace Invitation has an ID, recipient identity, workspace ID, expires_at and status pending/accepted/revoked. Only its recipient may accept a pending invitation before expires_at; all refusals leave state unchanged. Both HTTP and a batch job accept invitations. The existing shared update_status(id, status) writes any state with no business checks. Code calls an invitation active when pending and unexpired; Billing calls a subscription active when paid. Public clients already use the invitation status field and must remain compatible. The invitation contains a recipient EmailAddress with case-sensitive local part and case-insensitive domain; whitespace around input is trimmed, embedded whitespace is invalid. A separate eligibility decision varies by workspace plan and is reused by acceptance and preview; the simple expiry check is not independently variable. The team's proposed design calls both rules Specification and renames the public status values immediately. Explain choices and unresolved points using these facts, without inventing a new business rule.
+```
+
+Expected application:
+- Distinguish Invitation activity from Billing activity and preserve public status compatibility. Identify undefined plan eligibility rules and affected decisions.
+- Use a shared protected acceptance operation for HTTP and batch; identify the unrestricted update bypass and unchanged state on refusal.
+- Explain immutable EmailAddress construction, approved normalization/equality and the distinction from recipient identity.
+- Justify the shared variable eligibility policy, retain simple expiry with its owner, and distinguish DDD Specification from the workflow document.
+- Carry these constraints into specification and vertical-ticket acceptance without inventing the missing policy rules.
