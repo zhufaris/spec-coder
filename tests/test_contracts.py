@@ -1,5 +1,9 @@
 import json
+import os
 import re
+import shutil
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -66,6 +70,72 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(plugin["source"], {"source": "local", "path": "."})
         self.assertEqual(plugin["policy"]["installation"], "AVAILABLE")
         self.assertEqual(plugin["policy"]["products"], ["CODEX"])
+
+    def test_codex_cli_installs_plugin_in_isolated_home(self) -> None:
+        codex = shutil.which("codex")
+        self.assertIsNotNone(codex, "codex must be available on PATH")
+
+        with tempfile.TemporaryDirectory(prefix="spec-coder-codex-") as codex_home:
+            env = os.environ | {"CODEX_HOME": codex_home}
+            subprocess.run(
+                [codex, "plugin", "marketplace", "add", str(ROOT)],
+                check=True,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            installation = json.loads(
+                subprocess.run(
+                    [
+                        codex,
+                        "plugin",
+                        "add",
+                        "spec-coder@spec-coder",
+                        "--json",
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                ).stdout
+            )
+            marketplaces = json.loads(
+                subprocess.run(
+                    [codex, "plugin", "marketplace", "list", "--json"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                ).stdout
+            )
+            plugins = json.loads(
+                subprocess.run(
+                    [codex, "plugin", "list", "--json"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                ).stdout
+            )
+
+            self.assertEqual(
+                [marketplace["name"] for marketplace in marketplaces["marketplaces"]],
+                ["spec-coder"],
+            )
+            installed = plugins["installed"]
+            self.assertEqual(len(installed), 1)
+            self.assertEqual(installed[0]["pluginId"], "spec-coder@spec-coder")
+            self.assertTrue(installed[0]["installed"])
+            self.assertTrue(installed[0]["enabled"])
+            self.assertEqual(installation["pluginId"], "spec-coder@spec-coder")
+
+            installed_skills = {
+                path.parent.name
+                for path in (Path(installation["installedPath"]) / "skills").glob(
+                    "*/SKILL.md"
+                )
+            }
+            self.assertEqual(installed_skills, EXPECTED_SKILLS)
 
     def test_maintainer_docs_are_repository_ignored(self) -> None:
         ignore_rules = read_text(ROOT / ".gitignore").splitlines()
