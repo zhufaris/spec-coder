@@ -123,6 +123,19 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("baseline", text.lower())
         self.assertIn("external issue", text.lower())
 
+    def test_tdd_coder_contract(self) -> None:
+        text = self.assert_skill_contract("tdd-coder", ("tdd",))
+        for phrase in (
+            "one unblocked ticket",
+            "observe the expected failure",
+            "minimum implementation",
+            "affected checks",
+            "explicit paths",
+            "conventional commit",
+        ):
+            self.assertIn(phrase, text.lower())
+        self.assertIn("git add -A", text)
+
 
 if __name__ == "__main__":
     unittest.main()

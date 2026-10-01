@@ -1,0 +1,44 @@
+---
+name: tdd-coder
+description: Implement one approved, unblocked vertical ticket through an evidence-backed Red-Green loop, affected verification, plan-state update, and atomic commit. Use after plan-coder authorization or to resume a partially completed spec-coder ticket.
+---
+
+# TDD Coder
+
+Follow the shared [workflow contract](../../references/workflow-contract.md). Compose the installed `tdd` skill at the public testing seams already approved in the specification and ticket plan.
+
+## Input
+
+One unblocked ticket whose dependencies are complete, its acceptance criteria, approved testing seams, the clean isolated worktree, and green baseline evidence.
+
+## Output
+
+Observed Red and Green evidence, passing affected checks, a checked-off durable ticket, a synchronized runtime plan, and one atomic Conventional Commit containing only that ticket's files.
+
+## Process
+
+1. Confirm exactly one ticket is active and all of its blockers are complete. Record it as the sole runtime item in progress.
+2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns.
+3. Write one behavior-focused test through an approved public seam.
+4. Run that focused test and observe the expected failure. If it passes unexpectedly or fails for an unrelated reason, correct the test setup before implementation.
+5. Write the minimum implementation needed for Green. Do not anticipate later tickets.
+6. Run the focused test, then the affected checks: relevant test modules, lint, type checks, and build steps defined by the repository.
+7. Perform a lightweight self-review for scope, duplication, naming, domain consistency, and accidental architecture violations.
+8. Update the durable plan checkbox and runtime mirror only after the affected checks pass.
+9. Inspect the diff, stage explicit paths owned by the ticket, and create one Conventional Commit whose subject describes the delivered behavior.
+10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
+
+Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
+
+## Stop Conditions
+
+Stop and preserve evidence when:
+
+- no approved unblocked ticket exists;
+- the worktree is not isolated or contains unexplained changes;
+- the test cannot demonstrate Red for the intended reason;
+- implementation evidence invalidates the approved design;
+- an affected verification command fails after diagnosis;
+- the same blocking condition occurs three consecutive times.
+
+Do not mark the ticket complete or commit unless every ticket-level check is green.

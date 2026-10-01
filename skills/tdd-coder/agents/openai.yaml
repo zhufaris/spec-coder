@@ -1,0 +1,4 @@
+interface:
+  display_name: "TDD Coder"
+  short_description: "Implement one approved ticket through a strict TDD loop"
+  default_prompt: "Use $tdd-coder to implement the next unblocked ticket."

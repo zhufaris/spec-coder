@@ -523,7 +523,7 @@ git commit -m "feat: add isolated planning stage"
 - Produces: observed Red and Green evidence, passing affected checks, an updated ticket checkbox, and one atomic Conventional Commit.
 - Upstream dependency: `tdd`.
 
-- [ ] **Step 1: Add the failing `tdd-coder` contract test**
+- [x] **Step 1: Add the failing `tdd-coder` contract test**
 
 ```python
     def test_tdd_coder_contract(self) -> None:
@@ -540,13 +540,13 @@ git commit -m "feat: add isolated planning stage"
         self.assertIn("git add -A", text)
 ```
 
-- [ ] **Step 2: Run the focused test and observe failure**
+- [x] **Step 2: Run the focused test and observe failure**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `skills/tdd-coder/SKILL.md` does not exist.
 
-- [ ] **Step 3: Initialize and implement `tdd-coder`**
+- [x] **Step 3: Initialize and implement `tdd-coder`**
 
 Run:
 
@@ -560,7 +560,7 @@ python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/init_s
 
 Replace the template with the fixed cycle from the design spec. Make the prohibition explicit: never run `git add -A`; stage only ticket-owned paths. Require the ticket's affected test, lint, type-check, and build commands before marking it complete and committing.
 
-- [ ] **Step 4: Validate and run tests**
+- [x] **Step 4: Validate and run tests**
 
 ```bash
 /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/tdd-coder
@@ -569,7 +569,7 @@ python3 -m unittest -v tests/test_contracts.py
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit `tdd-coder`**
+- [x] **Step 5: Commit `tdd-coder`**
 
 ```bash
 git add skills/tdd-coder tests/test_contracts.py
