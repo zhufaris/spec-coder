@@ -49,7 +49,7 @@
 - Produces: reusable test helpers `read_text(path)`, `parse_frontmatter(path)`, and `assert_skill_contract(name, dependencies)`.
 - Consumes: the approved plugin metadata and six-skill list from the design spec.
 
-- [ ] **Step 1: Write the failing manifest test**
+- [x] **Step 1: Write the failing manifest test**
 
 Create `tests/test_contracts.py` with this initial test surface:
 
@@ -102,13 +102,13 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run the test and verify the missing manifest fails**
+- [x] **Step 2: Run the test and verify the missing manifest fails**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `.codex-plugin/plugin.json` does not exist.
 
-- [ ] **Step 3: Generate the official plugin skeleton**
+- [x] **Step 3: Generate the official plugin skeleton**
 
 Run from `/data00/home/feiyu.zhu/work`:
 
@@ -121,7 +121,7 @@ python3 /data00/home/feiyu.zhu/.trae/skills/.system/plugin-creator/scripts/creat
 
 Expected: the existing repository gains `.codex-plugin/plugin.json` and `skills/` without changing the committed design document.
 
-- [ ] **Step 4: Replace the scaffold placeholders with the minimal manifest**
+- [x] **Step 4: Replace the scaffold placeholders with the minimal manifest**
 
 Set `.codex-plugin/plugin.json` to:
 
@@ -151,13 +151,13 @@ Set `.codex-plugin/plugin.json` to:
 }
 ```
 
-- [ ] **Step 5: Run the manifest test and verify it passes**
+- [x] **Step 5: Run the manifest test and verify it passes**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: PASS, 1 test.
 
-- [ ] **Step 6: Commit the plugin foundation**
+- [x] **Step 6: Commit the plugin foundation**
 
 ```bash
 git add .codex-plugin/plugin.json tests/test_contracts.py

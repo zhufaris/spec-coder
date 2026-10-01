@@ -1,0 +1,32 @@
+{
+  "name": "spec-coder",
+  "version": "0.1.0",
+  "description": "A gated specification-to-delivery workflow for coding changes.",
+  "author": {
+    "name": "feiyu.zhu",
+    "email": "feiyu.zhu@bytedance.com"
+  },
+  "keywords": [
+    "specification",
+    "ddd",
+    "clean-architecture",
+    "tdd"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Spec Coder",
+    "shortDescription": "Design, plan, implement, and verify coding changes",
+    "longDescription": "Turn coding requests into approved specifications, vertical tickets, test-driven implementation, review, and verified commits.",
+    "developerName": "feiyu.zhu",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use spec-coder to take this feature from requirements to verified commits.",
+      "Resume the current spec-coder workflow from its durable artifacts."
+    ]
+  }
+}
