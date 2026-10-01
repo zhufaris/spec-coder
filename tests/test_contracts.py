@@ -192,6 +192,18 @@ class PluginContractTests(unittest.TestCase):
         for field in ("Starting state:", "Expected route:", "Forbidden action:"):
             self.assertEqual(scenarios.count(field), 7)
 
+    def test_repository_is_self_describing_and_installable(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        installer = read_text(ROOT / "scripts" / "install-local.sh")
+        validator = read_text(ROOT / "scripts" / "validate.sh")
+
+        for skill in EXPECTED_SKILLS:
+            self.assertIn(f"`{skill}`", readme)
+        self.assertIn("traecli plugin install", readme)
+        self.assertIn("traecli plugin enable", installer)
+        self.assertIn("quick_validate.py", validator)
+        self.assertIn("tests/test_contracts.py", validator)
+
 
 if __name__ == "__main__":
     unittest.main()
