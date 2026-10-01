@@ -18,6 +18,7 @@ EXPECTED_SKILLS = {
     "delivery-coder",
     "show-me",
     "using-git-worktrees",
+    "setup-coder",
 }
 DESIGN_STAGES = ("grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
 DESIGN_REFERENCE = "../../references/domain-design-contract.md"
@@ -27,6 +28,8 @@ PLANNING_REFERENCES = (
     "../../references/ticket-template.md",
 )
 APPROVAL_REFERENCE = "../../references/approval-review-contract.md"
+SETUP_REFERENCE = "../../references/setup-contract.md"
+SETUP_ASSET = "../../assets/agents-snippet.md"
 
 
 def read_text(path: Path) -> str:
@@ -168,6 +171,7 @@ class PluginContractTests(unittest.TestCase):
             self.assert_domain_reference_resolves(installed_root)
             self.assert_planning_templates_resolve(installed_root)
             self.assert_approval_reference_resolves(installed_root)
+            self.assert_setup_reference_resolves(installed_root)
             notice = installed_root / "THIRD_PARTY_NOTICES.md"
             self.assertTrue(notice.is_file())
             self.assertEqual(
@@ -198,6 +202,16 @@ class PluginContractTests(unittest.TestCase):
                 target = (skill.parent / APPROVAL_REFERENCE).resolve()
                 self.assertTrue(target.is_relative_to(root.resolve()))
                 self.assertTrue(target.is_file())
+
+    def assert_setup_reference_resolves(self, root: Path) -> None:
+        skill = root / "skills" / "setup-coder" / "SKILL.md"
+        links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
+        self.assertIn(SETUP_REFERENCE, links)
+        self.assertIn(SETUP_ASSET, links)
+        for link in (SETUP_REFERENCE, SETUP_ASSET):
+            target = (skill.parent / link).resolve()
+            self.assertTrue(target.is_relative_to(root.resolve()))
+            self.assertTrue(target.is_file())
 
     def test_declared_dependencies_match_model_visible_host_fixture(self) -> None:
         catalog = json.loads(read_text(ROOT / "tests/fixtures/host-skill-catalog.json"))
@@ -364,6 +378,63 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, notice)
 
+    def test_setup_coder_contract_is_local_idempotent_and_guarded(self) -> None:
+        text = self.assert_skill_contract("setup-coder", ("show-me",))
+        self.assert_setup_reference_resolves(ROOT)
+        contract = read_text(ROOT / "references" / "setup-contract.md")
+        metadata = read_text(ROOT / "skills" / "setup-coder" / "agents" / "openai.yaml")
+        normalized = " ".join((text + "\n" + contract).lower().split())
+
+        for phrase in (
+            "repository-local",
+            "explicit global",
+            "ready",
+            "warning",
+            "blocked",
+            "absent",
+            "current",
+            "stale",
+            "malformed",
+            "duplicated",
+            "byte-for-byte",
+            "exact diff",
+            "re-read",
+            "unchanged base",
+            "zero diff",
+            "disable-model-invocation",
+            "executed",
+            "discovered",
+            "agents.md",
+            "readme",
+            "contributing",
+            "makefile",
+            "ci workflow",
+            "do not install dependencies",
+            "do not create a worktree",
+            "do not create a specification",
+            "do not stage",
+            "do not commit",
+            "do not persist the setup report",
+            "pending approval",
+            "## repository verification",
+            "unbalanced",
+            "two or more complete, ordered, disjoint pairs",
+            "stale compatible global",
+            "not assessable from supplied evidence",
+        ):
+            self.assertIn(phrase, normalized)
+        self.assertIn('display_name: "Setup Coder"', metadata)
+        self.assertIn('$setup-coder', metadata)
+
+        routing = read_text(ROOT / "assets" / "agents-snippet.md")
+        self.assertIn("<!-- spec-coder:start -->", routing)
+        self.assertIn("<!-- spec-coder:end -->", routing)
+        self.assertFalse((ROOT / "assets" / "global-agents-snippet.md").exists())
+
+        workflow = read_text(ROOT / "references" / "workflow-contract.md")
+        self.assertIn("## Repository Setup", workflow)
+        self.assertIn("[setup contract](./setup-contract.md)", workflow.lower())
+
     def test_maintainer_docs_are_repository_ignored(self) -> None:
         ignore_rules = read_text(ROOT / ".gitignore").splitlines()
         self.assertIn("/docs/", ignore_rules)
@@ -371,7 +442,7 @@ class PluginContractTests(unittest.TestCase):
     def test_shared_references_define_required_contracts(self) -> None:
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
         compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
-        routing = read_text(ROOT / "assets" / "global-agents-snippet.md")
+        routing = read_text(ROOT / "assets" / "agents-snippet.md")
 
         for heading in (
             "## Phase Order",
@@ -530,10 +601,28 @@ class PluginContractTests(unittest.TestCase):
         )
         for heading in worktree_headings:
             self.assertIn(heading, scenarios)
+
+        setup_headings = (
+            "## First repository setup",
+            "## Idempotent setup rerun",
+            "## Stale managed block",
+            "## Malformed managed markers",
+            "## Concurrent AGENTS change",
+            "## Missing required setup capability",
+            "## Optional setup warning",
+            "## Verification command discovery",
+            "## Explicit global setup",
+            "## Setup forbidden side effects",
+        )
+        for heading in setup_headings:
+            self.assertIn(heading, scenarios)
         for field in ("Starting state:", "Expected route:", "Forbidden action:"):
             self.assertEqual(
                 scenarios.count(field),
-                len(headings) + len(approval_headings) + len(worktree_headings),
+                len(headings)
+                + len(approval_headings)
+                + len(worktree_headings)
+                + len(setup_headings),
             )
 
     def test_repository_is_self_describing_and_installable(self) -> None:

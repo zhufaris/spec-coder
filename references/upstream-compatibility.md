@@ -17,6 +17,9 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 - `using-git-worktrees` is a local optional isolation adapter invoked by
   `plan-coder` only after the isolation path is selected. It prefers native
   Host worktree tools and needs no external skill package.
+- `setup-coder` is a local manually invoked repository-onboarding adapter. It
+  reports external capability compatibility but never installs or rewrites an
+  upstream skill.
 
 ## Reference Snapshots
 

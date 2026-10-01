@@ -16,6 +16,7 @@
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
 | `show-me` | 在每次 suite-owned 审批前生成紧凑的 inline ASCII review map |
 | `using-git-worktrees` | 在选定隔离路径后复用或创建安全的可选 Git worktree |
+| `setup-coder` | 手动、幂等地检查并初始化目标仓库的 spec-coder 使用方式 |
 
 ## Install
 
@@ -41,7 +42,7 @@ codex plugin marketplace add zhufaris/spec-coder
 codex plugin add spec-coder@spec-coder
 ```
 
-私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查八个 skill 是否出现。
+私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查九个 skill 是否出现。
 
 ## Dependencies
 
@@ -57,7 +58,7 @@ codex plugin add spec-coder@spec-coder
 
 ## Default routing
 
-如果希望所有代码修改请求默认进入 `spec-coder`，将 [`assets/global-agents-snippet.md`](./assets/global-agents-snippet.md) 的受管理区块加入 `~/.codex/AGENTS.md`。只读解释、状态查询、调查和 review 不会自动进入此流程；使用 `skip spec-coder` 或 `directly modify` 可显式跳过。
+在目标仓库中手动调用 `setup-coder`，它会默认检查并提议维护 repository-local `AGENTS.md`。权威模板为 [`assets/agents-snippet.md`](./assets/agents-snippet.md)；写入前展示精确 diff，重复运行应为零 diff。全局 `~/.codex/AGENTS.md` 只在用户明确要求 global scope 并单独批准 diff 时修改。只读解释、状态查询、调查和 review 不会自动进入此流程；使用 `skip spec-coder` 或 `directly modify` 可显式跳过。
 
 ## Validate
 
@@ -65,7 +66,7 @@ codex plugin add spec-coder@spec-coder
 ./scripts/validate.sh
 ```
 
-验证包括仓库契约测试、八个 skill 的官方格式检查，以及 Git whitespace 检查。
+验证包括仓库契约测试、九个 skill 的官方格式检查，以及 Git whitespace 检查。
 
 ## Workflow
 

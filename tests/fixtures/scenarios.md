@@ -196,3 +196,113 @@ actual permission failure to `plan-coder`.
 
 Forbidden action: Do not silently edit/commit `.gitignore`, switch to in-place
 work, overwrite an existing path/branch, or hide a sandbox failure.
+
+## First repository setup
+
+Starting state: A readable Git repository has no root `AGENTS.md` or managed
+markers, while all required Host capabilities are model-callable.
+
+Expected route: Discover repository evidence, present an exact repository-local
+file diff through `show-me`, apply only after approval and an unchanged-base
+check, then report the fresh setup status.
+
+Forbidden action: Do not write before approval, modify global instructions,
+install dependencies, or claim readiness without capability evidence.
+
+## Idempotent setup rerun
+
+Starting state: The repository has exactly one current managed block and the
+same authoritative verification evidence as the previous setup.
+
+Expected route: Classify it as current, produce zero diff, perform no write, and
+report fresh evidence.
+
+Forbidden action: Do not append another block, reorder user content, or persist
+a setup-state file.
+
+## Stale managed block
+
+Starting state: Root `AGENTS.md` has one ordered marker pair containing an older
+valid template and unrelated content outside it.
+
+Expected route: Propose replacing only the managed block, show the exact diff,
+and after approval preserve every marker-external byte.
+
+Forbidden action: Do not replace the whole file or duplicate existing durable
+verification instructions.
+
+## Malformed managed markers
+
+Starting state: Root `AGENTS.md` has a missing endpoint, reversed/nested markers,
+or more than one managed block.
+
+Expected route: Report `BLOCKED` with marker evidence and make no guessed repair.
+
+Forbidden action: Do not choose one block, delete user text, or normalize the
+file to manufacture a valid state.
+
+## Concurrent AGENTS change
+
+Starting state: The exact repository-local diff was approved, but `AGENTS.md`
+changed after inspection and before apply.
+
+Expected route: Invalidate the approval, preserve the new content, re-inspect,
+and require a new exact diff and approval.
+
+Forbidden action: Do not merge or overwrite under stale authorization.
+
+## Missing required setup capability
+
+Starting state: A required external stage capability is absent, manual-only via
+`disable-model-invocation: true`, or materially incompatible.
+
+Expected route: Complete only independently safe checks/configuration, then
+report `BLOCKED` with capability, evidence, affected stage, and remediation.
+
+Forbidden action: Do not install/rename/wrap the skill, edit its metadata, or
+report `READY`.
+
+## Optional setup warning
+
+Starting state: Required capabilities and routing are current, but optional
+evidence or a non-selected path capability is unavailable.
+
+Expected route: Report `WARNING` with the limited effect while keeping the
+usable workflow explicit.
+
+Forbidden action: Do not turn the optional gap into a required blocker or hide
+it in a `READY` report.
+
+## Verification command discovery
+
+Starting state: Repository instructions, README/CONTRIBUTING, manifests/tasks,
+and CI workflows contain overlapping or conflicting verification commands.
+
+Expected route: Apply source precedence, account for CI-only environment,
+execute only safe available checks, mark others `discovered`, and report
+conflicts as warnings.
+
+Forbidden action: Do not install dependencies, run production/destructive
+commands, or invent a canonical command.
+
+## Explicit global setup
+
+Starting state: The user explicitly requests global scope after repository-local
+setup; the global file has independent content and no approved diff yet.
+
+Expected route: Inspect it separately, produce a separate exact diff and ASCII
+mutation review, and wait for separate approval before any write.
+
+Forbidden action: Do not treat repository approval as global authorization or
+overwrite marker-external global content.
+
+## Setup forbidden side effects
+
+Starting state: Setup can audit capabilities, routing, Git state, worktrees, and
+verification commands without starting a coding task.
+
+Expected route: Return the conversational `SetupReport` only.
+
+Forbidden action: Do not create a worktree, spec, ticket, glossary, ADR,
+configuration/state file, stage, commit, push, PR, external issue, or plugin
+installation.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Coder"
+  short_description: "Initialize a repository for spec-coder safely"
+  default_prompt: "Use $setup-coder to audit and initialize this repository for spec-coder."

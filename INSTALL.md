@@ -37,7 +37,7 @@ test -x scripts/install-local.sh
 ./scripts/validate.sh
 ```
 
-该命令会运行契约测试、逐个校验八个 skill，并检查 Git whitespace。只有验证成功后才继续。若验证器路径不是默认位置，可显式传入：
+该命令会运行契约测试、逐个校验九个 skill，并检查 Git whitespace。只有验证成功后才继续。若验证器路径不是默认位置，可显式传入：
 
 ```bash
 SKILL_VALIDATOR=/absolute/path/to/quick_validate.py ./scripts/validate.sh
@@ -96,37 +96,41 @@ codex plugin list --json
 
 `plan-coder` 的规划能力和模板包含在插件内；其他阶段所需的上游 skills 不会自动安装。启动一个新的 Codex 会话，通过 `/skills` 确认本插件和当前执行路径所需的上游 skills 可见且允许模型调用：
 
-- 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`、`show-me`、`using-git-worktrees`
+- 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`、`show-me`、`using-git-worktrees`、`setup-coder`
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
 - Superpowers：`brainstorming`、`verification-before-completion`
 - Architecture：`clean-architecture`
 
-若八个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+若九个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
 `to-spec` 和 `to-tickets` 不是 `0.2.1` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；重开会话或启用配置不会改变这个边界。不要修改 upstream 标志或通过文件读取间接执行；原生 `plan-coder` 使用随插件安装的模板。
 
-## 6. 可选：启用默认路由
+## 6. 初始化目标仓库
+
+安装后在新的 Codex 会话中，用户可以显式要求“使用 `setup-coder` 初始化当前仓库”。它默认只检查并提议维护 repository-local `AGENTS.md`，同时报告 Host capabilities 和仓库验证命令。任何写入前都必须展示精确 diff；不要仅因执行 setup 创建 worktree、规格、tickets、提交或安装依赖。
+
+## 7. 可选：启用全局默认路由
 
 只有用户明确希望代码修改请求默认进入 `spec-coder` 时，才执行本节。
 
-打开全局 `~/.codex/AGENTS.md`，检查是否已经存在以下标记：
+只有用户明确要求 global scope 时，才打开全局 `~/.codex/AGENTS.md` 并检查以下标记：
 
 ```text
 <!-- spec-coder:start -->
 <!-- spec-coder:end -->
 ```
 
-- 若标记不存在，将 [`assets/global-agents-snippet.md`](./assets/global-agents-snippet.md) 的完整内容追加到文件。
+- 若标记不存在，将 [`assets/agents-snippet.md`](./assets/agents-snippet.md) 的完整内容追加到文件。
 - 若标记已经存在，只用模板内容更新这两个标记之间的区块。
 - 保留标记之外的所有用户内容，不要覆盖整个文件。
 
 修改后向用户展示 diff，并说明该规则只对后续会话生效。
 
-## 7. 最终验收
+## 8. 最终验收
 
 在新的 Codex 会话中完成以下检查：
 
-1. `/skills` 能看到八个 `spec-coder` skills，包括本地 `show-me` 和 `using-git-worktrees`。
+1. `/skills` 能看到九个 `spec-coder` skills，包括本地 `show-me`、`using-git-worktrees` 和 `setup-coder`。
 2. 当前执行路径必需的上游依赖 skills 都可见且允许模型调用；原地执行无需 `using-git-worktrees`，规划无需两个手动专用 skills。
 3. 发起一个只读问题时，不应自动进入 `spec-coder`。
 4. 发起一个代码修改请求时，应进入 `spec-coder`；如果未配置默认路由，则显式要求“使用 spec-coder”。

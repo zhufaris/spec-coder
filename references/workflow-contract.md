@@ -50,6 +50,15 @@ The plan is the task-status source of truth. Mirror it in the runtime plan with 
 
 Use `spec-coder` by default for requests that create or change code. Do not automatically route read-only explanation, status, investigation, or review requests through it. Honor an explicit `skip spec-coder` or `directly modify` request while continuing to obey all other applicable instructions and skills.
 
+## Repository Setup
+
+`setup-coder` is a manually invoked, idempotent onboarding capability; it is not
+part of the fixed coding phase order. Follow the [setup contract](./setup-contract.md)
+for repository-local `AGENTS.md` management, capability assessment,
+verification-command discovery, mutation approval, concurrency protection, and
+`READY`/`WARNING`/`BLOCKED` reporting. Setup does not create coding artifacts or
+a worktree and does not install, stage, commit, push, or persist private state.
+
 ## Workspace Selection
 
 Worktree creation is optional. Inspect the user's preference, existing worktrees, task scope, concurrent work, branch state, and staged/unstaged/untracked changes before choosing where to work.
