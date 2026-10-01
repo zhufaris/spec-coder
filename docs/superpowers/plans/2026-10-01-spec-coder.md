@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Implement this plan task-by-task in the current session. Steps use checkbox (`- [ ]`) syntax for tracking. Do not use subagents unless the user separately authorizes them.
 
-**Goal:** Build and locally install a six-skill `spec-coder` plugin that turns a coding request into an approved design, isolated plan, TDD implementation, reviewed verification, and atomic commits.
+**Goal:** Build and locally install a six-skill `spec-coder` plugin that becomes the user-level default for code-changing requests and turns them into an approved design, isolated plan, TDD implementation, reviewed verification, and atomic commits.
 
 **Architecture:** A thin `spec-coder` orchestrator delegates to five independently invocable stage skills. Each stage composes installed Matt Pocock, Superpowers, and Clean Architecture skills while shared workflow and compatibility rules live in two plugin-level references. Markdown contract tests protect names, dependencies, gates, safety rules, and artifact paths without copying upstream skill bodies.
 
@@ -13,6 +13,8 @@
 ## Global Constraints
 
 - Expose exactly `spec-coder`, `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder`.
+- Install and enable the plugin at user scope and route code-changing requests through `spec-coder` by default.
+- Exclude read-only explanation, status, investigation, and review requests from automatic routing; honor an explicit user opt-out.
 - Keep every wrapper thin; reference upstream skills by name and do not copy their complete instructions.
 - Use only locally supported skill frontmatter fields: `name`, `description`, `license`, `allowed-tools`, and `metadata`.
 - Require explicit approval for the selected design, written spec, and ticket set before implementation.
@@ -168,12 +170,14 @@ git commit -m "chore: scaffold spec-coder plugin"
 
 - Create: `references/workflow-contract.md`
 - Create: `references/upstream-compatibility.md`
+- Create: `assets/global-agents-snippet.md`
 - Modify: `tests/test_contracts.py`
 
 **Interfaces:**
 
 - Produces: the normative phase order, three gates, failure transitions, artifact paths, task-state rules, and Git safety policy used by every stage.
 - Produces: the validated upstream capability map and compatibility failure behavior.
+- Produces: the canonical user-level default-routing instruction.
 - Consumes: Superpowers `v6.4.1`, the 2026-10-01 Matt Pocock `main` snapshot, and the matching Clean Architecture `main` snapshot.
 
 - [ ] **Step 1: Add failing shared-reference tests**
@@ -184,6 +188,7 @@ Add to `PluginContractTests`:
     def test_shared_references_define_required_contracts(self) -> None:
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
         compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        routing = read_text(ROOT / "assets" / "global-agents-snippet.md")
 
         for heading in (
             "## Phase Order",
@@ -210,7 +215,14 @@ Add to `PluginContractTests`:
         ):
             self.assertIn(f"`{dependency}`", compatibility)
 
-        self.assertNotIn("TO" + "DO", workflow + compatibility)
+        for phrase in (
+            "use the `spec-coder` skill by default",
+            "read-only",
+            "skip spec-coder",
+        ):
+            self.assertIn(phrase, routing.lower())
+
+        self.assertNotIn("TO" + "DO", workflow + compatibility + routing)
 ```
 
 - [ ] **Step 2: Run the new test and observe the missing references**
@@ -229,6 +241,7 @@ Include the following normative sections and decisions:
 - `Git Safety`: isolated worktree before writes, explicit-path staging, no amend of pre-existing commits, no push/PR/external tickets.
 - `Failure Transitions`: TDD retry for behavior failures, design rollback for invalidated assumptions, stop on baseline failure, stop after three identical blockers.
 - `Recovery`: infer the earliest incomplete phase from the branch/worktree, spec, plan checkboxes, commits, and fresh verification.
+- `Default Routing`: use `spec-coder` for code-changing requests, exclude read-only requests, and honor an explicit opt-out.
 
 - [ ] **Step 4: Write `upstream-compatibility.md`**
 
@@ -244,16 +257,30 @@ code-review + verification-before-completion -> delivery-coder
 
 Record the validated upstream versions and the rule that a missing or materially incompatible dependency stops the workflow with a compatibility error.
 
-- [ ] **Step 5: Run the reference tests**
+- [ ] **Step 5: Write the canonical global AGENTS snippet**
+
+Create `assets/global-agents-snippet.md` with this managed section:
+
+```markdown
+<!-- spec-coder:start -->
+## Default coding workflow
+
+For requests that create or change code, including features, bug fixes, behavioral changes, and refactors, use the `spec-coder` skill by default. Let it scale artifacts to the task while preserving its approval gates.
+
+Do not automatically invoke `spec-coder` for read-only explanation, status, investigation, or review requests. If the user explicitly says `skip spec-coder` or `directly modify`, bypass this suite and continue under all other applicable instructions and skills.
+<!-- spec-coder:end -->
+```
+
+- [ ] **Step 6: Run the reference tests**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Commit the shared contracts**
+- [ ] **Step 7: Commit the shared contracts**
 
 ```bash
-git add references/workflow-contract.md references/upstream-compatibility.md tests/test_contracts.py
+git add references/workflow-contract.md references/upstream-compatibility.md assets/global-agents-snippet.md tests/test_contracts.py
 git commit -m "docs: define spec-coder workflow contracts"
 ```
 
@@ -716,11 +743,12 @@ git commit -m "feat: orchestrate the spec-coder workflow"
 - Create: `tests/fixtures/scenarios.md`
 - Modify: `tests/test_contracts.py`
 - Modify: `references/upstream-compatibility.md` only if observed installed paths differ from the recorded snapshot.
+- Create or update outside the repository: `~/.trae/AGENTS.md`
 
 **Interfaces:**
 
 - Consumes: the complete six-skill plugin and installed upstream skills.
-- Produces: structural validation, scenario coverage evidence, an installed local plugin, and a clean repository.
+- Produces: structural validation, scenario coverage evidence, an installed and enabled local plugin, an idempotent global default-routing rule, and a clean repository.
 
 - [ ] **Step 1: Add a failing scenario-matrix test**
 
@@ -790,12 +818,17 @@ If `references/upstream-compatibility.md` did not change, omit it from `git add`
 
 ```bash
 traecli plugin install /data00/home/feiyu.zhu/work/spec-coder --type local --yes
+traecli plugin enable spec-coder@local
 traecli plugin list
 ```
 
 Expected: `spec-coder` appears enabled as a local plugin. Restart TraeCode after installation so the six new skills enter the host catalog.
 
-- [ ] **Step 9: Run final repository verification**
+- [ ] **Step 9: Install the managed global default-routing section**
+
+Read `~/.trae/AGENTS.md` if it exists. Replace only the content from `<!-- spec-coder:start -->` through `<!-- spec-coder:end -->`; otherwise append `assets/global-agents-snippet.md`, preserving every unrelated instruction. Apply the same operation a second time and verify the file is unchanged and contains exactly one start marker and one end marker.
+
+- [ ] **Step 10: Run final repository and installation verification**
 
 ```bash
 python3 -m unittest -v tests/test_contracts.py
@@ -804,6 +837,8 @@ for skill in skills/*; do
 done
 git status --short --branch
 git log --oneline --decorate -10
+traecli plugin list
+rg -n '<!-- spec-coder:(start|end) -->' ~/.trae/AGENTS.md
 ```
 
-Expected: all tests and validators pass, the worktree is clean, and the commit sequence contains one independently reviewable commit per task.
+Expected: all tests and validators pass, `spec-coder@local` is enabled, the global AGENTS file contains exactly one managed section, the worktree is clean, and the commit sequence contains one independently reviewable commit per task. After restarting TraeCode, use `/skills` and `/status` to verify that the six skills and global AGENTS instructions are visible.
