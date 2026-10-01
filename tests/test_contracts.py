@@ -100,6 +100,17 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("recommend", text.lower())
         self.assertIn("original checkout", text.lower())
 
+    def test_design_coder_contract(self) -> None:
+        text = self.assert_skill_contract(
+            "design-coder",
+            ("brainstorming", "domain-modeling", "codebase-design", "clean-architecture"),
+        )
+        self.assertIn("2-3", text)
+        self.assertIn("adaptive", text.lower())
+        self.assertIn("dependency direction", text.lower())
+        self.assertIn("testing seams", text.lower())
+        self.assertIn("do not write implementation code", text.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

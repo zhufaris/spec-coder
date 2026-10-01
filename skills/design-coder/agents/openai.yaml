@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Coder"
+  short_description: "Compare designs with lightweight DDD and architecture"
+  default_prompt: "Use $design-coder to design this approved requirement."

@@ -374,7 +374,7 @@ git commit -m "feat: add requirements grilling stage"
 - Produces: an approved in-conversation design containing alternatives, domain language, boundaries, dependency direction, public seams, and acceptance criteria.
 - Upstream dependencies: `brainstorming`, `domain-modeling`, `codebase-design`, and `clean-architecture`.
 
-- [ ] **Step 1: Add the failing `design-coder` contract test**
+- [x] **Step 1: Add the failing `design-coder` contract test**
 
 ```python
     def test_design_coder_contract(self) -> None:
@@ -389,13 +389,13 @@ git commit -m "feat: add requirements grilling stage"
         self.assertIn("do not write implementation code", text.lower())
 ```
 
-- [ ] **Step 2: Run the focused test and observe failure**
+- [x] **Step 2: Run the focused test and observe failure**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `skills/design-coder/SKILL.md` does not exist.
 
-- [ ] **Step 3: Initialize and implement `design-coder`**
+- [x] **Step 3: Initialize and implement `design-coder`**
 
 Run:
 
@@ -416,7 +416,7 @@ Replace the template with a thin contract that:
 - avoids tactical DDD patterns without evidence;
 - returns design content to `plan-coder` without writing implementation code or pre-isolation artifacts.
 
-- [ ] **Step 4: Validate and run tests**
+- [x] **Step 4: Validate and run tests**
 
 ```bash
 /usr/bin/python3 /data00/home/feiyu.zhu/.trae/skills/.system/skill-creator/scripts/quick_validate.py skills/design-coder
@@ -425,7 +425,7 @@ python3 -m unittest -v tests/test_contracts.py
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit `design-coder`**
+- [x] **Step 5: Commit `design-coder`**
 
 ```bash
 git add skills/design-coder tests/test_contracts.py
