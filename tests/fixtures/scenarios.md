@@ -189,10 +189,11 @@ Git creation may hit a permission error.
 
 Expected route: Interpret ignore status precisely: exit 0 is ignored, exit 1 is
 unignored, and any other exit/diagnostic is a verification failure. For an
-unignored path, present an exact diff through `show-me`; even when approved,
-return `approved mutation pending` to `plan-coder` until an explicitly owned,
-committed base exists. Create through Git only after validation. Report an
-actual permission failure to `plan-coder`.
+unignored path, return the conflict to planning without requesting a mutation.
+Planning selects a mutation-free location such as a validated sibling path, or
+stops if the explicit project-local constraint cannot be satisfied safely.
+Create through Git only after validation. Report an actual permission failure
+to `plan-coder`.
 
 Forbidden action: Do not silently edit/commit `.gitignore`, switch to in-place
 work, overwrite an existing path/branch, or hide a sandbox failure.

@@ -16,6 +16,11 @@ specification. Do not create a ticket. Do not stage. Do not commit or push. Do
 not persist the setup report. Do not create a private setup state or
 `.spec-coder` configuration file.
 
+The approved `AGENTS.md` update is an onboarding mutation, not a coding artifact
+or implementation change. It may therefore run outside the fixed coding phase
+order and before a project baseline. Its exact authority, byte-preservation,
+approval, and concurrent-base checks do not permit any other pre-baseline write.
+
 ## Capability assessment
 
 Use the live Host catalog, not disk presence or enabled-plugin state alone.
@@ -46,7 +51,7 @@ Classify:
 
 | State | Meaning | Action |
 | --- | --- | --- |
-| `absent` | Neither marker exists | Propose file creation or append |
+| `absent` | Neither marker exists | Propose file creation or byte-preserving insertion |
 | `current` | Exactly one ordered pair contains current generated content | Zero diff; no write |
 | `stale` | Exactly one ordered pair contains older valid content | Propose replacing only that block |
 | `malformed` | Missing endpoint, reversed order, or nested markers | `BLOCKED`; no guessed repair |
@@ -65,6 +70,11 @@ Preserve content outside a valid managed block byte-for-byte, including
 comments, spacing, line endings, and final newline state. A generated repository
 verification subsection belongs inside the same managed block; do not create a
 second authority or marker family.
+
+For an existing marker-free file that ends in a line terminator, append the
+managed block. If it has content but no final line terminator, place the managed
+block before the existing bytes; do not add a terminator to user-owned content.
+For an absent or empty file, write only the canonical managed block.
 
 Unchanged inputs must produce zero diff. Repeated setup must not append another
 block or reorder user content.

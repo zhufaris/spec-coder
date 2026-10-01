@@ -13,7 +13,7 @@ if [ ! -f "$VALIDATOR" ]; then
 fi
 
 cd "$REPO_ROOT"
-PYTHONDONTWRITEBYTECODE=1 "$PYTHON_BIN" -m unittest -v tests/test_contracts.py
+PYTHONDONTWRITEBYTECODE=1 "$PYTHON_BIN" -m unittest discover -v -s tests -p 'test_*.py'
 
 for skill in skills/*; do
   /usr/bin/python3 "$VALIDATOR" "$skill"

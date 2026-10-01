@@ -58,10 +58,14 @@ screen, run an external executable, or persist approval state.
 Return to the owning skill without rendering a misleading map when:
 
 - a required snapshot field is absent;
-- a decision, blocker, or mutation scope is unresolved;
+- a decision, blocker, or mutation scope is missing evidence or is not grounded
+  in the authoritative artifact or diff;
 - the supplied facts contradict the authoritative artifact or diff;
 - the request is ordinary status, discovery, or clarification rather than an
   approval request.
 
 Name the missing or conflicting field. The owning skill must correct the
 snapshot before requesting approval; it must not silently omit visualization.
+A grounded but unresolved blocker is review evidence, not a missing field:
+render it visibly, use the linear fallback when needed, and then return control
+without resolving it.

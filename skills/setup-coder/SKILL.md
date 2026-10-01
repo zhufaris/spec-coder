@@ -80,7 +80,8 @@ Stop without a configuration write when:
 - the target differs from the approved base at apply time;
 - the requested global scope was not explicit or separately authorized;
 - a required capability is missing, manual-only, or materially incompatible
-  and the remaining safe checks/configuration are already complete;
+  after all independently safe checks and approved repository-local
+  configuration are complete (or no such configuration is possible);
 - file ownership, permissions, or overlapping user changes make attribution
   unsafe.
 

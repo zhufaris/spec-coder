@@ -27,6 +27,8 @@ Conditional fields are part of the same snapshot:
 
 `show-me` must not invent a missing value. It returns the incomplete snapshot
 to the owning skill for correction.
+A grounded but unresolved blocker is a present value, not an incomplete
+snapshot: it must remain visible in the normal layout or linear fallback.
 
 ## Rendering
 

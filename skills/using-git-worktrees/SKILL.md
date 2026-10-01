@@ -72,12 +72,13 @@ tests here.
 
 ### 3. Use Git fallback only without a native tool
 
-Choose a project-local location in this order:
+Choose a fallback location in this order:
 
 1. an explicit repository/user preference;
 2. existing `.worktrees/`;
 3. existing `worktrees/`;
-4. `.worktrees/` at the repository root.
+4. a new sibling location outside the repository, named from the repository and
+   feature slug.
 
 Before creating a project-local worktree, verify the selected directory is
 ignored:
@@ -92,17 +93,12 @@ ignored; any other exit status or fatal diagnostic is a verification failure.
 Report a verification failure without proposing an ignore mutation.
 
 For exit `1`, do not edit `.gitignore` silently. If the user still requires the
-project-local location, present the exact diff and an ASCII mutation review
-through `show-me`, then obtain explicit approval. Even after approval, create
-nothing and do not apply or commit the diff inside this support skill. Return an
-`approved mutation pending` result to `plan-coder`, including the approved
-bytes and inspected base. Planning must either select a location that needs no
-repository mutation or establish an explicitly owned, committed `.gitignore`
-base before invoking this skill again. This prevents an uncommitted change from
-being stranded in the original checkout or omitted from the new worktree.
-
-If approval is declined, return the conflict to `plan-coder` for a safe
-alternative. Do not create a commit or continue on the unignored path.
+project-local location, return the conflict to `plan-coder`; do not request or
+apply a `.gitignore` mutation before the project baseline. Planning must select
+a mutation-free location, such as the validated sibling fallback, or stop on
+the explicit location constraint. Do not create a commit or continue on the
+unignored path. A sibling path must be absent, have a validated physical parent,
+and not overlap the repository, another worktree, or a user-owned directory.
 
 After validating the path and branch name, create the fallback:
 
@@ -133,9 +129,8 @@ Stop and preserve actual state when:
   task overlap;
 - isolation was required but neither native tooling nor a safe Git fallback is
   available;
-- the project-local directory is unignored and its mutation is not approved;
-- an approved `.gitignore` mutation is not yet part of an explicitly owned,
-  committed base;
+- the project-local directory is unignored and `plan-coder` has not selected a
+  mutation-free location;
 - branch creation would overwrite or conflict with existing state;
 - a sandbox, permission, or Git error prevents creation;
 - cleanup ownership or a native tool result is ambiguous.

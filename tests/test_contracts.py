@@ -353,8 +353,9 @@ class PluginContractTests(unittest.TestCase):
             "linked-worktree candidate",
             "`0` means ignored",
             "`1` means definitively not ignored",
-            "approved mutation pending",
-            "committed `.gitignore` base",
+            "mutation-free location",
+            "sibling",
+            "return the conflict to `plan-coder`",
         ):
             self.assertIn(phrase, normalized)
         self.assertLess(normalized.index("enter_worktree"), normalized.index("git worktree add"))
@@ -434,6 +435,9 @@ class PluginContractTests(unittest.TestCase):
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
         self.assertIn("## Repository Setup", workflow)
         self.assertIn("[setup contract](./setup-contract.md)", workflow.lower())
+        workflow_normalized = " ".join(workflow.lower().split())
+        self.assertIn("onboarding mutation", workflow_normalized)
+        self.assertIn("not a coding artifact", workflow_normalized)
 
     def test_maintainer_docs_are_repository_ignored(self) -> None:
         ignore_rules = read_text(ROOT / ".gitignore").splitlines()
@@ -648,7 +652,8 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("codex plugin add spec-coder@spec-coder", installer)
         self.assertIn("CODEX_HOME", validator)
         self.assertIn("quick_validate.py", validator)
-        self.assertIn("tests/test_contracts.py", validator)
+        self.assertIn("unittest discover", validator)
+        self.assertIn("test_*.py", validator)
         published_install_surface = "\n".join(
             (readme, install_guide, installer, validator, compatibility)
         )
