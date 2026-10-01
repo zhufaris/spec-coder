@@ -814,7 +814,7 @@ git commit -m "test: cover spec-coder workflow scenarios"
 
 If `references/upstream-compatibility.md` did not change, omit it from `git add`.
 
-- [ ] **Step 8: Install and verify the local plugin**
+- [x] **Step 8: Install and verify the local plugin**
 
 ```bash
 traecli plugin install /data00/home/feiyu.zhu/work/spec-coder --type local --yes
@@ -824,11 +824,11 @@ traecli plugin list
 
 Expected: `spec-coder` appears enabled as a local plugin. Restart TraeCode after installation so the six new skills enter the host catalog.
 
-- [ ] **Step 9: Install the managed global default-routing section**
+- [x] **Step 9: Install the managed global default-routing section**
 
 Read `~/.trae/AGENTS.md` if it exists. Replace only the content from `<!-- spec-coder:start -->` through `<!-- spec-coder:end -->`; otherwise append `assets/global-agents-snippet.md`, preserving every unrelated instruction. Apply the same operation a second time and verify the file is unchanged and contains exactly one start marker and one end marker.
 
-- [ ] **Step 10: Run final repository and installation verification**
+- [x] **Step 10: Run final repository and installation verification**
 
 ```bash
 python3 -m unittest -v tests/test_contracts.py
