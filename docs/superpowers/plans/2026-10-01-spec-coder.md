@@ -180,7 +180,7 @@ git commit -m "chore: scaffold spec-coder plugin"
 - Produces: the canonical user-level default-routing instruction.
 - Consumes: Superpowers `v6.4.1`, the 2026-10-01 Matt Pocock `main` snapshot, and the matching Clean Architecture `main` snapshot.
 
-- [ ] **Step 1: Add failing shared-reference tests**
+- [x] **Step 1: Add failing shared-reference tests**
 
 Add to `PluginContractTests`:
 
@@ -225,13 +225,13 @@ Add to `PluginContractTests`:
         self.assertNotIn("TO" + "DO", workflow + compatibility + routing)
 ```
 
-- [ ] **Step 2: Run the new test and observe the missing references**
+- [x] **Step 2: Run the new test and observe the missing references**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `references/workflow-contract.md` does not exist.
 
-- [ ] **Step 3: Write `workflow-contract.md`**
+- [x] **Step 3: Write `workflow-contract.md`**
 
 Include the following normative sections and decisions:
 
@@ -243,7 +243,7 @@ Include the following normative sections and decisions:
 - `Recovery`: infer the earliest incomplete phase from the branch/worktree, spec, plan checkboxes, commits, and fresh verification.
 - `Default Routing`: use `spec-coder` for code-changing requests, exclude read-only requests, and honor an explicit opt-out.
 
-- [ ] **Step 4: Write `upstream-compatibility.md`**
+- [x] **Step 4: Write `upstream-compatibility.md`**
 
 Record this exact capability map:
 
@@ -257,7 +257,7 @@ code-review + verification-before-completion -> delivery-coder
 
 Record the validated upstream versions and the rule that a missing or materially incompatible dependency stops the workflow with a compatibility error.
 
-- [ ] **Step 5: Write the canonical global AGENTS snippet**
+- [x] **Step 5: Write the canonical global AGENTS snippet**
 
 Create `assets/global-agents-snippet.md` with this managed section:
 
@@ -271,13 +271,13 @@ Do not automatically invoke `spec-coder` for read-only explanation, status, inve
 <!-- spec-coder:end -->
 ```
 
-- [ ] **Step 6: Run the reference tests**
+- [x] **Step 6: Run the reference tests**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: PASS, 2 tests.
 
-- [ ] **Step 7: Commit the shared contracts**
+- [x] **Step 7: Commit the shared contracts**
 
 ```bash
 git add references/workflow-contract.md references/upstream-compatibility.md assets/global-agents-snippet.md tests/test_contracts.py

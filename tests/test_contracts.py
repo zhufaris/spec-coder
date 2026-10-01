@@ -41,6 +41,45 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
 
+    def test_shared_references_define_required_contracts(self) -> None:
+        workflow = read_text(ROOT / "references" / "workflow-contract.md")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        routing = read_text(ROOT / "assets" / "global-agents-snippet.md")
+
+        for heading in (
+            "## Phase Order",
+            "## Approval Gates",
+            "## Artifact Contract",
+            "## Git Safety",
+            "## Failure Transitions",
+            "## Recovery",
+        ):
+            self.assertIn(heading, workflow)
+
+        for dependency in (
+            "grilling",
+            "brainstorming",
+            "domain-modeling",
+            "codebase-design",
+            "clean-architecture",
+            "using-git-worktrees",
+            "to-spec",
+            "to-tickets",
+            "tdd",
+            "code-review",
+            "verification-before-completion",
+        ):
+            self.assertIn(f"`{dependency}`", compatibility)
+
+        for phrase in (
+            "use the `spec-coder` skill by default",
+            "read-only",
+            "skip spec-coder",
+        ):
+            self.assertIn(phrase, routing.lower())
+
+        self.assertNotIn("TO" + "DO", workflow + compatibility + routing)
+
 
 if __name__ == "__main__":
     unittest.main()
