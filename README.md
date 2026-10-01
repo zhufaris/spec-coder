@@ -11,7 +11,7 @@
 | `spec-coder` | 总入口；识别新任务或恢复点，并编排完整流程 |
 | `grill-coder` | 单问题需求拷问，并默认给出推荐选项 |
 | `design-coder` | 比较 2–3 个方案，完成轻量 DDD 与 Clean Architecture 设计 |
-| `plan-coder` | 创建隔离 worktree、建立基线、生成规格和垂直 tickets |
+| `plan-coder` | 按任务选择原地执行或 worktree、建立基线、生成规格和垂直 tickets |
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
 
@@ -46,10 +46,10 @@ codex plugin add spec-coder@spec-coder
 本仓库保持 wrapper 精简，因此运行时需要以下上游 skills：
 
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`to-spec`、`to-tickets`、`tdd`、`code-review`
-- Superpowers：`brainstorming`、`using-git-worktrees`、`verification-before-completion`
+- Superpowers：`brainstorming`、`verification-before-completion`；选择 worktree 隔离路径时另需 `using-git-worktrees`
 - Architecture：`clean-architecture`
 
-缺少或不兼容的依赖会让工作流明确停止，不会静默降级。版本基线见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
+缺少或不兼容的必需依赖会让工作流明确停止，不会静默降级。`using-git-worktrees` 按执行路径检查，原地执行不因缺少该可选能力而停止。版本基线见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
 
 ## Default routing
 
@@ -64,6 +64,8 @@ codex plugin add spec-coder@spec-coder
 验证包括仓库契约测试、六个 skill 的官方格式检查，以及 Git whitespace 检查。
 
 ## Workflow
+
+Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
 
 DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Bounded Context、各自的语言和状态所有权，以及必要的 Entity、Value Object、Aggregate 和 Domain Service；区分领域规则、应用编排与 adapter 转换。涉及并发、重试或跨上下文协作时，明确原子性、冲突结果、幂等与恢复责任。模型角色不必逐一对应类，小任务使用简短描述。
 

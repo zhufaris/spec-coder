@@ -7,7 +7,7 @@
 - 默认只修改当前用户的 Codex 插件配置，不使用 `sudo`。
 - 不提交、推送或改写用户仓库中的现有变更。
 - 不覆盖用户的全局 `AGENTS.md`；启用默认路由前先检查并合并受管理区块。
-- 遇到缺失依赖、权限问题或无法识别的安装状态时，停止并报告实际输出，不猜测替代方案。
+- 遇到当前路径必需的依赖缺失、安装权限问题或无法识别的安装状态时，停止并报告实际输出，不猜测替代方案。
 - 安装或升级后必须启动新的 Codex 会话验证；当前会话的 skill 列表不会自动刷新。
 
 ## 1. 前置检查
@@ -94,14 +94,14 @@ codex plugin list --json
 
 ## 5. 检查运行时依赖
 
-`spec-coder` 只编排上游 skills，不会复制或自动安装它们。启动一个新的 Codex 会话，通过 `/skills` 确认以下 skills 全部可见：
+`spec-coder` 只编排上游 skills，不会复制或自动安装它们。启动一个新的 Codex 会话，通过 `/skills` 确认本插件和当前执行路径所需的上游 skills 可见：
 
 - 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`to-spec`、`to-tickets`、`tdd`、`code-review`
-- Superpowers：`brainstorming`、`using-git-worktrees`、`verification-before-completion`
+- Superpowers：`brainstorming`、`verification-before-completion`；选择 worktree 隔离路径时另需 `using-git-worktrees`
 - Architecture：`clean-architecture`
 
-若六个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若上游 skill 缺失，停止并向用户报告缺失名称；不要用名称相近的 skill 替代。已验证的依赖版本基线见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+若六个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失，停止并向用户报告缺失名称；不要用名称相近的 skill 替代。原地执行不要求 `using-git-worktrees`；选定隔离路径后才检查该能力，无法使用时按 workspace 规则决定是否有符合用户要求的安全替代方案。已验证的依赖版本基线见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
 ## 6. 可选：启用默认路由
 
@@ -125,7 +125,7 @@ codex plugin list --json
 在新的 Codex 会话中完成以下检查：
 
 1. `/skills` 能看到六个 `spec-coder` skills。
-2. 所有上游依赖 skills 都可见。
+2. 当前执行路径必需的上游依赖 skills 都可见；原地执行无需 `using-git-worktrees`。
 3. 发起一个只读问题时，不应自动进入 `spec-coder`。
 4. 发起一个代码修改请求时，应进入 `spec-coder`；如果未配置默认路由，则显式要求“使用 spec-coder”。
 
@@ -153,4 +153,4 @@ codex plugin list --json
 
 ### 上游依赖缺失
 
-列出缺失的精确 skill 名称以及 [Upstream Compatibility](./references/upstream-compatibility.md) 中的验证基线，然后停止。依赖恢复后重新启动会话并再次检查 `/skills`。
+先判断依赖是否属于当前执行路径。原地执行缺少 `using-git-worktrees` 不构成阻塞；必需依赖缺失时，列出精确名称以及 [Upstream Compatibility](./references/upstream-compatibility.md) 中的验证基线，然后停止。依赖恢复后重新启动会话并再次检查 `/skills`。

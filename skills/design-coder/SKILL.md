@@ -30,7 +30,7 @@ An approved design in conversation context. It identifies the chosen approach, a
 7. Walk concrete success, rejection, and relevant concurrency, duplicate and partial-failure scenarios through the domain model and module interfaces together. Define atomicity/conflict outcomes, idempotency ownership and recovery responsibilities when triggered. Cover operational constraints, migration/compatibility and verification, including evidence for actual concurrency mechanisms. Separate confirmed decisions from open questions and identify affected readiness; do not infer infrastructure from an invariant. Return results with stable references where useful using the contract's specification mapping.
 8. Present the complete design and stop at Gate 1 for explicit approval.
 
-Do not write implementation code. During an orchestrated run, do not write project artifacts before `plan-coder` establishes a safe isolated worktree. Return the approved design content for specification synthesis.
+Do not write implementation code. During an orchestrated run, keep project artifacts in conversation until `plan-coder` selects a safe workspace and establishes a green baseline. In-place and isolated workspaces are both supported. Return the approved design content for specification synthesis.
 
 ## Stop Conditions
 

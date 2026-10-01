@@ -288,7 +288,7 @@ class PluginContractTests(unittest.TestCase):
 
     def test_required_scenarios_are_documented(self) -> None:
         scenarios = read_text(ROOT / "tests" / "fixtures" / "scenarios.md")
-        for heading in (
+        headings = (
             "## New feature",
             "## Resume from approved spec",
             "## Resume partial tickets",
@@ -296,10 +296,17 @@ class PluginContractTests(unittest.TestCase):
             "## Dirty original checkout",
             "## Failing ticket test",
             "## Failing final suite",
-        ):
+            "## Focused in-place change",
+            "## Reuse existing worktree",
+            "## Optional isolation capability missing",
+            "## Required isolation unavailable",
+            "## Failing in-place baseline",
+            "## Overlapping user changes",
+        )
+        for heading in headings:
             self.assertIn(heading, scenarios)
         for field in ("Starting state:", "Expected route:", "Forbidden action:"):
-            self.assertEqual(scenarios.count(field), 7)
+            self.assertEqual(scenarios.count(field), len(headings))
 
     def test_repository_is_self_describing_and_installable(self) -> None:
         readme = read_text(ROOT / "README.md")

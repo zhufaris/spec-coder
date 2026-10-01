@@ -24,7 +24,7 @@ Approval applies only to the artifact presented at that gate. A scope or archite
 
 ## Artifact Contract
 
-Write target-project artifacts only after a safe isolated worktree exists:
+Write target-project artifacts only after `plan-coder` selects a safe workspace and establishes a green baseline. The workspace can be the current checkout or a linked worktree:
 
 - specification: `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md`;
 - durable ticket plan: `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`;
@@ -37,13 +37,24 @@ The plan is the task-status source of truth. Mirror it in the runtime plan with 
 
 Use `spec-coder` by default for requests that create or change code. Do not automatically route read-only explanation, status, investigation, or review requests through it. Honor an explicit `skip spec-coder` or `directly modify` request while continuing to obey all other applicable instructions and skills.
 
+## Workspace Selection
+
+Worktree creation is optional. Inspect the user's preference, existing worktrees, task scope, concurrent work, branch state, and staged/unstaged/untracked changes before choosing where to work.
+
+- Reuse an existing safe worktree. Otherwise, focused work with clear ownership and no interference can run **in place**. Prefer isolation for parallel work, disruptive experiments or branch changes, or unrelated changes that cannot be safely separated.
+- Respect an explicit workspace preference. Choose and explain the mode as a routine planning decision without adding a create/skip approval gate. If the requested mode cannot be used safely, report the actual conflict rather than silently overriding it.
+- Record the workspace, branch, starting revision, relevant initial changes, chosen mode and reason in the existing specification/plan once the baseline passes. Keep the choice in conversation before that; create no private state file.
+- Invoke `using-git-worktrees` only for the isolation path and prefer native tooling. Absence/failure of optional isolation tooling is not itself a blocker if safe in-place work is available and consistent with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
+- Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
+
 ## Git Safety
 
-- Preserve the user's original checkout and its uncommitted work.
-- Prefer a native worktree facility; reuse existing safe isolation.
-- Use `feat/<slug>` for features and `fix/<slug>` for fixes.
+- Preserve unrelated changes in the user's original checkout. In-place execution permits only task-owned edits; record existing staged, unstaged and untracked work before editing.
+- Do not clean, stash, reset, change branches over, stage or commit unrelated user work to make a workspace usable. For overlapping edits, establish that they can be safely separated; otherwise isolate or resolve the concrete conflict before editing.
+- If creating a branch, use `feat/<slug>` for features and `fix/<slug>` for fixes. Branch creation is not a prerequisite for safe in-place execution; respect repository branch rules.
 - Establish a green baseline before writing target-project artifacts.
 - Stage explicit ticket-owned paths; never use `git add -A`.
+- Inspect the complete proposed commit, not just the latest staging command. If unrelated entries are already staged, use a verified path-scoped commit that preserves them, or isolate the task. Path scoping alone cannot separate user and agent edits to the same file; never include such user hunks without authorization.
 - Create one atomic Conventional Commit per completed ticket.
 - Do not amend commits predating the active ticket.
 - Do not push, open a pull request, or publish external tickets without separate authorization.
@@ -54,12 +65,12 @@ Use `spec-coder` by default for requests that create or change code. Do not auto
 - Return to `design-coder` when evidence invalidates an architectural assumption.
 - Stop before implementation on a failing baseline.
 - Stop after the same blocking condition occurs three consecutive times.
-- Preserve the worktree, branch, failing command, output, and current ticket state whenever stopping.
+- Preserve the selected workspace, branch, initial user changes, failing command, output, and current ticket state whenever stopping.
 - Never delete tests, weaken assertions, suppress failures, or force a commit to manufacture success.
 
 ## Recovery
 
-Inspect the current branch and worktree, approved specification, plan checkboxes, Git log, and fresh verification output. Select the earliest incomplete phase supported by that evidence. Re-run the verification at the inferred boundary before continuing, and never trust an old success claim.
+Inspect the current workspace/mode and branch, recorded initial changes, approved specification, plan checkboxes, Git log, and fresh verification output. Select the earliest incomplete phase supported by that evidence; approved in-place work does not need a worktree on resume. Re-run verification at the inferred boundary and never trust an old success claim.
 
 ## Verification Layers
 

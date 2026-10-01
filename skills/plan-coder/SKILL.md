@@ -1,11 +1,11 @@
 ---
 name: plan-coder
-description: Prepare an approved coding design for implementation by establishing isolation, proving a green baseline, writing a local specification, and creating dependency-aware implementation tickets. Use after design-coder approval or to resume planning from an approved design.
+description: Prepare an approved coding design for implementation by choosing a safe in-place or isolated workspace, proving a green baseline, writing a local specification, and creating dependency-aware implementation tickets. Use after design-coder approval or to resume planning from an approved design.
 ---
 
 # Plan Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md). Compose `using-git-worktrees`, `to-spec`, and `to-tickets` in the order below; do not let their publication defaults bypass this skill's local-artifact and approval rules.
+Follow the shared [workflow contract](../../references/workflow-contract.md), including its workspace selection rules. Use `using-git-worktrees` only if isolation is selected, then compose `to-spec` and `to-tickets`; their workspace/publication defaults must not bypass this skill's selection, local-artifact and approval rules.
 
 Read and apply the [domain design contract](../../references/domain-design-contract.md) during both synthesis and decomposition. Keep the upstream specification and ticket headings; embed domain and architecture content within them.
 
@@ -17,14 +17,14 @@ A Gate 1-approved design, the target repository, its project instructions, and a
 
 ## Output
 
-A safe isolated branch and worktree, fresh green baseline evidence, a reviewed local specification, an approved dependency-aware ticket plan, and explicit authorization to begin implementation.
+A selected safe workspace and recorded rationale (in place or isolated), accounted-for initial changes, fresh green baseline evidence, a reviewed local specification, an approved dependency-aware ticket plan, and explicit authorization to begin implementation.
 
 ## Process
 
-1. Inspect Git state. Reuse an existing safe isolated worktree; otherwise use the native worktree facility to create `feat/<slug>` or `fix/<slug>`. Preserve the original checkout and its uncommitted files.
+1. Inspect Git state, staged/unstaged/untracked changes, current branch, worktrees, user preference and concurrent work. Apply the workflow contract's workspace selection: reuse safe isolation, work in place when ownership/interference permit it, or choose isolation where needed. Explain the choice without an extra approval prompt; invoke compatible `using-git-worktrees` and prefer native tools only on the isolation path. Record initial changes and protect unrelated work; unavailable optional tooling alone is not a blocker for safe in-place work.
 2. Prepare dependencies using repository conventions, then run the applicable baseline tests, lint, type checks, and build.
 3. Stop with the exact commands and output when the baseline is not green.
-4. Use `to-spec` to write the specification at `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md`. Adapt its publication target to this local file; do not publish externally.
+4. Use `to-spec` to write the specification at `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` in the selected workspace. Record workspace mode, reason, branch, starting revision and relevant initial changes in the existing artifact. Adapt its publication target to this local file; do not publish externally.
 5. Before Gate 2, reconcile approved scenarios, affected context maps and model responsibilities, invariants, consistency/interaction decisions, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder` rather than inventing entities, services or recovery policies. Present the written specification and stop at Gate 2 until the user approves it.
 6. Use `to-tickets` to create vertical tickets with explicit blocking edges, user-visible deliverables, acceptance criteria, and scope that fits one agent context window. Each ticket references relevant contexts/model elements, rules, implementation path, consistency/interaction constraints, boundary data and verification without copying the whole model. A ticket can span business contexts under an approved interaction contract. Store tickets as checkboxes at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`.
 7. Mirror the durable ticket plan into the runtime plan with at most one item in progress. The Markdown plan remains authoritative.
@@ -37,10 +37,10 @@ Creating an external issue, publishing to an issue tracker, pushing a branch, or
 Stop when:
 
 - the approved design is missing or internally inconsistent;
-- safe worktree isolation cannot be established;
+- no safe workspace can be used under the user's constraints, or overlapping changes cannot be separated safely;
 - dependency setup or baseline verification fails;
 - Gate 2 specification review is pending;
 - Gate 3 ticket approval or implementation authorization is pending;
-- `to-spec`, `to-tickets`, or `using-git-worktrees` is unavailable or incompatible.
+- `to-spec` or `to-tickets` is unavailable or incompatible, or required isolation depends on unavailable/incompatible `using-git-worktrees` and no permitted safe alternative exists.
 
 After Gate 3, hand the first unblocked ticket to `tdd-coder`.

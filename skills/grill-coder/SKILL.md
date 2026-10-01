@@ -15,7 +15,7 @@ A coding request plus the current repository, existing specifications, `GLOSSARY
 
 ## Output
 
-A dependency-ordered set of confirmed decisions covering purpose, users, scope, invariants, edge cases, operational constraints, failure behavior, and measurable success. Keep the result in conversation context for `design-coder`. In an already isolated worktree, durable terminology or qualifying architecture decisions may also update their established documents.
+A dependency-ordered set of confirmed decisions covering purpose, users, scope, invariants, edge cases, operational constraints, failure behavior, and measurable success. Keep the result in conversation context for `design-coder`. If a safe workspace and green baseline are already established, durable terminology or qualifying architecture decisions may also update their established documents under the workspace's ownership rules.
 
 ## Process
 
@@ -27,7 +27,7 @@ A dependency-ordered set of confirmed decisions covering purpose, users, scope, 
 6. Challenge fuzzy or conflicting domain terms, distinguish affected contexts' meanings and state owners, and probe relevant transitions, concurrent requests, retries and partial failures. Inspect existing behavior before asking. Defer detailed entities, services and architecture selection to `design-coder`.
 7. Finish when every load-bearing decision is confirmed, explicitly deferred, or out of scope.
 
-Do not modify the user's original checkout. Before isolation exists, collect decisions in the conversation rather than writing project files. Do not write implementation code, create a branch, publish an issue, or imply that later approval gates have passed.
+Protect unrelated work in the user's original checkout. Before workspace selection and a green baseline, collect decisions in conversation rather than writing project files. A prepared workspace may be in place or isolated. Do not write implementation code, create a branch, publish an issue, or imply that later approval gates have passed.
 
 ## Stop Conditions
 
