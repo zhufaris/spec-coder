@@ -1,6 +1,6 @@
 {
   "name": "spec-coder",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A gated specification-to-delivery workflow for coding changes.",
   "author": {
     "name": "feiyu.zhu",

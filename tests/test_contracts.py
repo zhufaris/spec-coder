@@ -57,7 +57,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.1.0")
+        self.assertEqual(manifest["version"], "0.2.0")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -131,6 +131,13 @@ class PluginContractTests(unittest.TestCase):
             self.assertTrue(installed[0]["installed"])
             self.assertTrue(installed[0]["enabled"])
             self.assertEqual(installation["pluginId"], "spec-coder@spec-coder")
+            manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
+            self.assertEqual(installed[0]["version"], manifest["version"])
+            installed_root = Path(installation["installedPath"])
+            self.assertEqual(
+                json.loads(read_text(installed_root / ".codex-plugin" / "plugin.json")),
+                manifest,
+            )
 
             installed_skills = {
                 path.parent.name
@@ -139,7 +146,19 @@ class PluginContractTests(unittest.TestCase):
                 )
             }
             self.assertEqual(installed_skills, EXPECTED_SKILLS)
-            self.assert_domain_reference_resolves(Path(installation["installedPath"]))
+            for directory in ("skills", "references"):
+                for source in (ROOT / directory).rglob("*"):
+                    if not source.is_file():
+                        continue
+                    relative = source.relative_to(ROOT)
+                    with self.subTest(installed_file=str(relative)):
+                        target = installed_root / relative
+                        self.assertTrue(
+                            target.resolve().is_relative_to(installed_root.resolve())
+                        )
+                        self.assertTrue(target.is_file())
+                        self.assertEqual(target.read_bytes(), source.read_bytes())
+            self.assert_domain_reference_resolves(installed_root)
 
     def assert_domain_reference_resolves(self, root: Path) -> None:
         for stage in DESIGN_STAGES:
