@@ -8,6 +8,10 @@ Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-code
 
 Each stage may also be invoked independently when its stated input already exists. It must validate that input instead of silently recreating an earlier phase.
 
+## Domain and Architecture Continuity
+
+Apply the [domain design contract](./domain-design-contract.md) from design through delivery. It maps domain scenarios, invariants, ownership, interfaces, dependency rules, and verification into the existing `to-spec` and `to-tickets` templates. Gate 2 checks preservation; Gate 3 checks ticket coverage and readiness. These checks use the existing gates. Ticket size is one agent context window, not necessarily one business bounded context.
+
 ## Approval Gates
 
 Stop for explicit user approval after:
@@ -58,6 +62,8 @@ Use `spec-coder` by default for requests that create or change code. Do not auto
 Inspect the current branch and worktree, approved specification, plan checkboxes, Git log, and fresh verification output. Select the earliest incomplete phase supported by that evidence. Re-run the verification at the inferred boundary before continuing, and never trust an old success claim.
 
 ## Verification Layers
+
+For behavior changes, use the Red-Green sequence below. For approved behavior-preserving refactors or dependency-only repairs, substitute the structural verification path in `tdd-coder` for steps 1-2: green baseline and preservation checks, plus dependency-check or before/after source-review evidence. Mixed work still needs Red-Green for changed behavior. Both paths require affected checks, review, and full verification.
 
 1. Observe a focused test fail for the intended reason.
 2. Make the focused test pass with the minimum implementation.

@@ -65,6 +65,8 @@ codex plugin add spec-coder@spec-coder
 
 ## Workflow
 
+DDD 与 Clean Architecture 围绕业务场景共同明确规则、所有权、接口和依赖方向。`to-spec` 将这些决策固化进规格，`to-tickets` 按业务能力切出可验证增量，每张 ticket 引用相关规则、实现路径和测试接口。Gate 2 检查设计信息是否完整，Gate 3 检查场景覆盖与实施条件；实现和交付分别验证业务行为与架构依赖。小任务使用简短描述，无需强制领域对象或架构分层。具体映射见 [Domain Design Contract](./references/domain-design-contract.md)。
+
 ```text
 grill-coder
     -> design-coder        [设计审批]

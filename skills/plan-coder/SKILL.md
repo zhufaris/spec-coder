@@ -7,6 +7,8 @@ description: Prepare an approved coding design for implementation by establishin
 
 Follow the shared [workflow contract](../../references/workflow-contract.md). Compose `using-git-worktrees`, `to-spec`, and `to-tickets` in the order below; do not let their publication defaults bypass this skill's local-artifact and approval rules.
 
+Read and apply the [domain design contract](../../references/domain-design-contract.md) during both synthesis and decomposition. Keep the upstream specification and ticket headings; embed domain and architecture content within them.
+
 ## Input
 
 A Gate 1-approved design, the target repository, its project instructions, and any existing `spec-coder` artifacts.
@@ -21,10 +23,10 @@ A safe isolated branch and worktree, fresh green baseline evidence, a reviewed l
 2. Prepare dependencies using repository conventions, then run the applicable baseline tests, lint, type checks, and build.
 3. Stop with the exact commands and output when the baseline is not green.
 4. Use `to-spec` to write the specification at `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md`. Adapt its publication target to this local file; do not publish externally.
-5. Present the written specification and stop at Gate 2 until the user approves it.
-6. Use `to-tickets` to create vertical tickets with explicit blocking edges, user-visible deliverables, acceptance criteria, and one-context scope. Store them as checkboxes at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`.
+5. Before Gate 2, reconcile approved scenarios, invariants, ownership, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder`. Present the written specification and stop at Gate 2 until the user approves it.
+6. Use `to-tickets` to create vertical tickets with explicit blocking edges, user-visible deliverables, acceptance criteria, and scope that fits one agent context window. Each ticket carries relevant spec references, ownership and implementation path, boundary data/failure semantics, and verification. A ticket can span business contexts under an approved interaction contract. Store tickets as checkboxes at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`.
 7. Mirror the durable ticket plan into the runtime plan with at most one item in progress. The Markdown plan remains authoritative.
-8. Present the ticket set and stop at Gate 3 until the user approves it and authorizes implementation.
+8. Before Gate 3, check that all in-scope scenarios/invariants have responsible tickets, every ticket traces to approved decisions, blockers are real prerequisites, and each increment is independently verifiable. Resolve open load-bearing decisions through design/specification rather than assuming them. Present the ticket set and stop at Gate 3 until the user approves it and authorizes implementation.
 
 Creating an external issue, publishing to an issue tracker, pushing a branch, or opening a pull request always requires separate explicit authorization.
 

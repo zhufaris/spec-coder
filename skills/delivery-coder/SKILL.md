@@ -7,6 +7,8 @@ description: Review and verify a completed spec-coder plan before declaring deli
 
 Follow the shared [workflow contract](../../references/workflow-contract.md). Compose `code-review` first, then `verification-before-completion`; route behavior repairs through `tdd-coder`.
 
+Read and apply the [domain design contract](../../references/domain-design-contract.md) to verify scenario/invariant coverage and architecture evidence separately.
+
 ## Input
 
 The approved specification and plan, completed ticket commits, current diff and Git history, repository instructions, domain language, architecture decisions, and authoritative verification commands.
@@ -19,7 +21,7 @@ Findings ordered by severity, TDD-backed repair commits when needed, fresh evide
 
 1. Confirm every ticket checkbox is complete and inspect the current branch, worktree, Git log, and cumulative diff. Preserve unrelated user changes.
 2. Run `code-review` against both the specification and repository standards. Report findings before conclusions.
-3. Check acceptance criteria, domain language, public contracts, dependency direction, Clean Architecture boundaries, error handling, security, and unintended scope.
+3. Check acceptance criteria, domain language, public contracts, dependency direction, Clean Architecture boundaries, error handling, security, and unintended scope. Map each in-scope scenario/invariant to completed tickets and actual test evidence. Verify architecture decisions separately with dependency checks or documented module/import review; plan checkboxes alone are insufficient.
 4. Route behavior defects through `tdd-coder`: add or correct a failing test, observe Red, implement the minimum repair, run affected checks, and create a separate atomic commit. Perform structural refactoring only while behavior tests remain green.
 5. Repeat review until no unresolved blocking findings remain. Do not conceal accepted residual risks.
 6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command. Do not rely on earlier output or a ticket-level subset.
