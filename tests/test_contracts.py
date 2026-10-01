@@ -55,6 +55,18 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
 
+    def test_codex_marketplace_exposes_root_plugin(self) -> None:
+        marketplace = json.loads(
+            read_text(ROOT / ".agents" / "plugins" / "marketplace.json")
+        )
+        self.assertEqual(marketplace["name"], "spec-coder")
+        self.assertEqual(len(marketplace["plugins"]), 1)
+        plugin = marketplace["plugins"][0]
+        self.assertEqual(plugin["name"], "spec-coder")
+        self.assertEqual(plugin["source"], {"source": "local", "path": "."})
+        self.assertEqual(plugin["policy"]["installation"], "AVAILABLE")
+        self.assertEqual(plugin["policy"]["products"], ["CODEX"])
+
     def test_shared_references_define_required_contracts(self) -> None:
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
         compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
@@ -194,15 +206,26 @@ class PluginContractTests(unittest.TestCase):
 
     def test_repository_is_self_describing_and_installable(self) -> None:
         readme = read_text(ROOT / "README.md")
+        install_guide = read_text(ROOT / "INSTALL.md")
         installer = read_text(ROOT / "scripts" / "install-local.sh")
         validator = read_text(ROOT / "scripts" / "validate.sh")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
 
         for skill in EXPECTED_SKILLS:
             self.assertIn(f"`{skill}`", readme)
-        self.assertIn("traecli plugin install", readme)
-        self.assertIn("traecli plugin enable", installer)
+        self.assertIn("codex plugin marketplace add", readme)
+        self.assertIn("codex plugin add spec-coder@spec-coder", readme)
+        self.assertIn('codex plugin marketplace add "$REPO_ROOT"', installer)
+        self.assertIn("codex plugin add spec-coder@spec-coder", installer)
+        self.assertIn("CODEX_HOME", validator)
         self.assertIn("quick_validate.py", validator)
         self.assertIn("tests/test_contracts.py", validator)
+        published_install_surface = "\n".join(
+            (readme, install_guide, installer, validator, compatibility)
+        )
+        self.assertNotRegex(
+            published_install_surface, r"(?i)traecode|traecli|~/\.trae"
+        )
 
 
 if __name__ == "__main__":

@@ -18,6 +18,6 @@ The plugin composes installed skills by capability and name. It does not copy th
 
 ## Compatibility Check
 
-Before a stage delegates, confirm that every named upstream skill is visible in the current TraeCode skill catalog. Treat renamed, missing, or materially changed input/output contracts as incompatibilities.
+Before a stage delegates, confirm that every named upstream skill is visible in the current Codex skill catalog. Treat renamed, missing, or materially changed input/output contracts as incompatibilities.
 
 On incompatibility, stop and report the missing capability and the validated baseline above. Do not silently reproduce remembered upstream behavior or substitute a similarly named skill.

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-TRAE_HOME_DIR="${TRAE_HOME:-${HOME}/.trae}"
-VALIDATOR="${SKILL_VALIDATOR:-$TRAE_HOME_DIR/skills/.system/skill-creator/scripts/quick_validate.py}"
+CODEX_HOME_DIR="${CODEX_HOME:-${HOME}/.codex}"
+VALIDATOR="${SKILL_VALIDATOR:-$CODEX_HOME_DIR/skills/.system/skill-creator/scripts/quick_validate.py}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 if [ ! -f "$VALIDATOR" ]; then

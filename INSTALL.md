@@ -1,21 +1,21 @@
 # Agent 安装指南
 
-本文供编码 Agent 使用。目标是把 `spec-coder` 安装到当前用户的 TraeCode 环境，启用插件，并确认完整工作流可被新会话发现。
+本文供编码 Agent 使用。目标是把 `spec-coder` 安装到当前用户的 Codex 环境，并确认完整工作流可被新会话发现。
 
 ## 执行边界
 
-- 默认只修改当前用户的 TraeCode 插件配置，不使用 `sudo`。
+- 默认只修改当前用户的 Codex 插件配置，不使用 `sudo`。
 - 不提交、推送或改写用户仓库中的现有变更。
 - 不覆盖用户的全局 `AGENTS.md`；启用默认路由前先检查并合并受管理区块。
 - 遇到缺失依赖、权限问题或无法识别的安装状态时，停止并报告实际输出，不猜测替代方案。
-- 安装或升级后必须启动新的 TraeCode 会话验证；当前会话的 skill 列表不会自动刷新。
+- 安装或升级后必须启动新的 Codex 会话验证；当前会话的 skill 列表不会自动刷新。
 
 ## 1. 前置检查
 
 在仓库根目录执行：
 
 ```bash
-command -v traecli
+command -v codex
 git status --short --branch
 test -f .codex-plugin/plugin.json
 test -x scripts/install-local.sh
@@ -23,11 +23,11 @@ test -x scripts/install-local.sh
 
 继续安装前应满足：
 
-- `traecli` 可在 `PATH` 中找到。
+- `codex` 可在 `PATH` 中找到。
 - 当前目录是 `spec-coder` 仓库根目录。
 - 插件清单和本地安装脚本存在。
 
-工作区可以有用户自己的未提交变更，但不要修改或清理它们。若 `traecli` 不存在，停止并请用户先安装或配置 TraeCode CLI。
+工作区可以有用户自己的未提交变更，但不要修改或清理它们。若 `codex` 不存在，停止并请用户先安装或配置 Codex CLI。
 
 ## 2. 校验插件源码
 
@@ -45,7 +45,7 @@ SKILL_VALIDATOR=/absolute/path/to/quick_validate.py ./scripts/validate.sh
 
 不要为了绕过失败而删除测试、跳过校验或修改用户环境。
 
-## 3. 安装并启用
+## 3. 注册 marketplace 并安装
 
 ### 从当前 clone 安装
 
@@ -58,56 +58,56 @@ SKILL_VALIDATOR=/absolute/path/to/quick_validate.py ./scripts/validate.sh
 它等价于：
 
 ```bash
-traecli plugin install "$(pwd)" --type local --yes
-traecli plugin enable spec-coder@local
+codex plugin marketplace add "$(pwd)"
+codex plugin add spec-coder@spec-coder
 ```
 
 本地安装会关联当前 checkout。不要在安装后移动或删除该目录。
 
 ### 从 Git 仓库安装
 
-仅当用户给出了可信的 Git URL 时使用：
+仅当当前 Git 凭据可以访问私有仓库时使用：
 
 ```bash
-traecli plugin install <GIT_URL> --type git --yes
-traecli plugin enable spec-coder@local
+codex plugin marketplace add zhufaris/spec-coder
+codex plugin add spec-coder@spec-coder
 ```
 
-`<GIT_URL>` 是占位符，必须替换为真实地址；不要原样执行。若仓库需要认证或网络访问失败，报告错误并等待用户处理凭据或授权。
+若仓库认证或网络访问失败，报告错误并等待用户处理凭据或授权。
 
 ## 4. 验证注册状态
 
 执行：
 
 ```bash
-traecli plugin list
+codex plugin list --json
 ```
 
-输出中应能找到已启用的 `spec-coder` 本地插件。若插件存在但未启用，再执行：
+输出中应能找到已安装且启用的 `spec-coder@spec-coder`。同时可以确认 marketplace 已注册：
 
 ```bash
-traecli plugin enable spec-coder@local
-traecli plugin list
+codex plugin marketplace list --json
+codex plugin list --json
 ```
 
 不要仅依据安装命令的退出码宣布成功；保留并检查 `plugin list` 的实际输出。
 
 ## 5. 检查运行时依赖
 
-`spec-coder` 只编排上游 skills，不会复制或自动安装它们。启动一个新的 TraeCode 会话，通过 `/skills` 确认以下 skills 全部可见：
+`spec-coder` 只编排上游 skills，不会复制或自动安装它们。启动一个新的 Codex 会话，通过 `/skills` 确认以下 skills 全部可见：
 
 - 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`to-spec`、`to-tickets`、`tdd`、`code-review`
 - Superpowers：`brainstorming`、`using-git-worktrees`、`verification-before-completion`
 - Architecture：`clean-architecture`
 
-若六个本插件 skills 不可见，先确认插件已启用并再次重启 TraeCode。若上游 skill 缺失，停止并向用户报告缺失名称；不要用名称相近的 skill 替代。已验证的依赖版本基线见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+若六个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若上游 skill 缺失，停止并向用户报告缺失名称；不要用名称相近的 skill 替代。已验证的依赖版本基线见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
 ## 6. 可选：启用默认路由
 
 只有用户明确希望代码修改请求默认进入 `spec-coder` 时，才执行本节。
 
-打开全局 `~/.trae/AGENTS.md`，检查是否已经存在以下标记：
+打开全局 `~/.codex/AGENTS.md`，检查是否已经存在以下标记：
 
 ```text
 <!-- spec-coder:start -->
@@ -122,7 +122,7 @@ traecli plugin list
 
 ## 7. 最终验收
 
-在新的 TraeCode 会话中完成以下检查：
+在新的 Codex 会话中完成以下检查：
 
 1. `/skills` 能看到六个 `spec-coder` skills。
 2. 所有上游依赖 skills 都可见。
@@ -133,9 +133,9 @@ traecli plugin list
 
 ## 故障排查
 
-### `traecli is not available on PATH`
+### `codex is not available on PATH`
 
-不要继续。报告 `command -v traecli` 失败，并请用户安装 TraeCode CLI 或修正 `PATH`。
+不要继续。报告 `command -v codex` 失败，并请用户安装 Codex CLI 或修正 `PATH`。
 
 ### 找不到 skill validator
 
@@ -145,8 +145,8 @@ traecli plugin list
 
 依次确认：
 
-1. `traecli plugin list` 中插件存在且已启用。
-2. 已完全退出并新建 TraeCode 会话。
+1. `codex plugin list --json` 中插件存在且已启用。
+2. 已完全退出并新建 Codex 会话。
 3. 安装所引用的本地 checkout 仍然存在。
 
 仍不可见时，报告上述三项的实际结果，不要重复盲目安装。

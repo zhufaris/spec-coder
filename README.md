@@ -1,6 +1,6 @@
 # spec-coder
 
-`spec-coder` 是一组面向 Coding Agent 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
+`spec-coder` 是一组面向 Codex 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
 它参考 Matt Pocock skills 的“小而可组合”结构，但不复制上游 skill 内容。仓库中的 wrapper 负责固定阶段、审批门禁、产物位置和 Git 安全策略。
 
@@ -28,18 +28,18 @@
 等价的显式命令是：
 
 ```bash
-traecli plugin install /absolute/path/to/spec-coder --type local --yes
-traecli plugin enable spec-coder@local
+codex plugin marketplace add /absolute/path/to/spec-coder
+codex plugin add spec-coder@spec-coder
 ```
 
-仓库发布到 Git 服务后，也可以直接安装仓库 URL：
+也可以通过 GitHub 仓库注册 marketplace 后安装：
 
 ```bash
-traecli plugin install https://github.com/OWNER/spec-coder.git --type git --yes
-traecli plugin enable spec-coder@local
+codex plugin marketplace add zhufaris/spec-coder
+codex plugin add spec-coder@spec-coder
 ```
 
-安装或升级后重启 TraeCode，再通过 `/skills` 检查六个 skill 是否出现。
+私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查六个 skill 是否出现。
 
 ## Dependencies
 
@@ -53,7 +53,7 @@ traecli plugin enable spec-coder@local
 
 ## Default routing
 
-如果希望所有代码修改请求默认进入 `spec-coder`，将 [`assets/global-agents-snippet.md`](./assets/global-agents-snippet.md) 的受管理区块加入 `~/.trae/AGENTS.md`。只读解释、状态查询、调查和 review 不会自动进入此流程；使用 `skip spec-coder` 或 `directly modify` 可显式跳过。
+如果希望所有代码修改请求默认进入 `spec-coder`，将 [`assets/global-agents-snippet.md`](./assets/global-agents-snippet.md) 的受管理区块加入 `~/.codex/AGENTS.md`。只读解释、状态查询、调查和 review 不会自动进入此流程；使用 `skip spec-coder` 或 `directly modify` 可显式跳过。
 
 ## Validate
 
