@@ -177,6 +177,21 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(phrase, text.lower())
         self.assertNotIn("state.yaml", text.lower())
 
+    def test_required_scenarios_are_documented(self) -> None:
+        scenarios = read_text(ROOT / "tests" / "fixtures" / "scenarios.md")
+        for heading in (
+            "## New feature",
+            "## Resume from approved spec",
+            "## Resume partial tickets",
+            "## Failing baseline",
+            "## Dirty original checkout",
+            "## Failing ticket test",
+            "## Failing final suite",
+        ):
+            self.assertIn(heading, scenarios)
+        for field in ("Starting state:", "Expected route:", "Forbidden action:"):
+            self.assertEqual(scenarios.count(field), 7)
+
 
 if __name__ == "__main__":
     unittest.main()

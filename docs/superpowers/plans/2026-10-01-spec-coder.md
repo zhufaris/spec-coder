@@ -750,7 +750,7 @@ git commit -m "feat: orchestrate the spec-coder workflow"
 - Consumes: the complete six-skill plugin and installed upstream skills.
 - Produces: structural validation, scenario coverage evidence, an installed and enabled local plugin, an idempotent global default-routing rule, and a clean repository.
 
-- [ ] **Step 1: Add a failing scenario-matrix test**
+- [x] **Step 1: Add a failing scenario-matrix test**
 
 ```python
     def test_required_scenarios_are_documented(self) -> None:
@@ -769,23 +769,23 @@ git commit -m "feat: orchestrate the spec-coder workflow"
             self.assertEqual(scenarios.count(field), 7)
 ```
 
-- [ ] **Step 2: Run the focused test and observe failure**
+- [x] **Step 2: Run the focused test and observe failure**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: FAIL because `tests/fixtures/scenarios.md` does not exist.
 
-- [ ] **Step 3: Write the seven-scenario fixture matrix**
+- [x] **Step 3: Write the seven-scenario fixture matrix**
 
 For each required heading, specify one starting repository state, the expected stage route, and one forbidden action. The cases must prove the design's recovery and safety decisions rather than restate generic happy paths.
 
-- [ ] **Step 4: Run all local contract tests**
+- [x] **Step 4: Run all local contract tests**
 
 Run: `python3 -m unittest -v tests/test_contracts.py`
 
 Expected: all tests pass with zero failures and zero errors.
 
-- [ ] **Step 5: Run the official validator for every skill**
+- [x] **Step 5: Run the official validator for every skill**
 
 ```bash
 for skill in skills/*; do
@@ -795,7 +795,7 @@ done
 
 Expected: six `Skill is valid!` results.
 
-- [ ] **Step 6: Check formatting, placeholders, and repository scope**
+- [x] **Step 6: Check formatting, placeholders, and repository scope**
 
 ```bash
 git diff --check
@@ -805,7 +805,7 @@ git status --short
 
 Expected: `git diff --check` succeeds; the placeholder search returns no matches; status contains only Task 9 files.
 
-- [ ] **Step 7: Commit scenario validation**
+- [x] **Step 7: Commit scenario validation**
 
 ```bash
 git add tests/fixtures/scenarios.md tests/test_contracts.py references/upstream-compatibility.md
