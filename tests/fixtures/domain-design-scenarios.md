@@ -1,6 +1,6 @@
 # Domain Design Application Scenarios
 
-Use these read-only simulations to evaluate skill behavior. Contract tests check link integrity and packaged references; they do not prove an agent preserves design meaning. Load the four design/planning/implementation/delivery wrappers and their shared references. Keep local design notes out of the evaluator's input.
+Use these read-only simulations to evaluate skill behavior. Contract tests check link integrity and packaged references; they do not prove an agent preserves design meaning. Load the relevant discovery/design/planning/implementation/delivery wrappers and their shared references. Give evaluators only the task input and skill artifacts, not this file's expected application or local design notes. Keep evaluation evidence in the local plan.
 
 ## Cancellation with missing delivery semantics
 
@@ -55,3 +55,55 @@ Expected application:
 - Delivery reports the unmet architecture decision; plan checkboxes and green behavior tests do not establish compliance.
 - Repair under the existing TDD/review loop and record dependency-tool or module/import review evidence.
 - For a dependency-only repair, preserve green behavior checks and show the failing dependency check turn green, or record concrete before/after import review when no tooling exists. Do not demand an artificial business-test failure. If outcomes also change, use behavior Red-Green for those outcomes.
+
+## Concurrent cancellation and shipment
+
+Input: In a monolith, Ordering owns order shipment/cancellation; Billing owns payments and refunds. HTTP and a worker can both cancel an order. Ordering cancellation and Billing refund completion have different meanings. Existing persistence uses optimistic row versions. Cancellation and shipment can race. Sketch the affected context models and verification. Refund timeout recovery/deduplication ownership has not been decided.
+
+Expected application:
+- Explain affected contexts and local models, identity/lifecycle and justified aggregate boundaries, without turning contexts into mandatory services or inventories of every table.
+- Identify one authoritative rule shared by the entry points, distinguish domain behavior from application coordination and adapter conversion.
+- Explain that both transitions must participate in the approved atomic/conflict mechanism, define losing outcomes and test the actual relevant interleaving.
+- Preserve uncertainty about refund recovery; distinguish observed version columns from a proposed use of them and return unresolved business decisions to design.
+
+## Provider accepts a repeated refund
+
+Input: The provider may accept a refund then time out. The local HTTP handler deduplicates requests in memory, but a worker retries after process restart. Propose the necessary specification content.
+
+Expected application:
+- Identify operation identity, durable deduplication and retention, ownership across local/provider retries, uncertain state, reconciliation and caller-visible results as decisions to settle.
+- Do not claim exactly-once effects from local deduplication or infer a queue/outbox as the answer.
+
+## Distinguish domain and application services
+
+Input: A proposed design uses an Order record, an OrderService containing all eligibility rules and database operations, and controllers/workers that copy the eligibility predicate. Explain an appropriate model for a nontrivial cancellation rule.
+
+Expected application:
+- Put authoritative behavior in an appropriate domain module, allowing entity methods or domain functions rather than mandating classes.
+- Reserve domain services for named operations not naturally owned by an entity/value object; distinguish use-case orchestration and persistence/provider adapters.
+- Verify relevant entry paths use the shared rule.
+
+## Types leak despite clean import layout
+
+Input: The domain package has no direct infrastructure import, but Order.cancel accepts an ORM session and returns an SDK response passed in by an application module. Behavior tests are green. Review it against an approved ban on infrastructure semantics in domain interfaces.
+
+Expected application:
+- Inspect exposed types and semantics as well as direct imports; identify actual leakage and the responsible conversion/coordination seams.
+- Require separate structural evidence while preserving green behavior; do not accept folder naming as proof.
+
+## Authorized read projection
+
+Input: A tenant-scoped order-history query already enforces authorization in its query module and returns a summary projection. A proposal would hydrate every Order aggregate and add a repository interface solely to follow four layers. Evaluate it.
+
+Expected application:
+- Allow the existing projection if it preserves required access and business constraints.
+- Reject unjustified hydration/interfaces without dismissing tenant and authorization rules.
+
+## Existing model conflicts with target
+
+Input: Legacy code has a shared mutable Customer ORM object used by Billing and Support. Their definitions of active customer differ. The approved task only changes Support's eligibility display, and the developer proposes a system-wide split into microservices. Describe scope and model evidence.
+
+Expected application:
+- Separate observed storage/model coupling from proposed bounded-context semantics.
+- Explain local language and affected ownership/translation; scope any necessary migration to the feature and surface unresolved contract choices.
+- Do not endorse leakage as target architecture or prescribe a whole-system deployment redesign.

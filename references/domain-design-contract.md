@@ -4,12 +4,67 @@ Carry one scenario-driven design through specification, tickets, implementation,
 
 This reference adapts the existing upstream templates inside spec-coder. Keep the workflow contract's stages, artifact locations, and three approval gates. The approved specification is the design authority; tickets reference their relevant decisions instead of maintaining another copy of the model.
 
+## Contents
+
+- [Scale to the observed problem](#scale-to-the-observed-problem)
+- [Bounded contexts and their models](#bounded-contexts-and-their-models)
+- [Consistency and interaction contracts](#consistency-and-interaction-contracts)
+- [Architecture that can be verified](#architecture-that-can-be-verified)
+- [Design content and specification mapping](#design-content-and-specification-mapping)
+- [Ticket decomposition](#ticket-decomposition)
+- [Implementation and delivery](#implementation-and-delivery)
+
 ## Scale to the observed problem
 
-- For a small change, use a short description of behavior, affected ownership/interface, and verification. Do not require identifiers, a glossary, or architecture layers without a need.
-- For multiple interacting rules, give scenarios, invariants, and architecture decisions stable references such as `SCN-1`, `INV-1`, and `ARCH-1`, or unambiguous section anchors. Preserve references during decomposition.
-- For multiple business contexts or external systems, record state ownership, interaction data, consistency expectations, and failure/recovery semantics. An unresolved load-bearing decision is a question for design, not an implementation default.
-- Introduce aggregates, ports, adapters, and domain events only where actual constraints justify them. Reuse existing modules and public seams; no fixed four-layer directory structure is required.
+Inspect evidence before selecting modeling depth. Explain which triggers apply; they can overlap. Use a short paragraph for a small change. Do not require identifiers, a glossary, entities, services, or architecture layers merely to fill a template.
+
+| Observed trigger | Required decisions |
+| --- | --- |
+| Simple CRUD, field or display change | Business meaning, responsible module, input constraints, observable result and verification |
+| Interacting rules or significant state transitions | Invariants, enforcing model, state ownership, allowed and rejected transitions |
+| Concurrent writes or repeated requests | Atomicity/conflict mechanism, idempotency identity and owner, losing/duplicate outcome |
+| Multiple business contexts or external semantics | Context map, local models, translation, interaction data, consistency and recovery responsibilities |
+| Framework, persistence or SDK coupling | Interface ownership, source dependencies, data conversion and concrete dependency assembly |
+
+Give interacting scenarios, invariants, and architecture decisions stable references such as `SCN-1`, `INV-1`, and `ARCH-1`, or unambiguous section anchors. Preserve them during decomposition. Read the [worked examples](./domain-design-examples.md) when applying a trigger or resolving ambiguous model/service responsibilities.
+
+## Bounded contexts and their models
+
+Describe the affected **Bounded Contexts** and only the neighbors needed to explain interactions. A bounded context owns a coherent model and language; it is not automatically a folder, table, team, deployment unit, or microservice. Justify a boundary with differences in meaning, rules, or ownership. One context can suffice.
+
+For an existing system, separate **observed**, **proposed**, and **unresolved** model elements using code/specification evidence. Identify contradictions and the affected decisions. Do not turn observed legacy leakage into an approved constraint or expand a local change into an unrelated redesign.
+
+Within the existing specification, provide a compact description for each relevant context. Combine rows for small tasks; omit inapplicable constructs with a brief reason when their absence could be ambiguous.
+
+| Model content | Explain |
+| --- | --- |
+| Context purpose and language | Capabilities, local term meanings, authoritative state, exclusions and relationships with neighbors |
+| Entity | Business identity, lifecycle, state transitions and behavior; identity across contexts needs an explicit mapping |
+| Value object | Value meaning, equality and validity constraints |
+| Aggregate and root, when needed | Root, included entities/value objects, protected invariants and consistency boundary; justify from rules that must hold together, not joins |
+| Domain service, when needed | A named business operation that does not naturally belong to one entity/value object; inputs, results, rules and collaborators |
+| Application service / use case | Coordination of domain operations, transactions and external interactions; reference the authoritative domain rule instead of duplicating it |
+| Repositories, ports and events, when needed | The actual capability and owner they serve, contract semantics and why existing interfaces are insufficient |
+
+Give every significant invariant an authoritative enforcing module and an observable behavior seam. Use an entity, value object, aggregate, or domain function/service as appropriate; logical roles need not become separate classes. Do not create a service per use case, a repository per table, passive records plus a generic service containing every rule, or an interface for every class. Preserve simple CRUD where there is no richer rule to model.
+
+## Consistency and interaction contracts
+
+- For each concurrently mutable invariant, identify the atomic operation or conflict detection mechanism, its consistency scope, and the observable losing outcome. A precondition check followed by an unprotected write cannot by itself guarantee the invariant. Test the relevant interleaving, not only sequential success.
+- For repeated operations, define idempotency identity, the owning participant, the duplicate result, and relevant persistence/retention semantics. Local deduplication does not establish exactly-once external effects.
+- For context interactions, identify producer/consumer, command or event meaning, boundary data, identifiers and translation ownership. Distinguish local domain events from integration events with external compatibility obligations. Do not share a mutable domain entity across contexts by default.
+- Specify synchronous/asynchronous interaction and distinguish local atomicity from cross-context consistency. Cover relevant intermediate states, timeout ambiguity, retries, deduplication, reconciliation/compensation, terminal outcomes and who drives recovery.
+- Choose queues, outboxes or sagas only when required guarantees and constraints justify them. An invariant does not select infrastructure. If a load-bearing decision is unresolved, identify the decision, owner if known, and affected readiness; do not guess it during specification synthesis or implementation.
+
+## Architecture that can be verified
+
+Define the module responsible for each rule, the public interface, allowed crossing data, actual source dependency direction, and where concrete dependencies are assembled. Runtime control flow and source dependencies can point in different directions.
+
+- Keep business judgments in the responsible domain module; HTTP handlers, jobs and application use cases should invoke it rather than each implement the same rule. Application coordination and adapter translation remain distinct responsibilities.
+- Describe required interfaces in the language of the internal consumer: inputs, outputs, preconditions, error semantics and ordering constraints. Explain who owns the interface and where an adapter satisfies it. Reuse useful seams; do not invent ports merely to complete a diagram or facilitate mocks.
+- Identify where HTTP, ORM and SDK representations are converted. Check imports, exposed types, constructors and configuration requirements for external semantics leaking into core policy. A function, class or package can provide the needed module; names and folder layout do not prove dependency compliance.
+- Allow read-only projections through an existing query module without loading an aggregate where appropriate; preserve authorization, tenancy and applicable business constraints. Do not route every read through a write model.
+- For legacy violations, explain the specific deviation, target and migration scope. Preserve behavior during structural repairs; do not silently permit new leakage or undertake an unrelated whole-system refactor.
 
 ## Design content and specification mapping
 
@@ -20,14 +75,14 @@ Use the existing `to-spec` headings. Put the following content in their indicate
 | Design content | Placement in the upstream specification | Preserve |
 | --- | --- | --- |
 | User scenarios | User Stories; Implementation Decisions / Behavior & Failure Modes | Triggers, observable outcomes, rejection and relevant retry behavior |
-| Domain model | Implementation Decisions / Domain Model | Canonical terms, invariants, state/transition ownership and consistency boundaries |
-| Architecture | Implementation Decisions / Architecture | Module responsibilities, public interfaces, source dependency direction and boundary data |
+| Domain model | Implementation Decisions / Domain Model | Affected context map and local model descriptions, canonical terms, enforcing owners, invariants and consistency boundaries |
+| Architecture | Implementation Decisions / Architecture | Domain/application/adapter responsibilities, public interfaces, source dependency direction, assembly and boundary data |
 | Verification | Testing Decisions | Scenario/invariant to public test seam; separate evidence for dependency rules |
 | Limits and unresolved decisions | Out of Scope; Further Notes | Explicit exclusions, open questions, and the decisions they block |
 
 Record an interface's preconditions, outputs, and failure semantics, not just a method name. Describe architecture by module responsibility rather than a list of directories. Runtime calls may go out to an adapter while source dependencies point toward an internally owned interface.
 
-Before Gate 2, reconcile every relevant approved scenario, invariant, ownership decision, dependency rule, and testing seam with its specification location. Fix omissions. If synthesis reveals a new business or architecture decision, return to `design-coder` and reopen the affected gate; `to-spec` must not invent it. Ordinary wording corrections do not create a new design gate.
+Before Gate 2, reconcile every relevant approved scenario, context/model responsibility, invariant, consistency/interaction decision, dependency rule, and testing seam with its specification location. Fix omissions. If synthesis reveals a new business or architecture decision, return to `design-coder` and reopen the affected gate; `to-spec` must not invent entities, services or recovery policies. Ordinary wording corrections do not create a new design gate.
 
 ## Ticket decomposition
 
@@ -39,25 +94,25 @@ Within the existing ticket format, retain these fields (combine them for small t
 | --- | --- |
 | What to build | User-observable outcome and explicit scope |
 | Spec references | Relevant scenarios, invariants, and architecture decisions; anchors or concise descriptions are enough |
-| Ownership and implementation path | Responsible modules/contexts, necessary interfaces, allowed boundary data and failure semantics, referencing the spec |
-| Acceptance criteria and verification | Success/rejection/retry examples as applicable, public test seams, and dependency checks relevant to this slice |
+| Ownership and implementation path | Affected contexts, responsible model elements/modules, invariants, necessary interfaces and consistency/interaction constraints, referencing the spec rather than copying the full model |
+| Acceptance criteria and verification | Success/rejection/concurrency/retry examples as applicable, public test seams, and dependency checks relevant to this slice |
 | Blocked by | Only tickets that supply a genuinely required capability or agreed interface; otherwise None |
 
 Walk the use case across the necessary implementation parts. Do not create one ticket for all entities, another for all use cases, and another for all adapters. The first business slice introduces only the supporting abstractions it needs. A prerequisite refactor is separate only if necessary for independently green delivery, with its preservation checks explained. Retain upstream expand-contract handling for wide mechanical migrations.
 
 A ticket may span business contexts when it is a coherent verifiable increment and the specification defines each participant's ownership, interaction contract, consistency, and failure behavior. Split only where increments remain independently meaningful; do not mandate a separate orchestration ticket.
 
-Before Gate 3, check coverage in both directions: every in-scope scenario and invariant has a responsible ticket, and each ticket traces to approved behavior and architecture constraints. Check real blocking edges and testability. Never label a ticket implementation-ready while its load-bearing decisions remain open. Return to design for changed assumptions or to specification synthesis for omissions; ordinary ticket sizing changes remain in planning. Add these checks to the existing gate, not another approval round.
+Before Gate 3, check coverage in both directions: every in-scope scenario and invariant has a responsible ticket, and each ticket traces to approved behavior, model responsibilities and architecture constraints. Check real blocking edges and testability. Never label an affected ticket implementation-ready while its load-bearing decisions remain open; name the missing decision and affected tickets without blocking unrelated approved slices. Return to design for changed assumptions or to specification synthesis for omissions; ordinary ticket sizing changes remain in planning. Add these checks to the existing gate, not another approval round.
 
 ## Implementation and delivery
 
-In `tdd-coder`, resolve a ticket's spec references before writing Red. Translate its applicable scenarios and invariants into behavior tests at approved public seams; keep the responsible module's rules and source dependency constraints visible during Green. A dangling reference or missing behavioral decision must be resolved before implementation.
+In `tdd-coder`, resolve a ticket's spec references before writing Red. Identify the contexts/model elements that own the rules and the approved concurrency/interaction semantics. Translate applicable success, rejection, interleaving, duplicate and partial-failure scenarios into behavior tests at approved public seams. During Green, place rules in their enforcing modules and preserve source dependency constraints. A dangling reference or missing behavioral decision must be resolved before implementation.
 
 Behavior tests establish outcomes, not source dependency direction. Use existing import/lint/architecture checks when available; otherwise record a concrete dependency review with module/import evidence. Do not introduce test-only ports just to make a layer diagram look complete.
 
 For behavior-preserving refactors or dependency-only repairs, use `tdd-coder`'s structural verification path: preserve green behavior checks and verify the structural change with a failing-to-passing dependency check or concrete before/after source review. Mixed tickets still require behavior Red-Green for changed outcomes. No business-test failure is required for an unchanged business outcome.
 
-In `delivery-coder`, map each in-scope scenario/invariant to completed tickets and actual test evidence. Verify architecture decisions separately against dependency checks or documented source review. Checked plan boxes alone are insufficient. Missing implementation returns to ticket TDD; missing or invalidated design returns to the relevant design/specification gate.
+In `delivery-coder`, map each in-scope scenario/invariant to completed tickets and actual test evidence. Verify applicable context/model ownership, rule placement across entry points, atomicity/conflict handling and recovery behavior. Verify architecture separately against dependency checks or documented import/type/assembly review. Checked plan boxes or green sequential tests alone are insufficient. Missing implementation returns to ticket TDD; missing or invalidated design returns to the relevant design/specification gate.
 
 ## Example: cancel an order
 

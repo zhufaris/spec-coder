@@ -9,23 +9,25 @@ Follow the shared [workflow contract](../../references/workflow-contract.md). Co
 
 Read and apply the [domain design contract](../../references/domain-design-contract.md) to carry scenario, invariant, ownership, and architecture decisions into the specification.
 
+Read the [worked examples](../../references/domain-design-examples.md) for applicable modeling triggers, service responsibilities, concurrency and dependency decisions.
+
 ## Input
 
 Confirmed requirements from `grill-coder`, repository evidence, existing domain language and ADRs, and constraints that the design must preserve.
 
 ## Output
 
-An approved design in conversation context. It identifies the chosen approach, canonical domain language, business invariants, module boundaries, public interfaces, dependency direction, boundary-crossing data, testing seams, acceptance criteria, and out-of-scope behavior.
+An approved design in conversation context. It identifies the chosen approach, affected bounded contexts and relevant local models, canonical domain language, enforcing owners, invariants, consistency/interaction semantics, module responsibilities, public interfaces, dependency direction, boundary data, testing seams, acceptance criteria, and out-of-scope behavior.
 
 ## Process
 
 1. Reconcile the confirmed requirements with the current code, `GLOSSARY.md`, architecture documents, and ADRs.
 2. Present 2-3 materially different approaches with pros, cons, and a default recommendation.
 3. Wait for the user to select an approach before elaborating it.
-4. Apply DDD adaptively: always sharpen domain language and invariants, but introduce bounded contexts, aggregates, value objects, repositories, or domain events only when observed complexity justifies them.
-5. Apply Clean Architecture proportionally: define dependency direction, ports and adapters only where boundaries need protection, and simple data crossing those boundaries.
+4. Apply DDD adaptively using the contract's observed triggers. Describe affected bounded contexts and necessary neighbors, distinguish observed/proposed/unresolved models, and explain applicable entities, value objects, aggregate roots and services. Assign invariant ownership and consistency scope; justify each construct rather than requiring a complete class inventory.
+5. Apply Clean Architecture proportionally: distinguish domain rules, application coordination and adapter conversion; define interface ownership, source dependency direction, crossing data and concrete dependency assembly where protection is needed. Preserve existing useful seams and scoped legacy migration; allow appropriate authorized query projections.
 6. Use `codebase-design` to keep modules deep, interfaces small, and locality high. Prefer existing seams; define any new testing seams explicitly.
-7. Walk concrete success, rejection, and relevant retry scenarios through the domain model and module interfaces together. Cover error handling, operational constraints, migration or compatibility concerns, and verification strategy. Separate confirmed decisions from open questions; give interacting rules stable references when useful. Return these results using the domain design contract's specification mapping.
+7. Walk concrete success, rejection, and relevant concurrency, duplicate and partial-failure scenarios through the domain model and module interfaces together. Define atomicity/conflict outcomes, idempotency ownership and recovery responsibilities when triggered. Cover operational constraints, migration/compatibility and verification, including evidence for actual concurrency mechanisms. Separate confirmed decisions from open questions and identify affected readiness; do not infer infrastructure from an invariant. Return results with stable references where useful using the contract's specification mapping.
 8. Present the complete design and stop at Gate 1 for explicit approval.
 
 Do not write implementation code. During an orchestrated run, do not write project artifacts before `plan-coder` establishes a safe isolated worktree. Return the approved design content for specification synthesis.

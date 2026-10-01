@@ -17,8 +17,9 @@ EXPECTED_SKILLS = {
     "tdd-coder",
     "delivery-coder",
 }
-DESIGN_STAGES = ("design-coder", "plan-coder", "tdd-coder", "delivery-coder")
+DESIGN_STAGES = ("grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
 DESIGN_REFERENCE = "../../references/domain-design-contract.md"
+EXAMPLE_REFERENCE = "../../references/domain-design-examples.md"
 
 
 def read_text(path: Path) -> str:
@@ -145,14 +146,16 @@ class PluginContractTests(unittest.TestCase):
             with self.subTest(stage=stage):
                 skill = root / "skills" / stage / "SKILL.md"
                 links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
-                self.assertIn(DESIGN_REFERENCE, links)
-                reference = (skill.parent / DESIGN_REFERENCE).resolve()
-                self.assertTrue(reference.is_relative_to(root.resolve()))
-                self.assertTrue(reference.is_file())
-                self.assertEqual(
-                    read_text(reference),
-                    read_text(ROOT / "references" / "domain-design-contract.md"),
-                )
+                for link in (DESIGN_REFERENCE, EXAMPLE_REFERENCE):
+                    with self.subTest(reference=link):
+                        self.assertIn(link, links)
+                        reference = (skill.parent / link).resolve()
+                        self.assertTrue(reference.is_relative_to(root.resolve()))
+                        self.assertTrue(reference.is_file())
+                        self.assertEqual(
+                            read_text(reference),
+                            read_text(ROOT / "references" / reference.name),
+                        )
 
     def test_domain_reference_is_available_to_every_design_stage(self) -> None:
         self.assert_domain_reference_resolves(ROOT)

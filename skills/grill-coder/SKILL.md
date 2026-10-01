@@ -7,6 +7,8 @@ description: Interrogate a coding request one consequential question at a time, 
 
 Follow the shared [workflow contract](../../references/workflow-contract.md). Use the installed `grilling` skill for the interview method; this skill adds coding-specific evidence, output, and workspace constraints.
 
+Use the [domain design contract](../../references/domain-design-contract.md) to identify terminology conflicts, missing rule/state owners, and relevant concurrency or failure scenarios. Read the [worked examples](../../references/domain-design-examples.md) when the business meanings or responsibilities are unclear; defer detailed model selection to design.
+
 ## Input
 
 A coding request plus the current repository, existing specifications, `GLOSSARY.md`, ADRs, and relevant implementation evidence.
@@ -22,7 +24,7 @@ A dependency-ordered set of confirmed decisions covering purpose, users, scope, 
 3. Ask exactly one question at a time.
 4. Include a clear recommendation and one-sentence reason with every material question. The user may accept it by replying `default`.
 5. Absorb each answer before choosing the next branch. Clarify an ambiguous answer with one focused follow-up.
-6. Challenge fuzzy or conflicting domain terms, but defer detailed architecture to `design-coder`.
+6. Challenge fuzzy or conflicting domain terms, distinguish affected contexts' meanings and state owners, and probe relevant transitions, concurrent requests, retries and partial failures. Inspect existing behavior before asking. Defer detailed entities, services and architecture selection to `design-coder`.
 7. Finish when every load-bearing decision is confirmed, explicitly deferred, or out of scope.
 
 Do not modify the user's original checkout. Before isolation exists, collect decisions in the conversation rather than writing project files. Do not write implementation code, create a branch, publish an issue, or imply that later approval gates have passed.
