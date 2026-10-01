@@ -57,7 +57,7 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
 - Reuse an existing safe worktree. Otherwise, focused work with clear ownership and no interference can run **in place**. Prefer isolation for parallel work, disruptive experiments or branch changes, or unrelated changes that cannot be safely separated.
 - Respect an explicit workspace preference. Choose and explain the mode as a routine planning decision without adding a create/skip approval gate. If the requested mode cannot be used safely, report the actual conflict rather than silently overriding it.
 - Record the workspace, branch, starting revision, relevant initial changes, chosen mode and reason in the existing specification/plan once the baseline passes. Keep the choice in conversation before that; create no private state file.
-- Invoke `using-git-worktrees` only for the isolation path and prefer native tooling. Absence/failure of optional isolation tooling is not itself a blocker if safe in-place work is available and consistent with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
+- Invoke the bundled `using-git-worktrees` only for the isolation path and prefer native tooling. Failure of optional isolation mechanics is not itself a blocker if `plan-coder` can select safe in-place work consistently with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
 
 ## Git Safety

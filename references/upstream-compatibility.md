@@ -6,7 +6,6 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 
 - `grilling` -> `grill-coder`
 - `brainstorming`, `domain-modeling`, `codebase-design`, and `clean-architecture` -> `design-coder`
-- `using-git-worktrees` -> `plan-coder` only when the isolation path is selected
 - `tdd` -> `tdd-coder`
 - `code-review` and `verification-before-completion` -> `delivery-coder`
 
@@ -15,6 +14,9 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 - `show-me` is a local approval-review adapter used before every suite-owned
   approval request. It is model-callable with the plugin and does not require
   an external show-me package, tmux, editor, browser, or executable.
+- `using-git-worktrees` is a local optional isolation adapter invoked by
+  `plan-coder` only after the isolation path is selected. It prefers native
+  Host worktree tools and needs no external skill package.
 
 ## Reference Snapshots
 
@@ -30,7 +32,12 @@ Before a stage delegates, confirm that each required upstream skill is visible i
 
 The current Matt Pocock `to-spec` and `to-tickets` entries are manual-only and intentionally excluded from the capability map. They are not dependencies of spec-coder 0.2.1. Users may invoke them manually outside this orchestration; do not require their installation, modify their flags, or ask the user to run them to complete native planning.
 
-The initial orchestrator check must defer `using-git-worktrees` until workspace selection; its absence must not block safe in-place work. On the isolation path, check visibility, invocation eligibility and compatibility before using it. If unavailable, apply the workflow contract's workspace selection rules, including explicit user preferences, instead of silently reproducing the missing skill.
+The initial orchestrator check defers the bundled `using-git-worktrees` path
+until workspace selection. Its mechanics are irrelevant to safe in-place work.
+On the isolation path, confirm the bundled skill is visible/model-callable and
+inspect native tool availability before using Git fallback. A native tool
+failure or safe-fallback failure returns to the workflow contract's workspace
+rules; never silently override an explicit isolation requirement.
 
 The shared workflow contract owns workspace selection and approval policy. Compose upstream mechanics within that policy: choosing to create or skip a worktree is a routine task decision, not an extra approval gate. Both modes retain baseline and Git safety requirements.
 

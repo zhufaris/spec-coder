@@ -143,3 +143,56 @@ owning stage still asks the question.
 
 Forbidden action: Do not invoke a browser, editor, tmux pane, or external
 executable, and do not omit visualization silently.
+
+## Linked worktree detection
+
+Starting state: Isolation is selected and the checkout has different physical
+Git and common directories, no superproject path, and either a named branch or
+detached HEAD.
+
+Expected route: Return the linked worktree as an isolation candidate, report its
+path and branch/detached state, and let `plan-coder` reuse it only after the
+supplied change/ownership/overlap evidence establishes safety. Create no nested
+worktree.
+
+Forbidden action: Do not nest isolation, attach a detached checkout by creating
+another branch, or delete an externally managed worktree.
+
+## Submodule is not a linked worktree
+
+Starting state: Git/common directory checks differ, but
+`git rev-parse --show-superproject-working-tree` returns the parent checkout.
+
+Expected route: Treat the checkout as a submodule and continue the
+normal-repository isolation decision rather than claiming it is already a
+linked worktree.
+
+Forbidden action: Do not use the directory comparison alone as proof of
+worktree isolation.
+
+## Native worktree tool precedence
+
+Starting state: Isolation is selected, no linked worktree exists, and the Host
+provides `enter_worktree` with a corresponding `exit_worktree` lifecycle.
+
+Expected route: Inspect and invoke the native tool, preserve its cleanup handle,
+and return the resulting path to `plan-coder` for setup and baseline.
+
+Forbidden action: Do not create phantom state with `git worktree add`, run
+dependency setup, or run baseline tests inside the support skill.
+
+## Git worktree fallback safety
+
+Starting state: Isolation is selected with no native tool; the project-local
+directory choice and branch are known, but the directory may not be ignored or
+Git creation may hit a permission error.
+
+Expected route: Interpret ignore status precisely: exit 0 is ignored, exit 1 is
+unignored, and any other exit/diagnostic is a verification failure. For an
+unignored path, present an exact diff through `show-me`; even when approved,
+return `approved mutation pending` to `plan-coder` until an explicitly owned,
+committed base exists. Create through Git only after validation. Report an
+actual permission failure to `plan-coder`.
+
+Forbidden action: Do not silently edit/commit `.gitignore`, switch to in-place
+work, overwrite an existing path/branch, or hide a sandbox failure.

@@ -17,6 +17,7 @@ EXPECTED_SKILLS = {
     "tdd-coder",
     "delivery-coder",
     "show-me",
+    "using-git-worktrees",
 }
 DESIGN_STAGES = ("grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
 DESIGN_REFERENCE = "../../references/domain-design-contract.md"
@@ -184,7 +185,12 @@ class PluginContractTests(unittest.TestCase):
                 self.assertTrue(target.is_file())
 
     def assert_approval_reference_resolves(self, root: Path) -> None:
-        for skill_name in ("show-me", "design-coder", "plan-coder"):
+        for skill_name in (
+            "show-me",
+            "using-git-worktrees",
+            "design-coder",
+            "plan-coder",
+        ):
             with self.subTest(skill=skill_name):
                 skill = root / "skills" / skill_name / "SKILL.md"
                 links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
@@ -296,6 +302,64 @@ class PluginContractTests(unittest.TestCase):
         for phrase in (
             "mbailey/show-me",
             "Copyright (c) 2024 Mike Bailey",
+            "MIT License",
+        ):
+            self.assertIn(phrase, notice)
+
+    def test_bundled_worktree_contract_is_safe_and_optional(self) -> None:
+        path = ROOT / "skills" / "using-git-worktrees" / "SKILL.md"
+        fields = parse_frontmatter(path)
+        self.assertEqual(fields["name"], "using-git-worktrees")
+        self.assertIn("isolation", fields["description"].lower())
+        self.assertNotEqual(
+            fields.get("disable-model-invocation", "false").lower(), "true"
+        )
+        text = read_text(path)
+        metadata = read_text(path.parent / "agents" / "openai.yaml")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        normalized = " ".join(text.lower().split())
+
+        for heading in ("## Input", "## Output", "## Process", "## Stop Conditions"):
+            self.assertIn(heading, text)
+        for phrase in (
+            "git rev-parse --git-dir",
+            "git rev-parse --git-common-dir",
+            "git rev-parse --show-superproject-working-tree",
+            "enter_worktree",
+            "exit_worktree",
+            "git worktree add",
+            "detached head",
+            "permission",
+            "optional",
+            "in-place",
+            "`.gitignore`",
+            "`show-me`",
+            "plan-coder owns dependency preparation and baseline verification",
+            "do not create a commit",
+            "linked-worktree candidate",
+            "`0` means ignored",
+            "`1` means definitively not ignored",
+            "approved mutation pending",
+            "committed `.gitignore` base",
+        ):
+            self.assertIn(phrase, normalized)
+        self.assertLess(normalized.index("enter_worktree"), normalized.index("git worktree add"))
+        self.assertIn('$using-git-worktrees', metadata)
+        self.assertIn('display_name: "Using Git Worktrees"', metadata)
+
+        capability_map = compatibility.split("## Capability Map\n", 1)[1].split(
+            "\n## ", 1
+        )[0]
+        bundled = compatibility.split("## Bundled Capabilities\n", 1)[1].split(
+            "\n## ", 1
+        )[0]
+        self.assertNotIn("`using-git-worktrees`", capability_map)
+        self.assertIn("`using-git-worktrees`", bundled)
+
+        notice = read_text(ROOT / "THIRD_PARTY_NOTICES.md")
+        for phrase in (
+            "obra/superpowers",
+            "Copyright (c) 2025 Jesse Vincent",
             "MIT License",
         ):
             self.assertIn(phrase, notice)
@@ -449,8 +513,6 @@ class PluginContractTests(unittest.TestCase):
         )
         for heading in approval_headings:
             self.assertIn(heading, scenarios)
-        for field in ("Starting state:", "Expected route:", "Forbidden action:"):
-            self.assertEqual(scenarios.count(field), len(headings) + len(approval_headings))
         approval_section = scenarios.split(approval_headings[0], 1)[1]
         for phrase in (
             "ReviewSnapshot",
@@ -459,6 +521,20 @@ class PluginContractTests(unittest.TestCase):
             "linear ASCII",
         ):
             self.assertIn(phrase, approval_section)
+
+        worktree_headings = (
+            "## Linked worktree detection",
+            "## Submodule is not a linked worktree",
+            "## Native worktree tool precedence",
+            "## Git worktree fallback safety",
+        )
+        for heading in worktree_headings:
+            self.assertIn(heading, scenarios)
+        for field in ("Starting state:", "Expected route:", "Forbidden action:"):
+            self.assertEqual(
+                scenarios.count(field),
+                len(headings) + len(approval_headings) + len(worktree_headings),
+            )
 
     def test_repository_is_self_describing_and_installable(self) -> None:
         readme = read_text(ROOT / "README.md")

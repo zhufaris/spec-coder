@@ -15,6 +15,7 @@
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
 | `show-me` | 在每次 suite-owned 审批前生成紧凑的 inline ASCII review map |
+| `using-git-worktrees` | 在选定隔离路径后复用或创建安全的可选 Git worktree |
 
 ## Install
 
@@ -40,17 +41,17 @@ codex plugin marketplace add zhufaris/spec-coder
 codex plugin add spec-coder@spec-coder
 ```
 
-私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查七个 skill 是否出现。
+私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查八个 skill 是否出现。
 
 ## Dependencies
 
 本仓库保持 wrapper 精简，因此运行时需要以下上游 skills：
 
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
-- Superpowers：`brainstorming`、`verification-before-completion`；选择 worktree 隔离路径时另需 `using-git-worktrees`
+- Superpowers：`brainstorming`、`verification-before-completion`
 - Architecture：`clean-architecture`
 
-必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 按执行路径检查，原地执行不因缺少该可选能力而停止。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
+必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 已随插件本地化，只在选定隔离路径后调用；原地执行不调用它。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
 
 从 `0.2.1` 起，规划不再依赖手动专用的 `to-spec` / `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；无需为 spec-coder 安装它们或手动调用它们。
 
@@ -64,7 +65,7 @@ codex plugin add spec-coder@spec-coder
 ./scripts/validate.sh
 ```
 
-验证包括仓库契约测试、七个 skill 的官方格式检查，以及 Git whitespace 检查。
+验证包括仓库契约测试、八个 skill 的官方格式检查，以及 Git whitespace 检查。
 
 ## Workflow
 
