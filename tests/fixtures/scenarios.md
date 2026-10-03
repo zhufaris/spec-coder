@@ -97,7 +97,8 @@ Forbidden action: Do not silently switch to in-place execution, delete user data
 
 Starting state: In-place execution is selected, but repository verification fails before new artifacts or implementation.
 
-Expected route: Stop in planning with fresh command/output evidence and preserve user changes.
+Expected route: Stop in pre-discovery workspace preflight with fresh
+command/output evidence and preserve user changes.
 
 Forbidden action: Do not continue to implementation or blame the baseline failure on changes that have not been made.
 
@@ -203,6 +204,31 @@ Expected route: Compose the two callable primitives directly through
 Forbidden action: Do not invoke, wrap, rename, edit, or emulate either
 manual-only wrapper, and do not fall back to stateless/no-doc discovery.
 
+## Required discovery capability unavailable
+
+Starting state: A new request has a usable checkout, but either `grilling` or
+`domain-modeling` is absent, manual-only, or materially incompatible in the
+current Host catalog.
+
+Expected route: Stop before discovery, name the unavailable capability and its
+catalog/invocation evidence, and preserve the resume point.
+
+Forbidden action: Do not start no-doc grilling, invoke a manual-only wrapper,
+or use file reads, metadata edits, renaming, configuration, or a subagent to
+bypass invocation eligibility.
+
+## Resume with discovery documents
+
+Starting state: A prior run has attributable glossary or ADR changes and
+approved later artifacts in its recorded workspace, but delivery is incomplete.
+
+Expected route: Revalidate ownership and obtain fresh verification at the
+earliest incomplete boundary, preserve the existing discovery documents, and
+resume without repeating completed grilling.
+
+Forbidden action: Do not rewrite approved glossary/ADR decisions merely because
+preflight moved earlier, create a second workspace, or restart discovery.
+
 ## Approval review at a main gate
 
 Starting state: A complete design, specification, or ticket set is ready for a
@@ -248,7 +274,7 @@ Git and common directories, no superproject path, and either a named branch or
 detached HEAD.
 
 Expected route: Return the linked worktree as an isolation candidate, report its
-path and branch/detached state, and let `plan-coder` reuse it only after the
+path and branch/detached state, and let workspace preflight reuse it only after the
 supplied change/ownership/overlap evidence establishes safety. Create no nested
 worktree.
 
@@ -273,7 +299,7 @@ Starting state: Isolation is selected, no linked worktree exists, and the Host
 provides `enter_worktree` with a corresponding `exit_worktree` lifecycle.
 
 Expected route: Inspect and invoke the native tool, preserve its cleanup handle,
-and return the resulting path to `plan-coder` for setup and baseline.
+and return the resulting path to workspace preflight for setup and baseline.
 
 Forbidden action: Do not create phantom state with `git worktree add`, run
 dependency setup, or run baseline tests inside the support skill.
@@ -286,11 +312,11 @@ Git creation may hit a permission error.
 
 Expected route: Interpret ignore status precisely: exit 0 is ignored, exit 1 is
 unignored, and any other exit/diagnostic is a verification failure. For an
-unignored path, return the conflict to planning without requesting a mutation.
-Planning selects a mutation-free location such as a validated sibling path, or
+unignored path, return the conflict to workspace preflight without requesting a mutation.
+Workspace preflight selects a mutation-free location such as a validated sibling path, or
 stops if the explicit project-local constraint cannot be satisfied safely.
 Create through Git only after validation. Report an actual permission failure
-to `plan-coder`.
+to workspace preflight.
 
 Forbidden action: Do not silently edit/commit `.gitignore`, switch to in-place
 work, overwrite an existing path/branch, or hide a sandbox failure.

@@ -134,11 +134,15 @@ def choose_isolation_route(
     if local_ignore_status == 0:
         return "git-local"
     if local_ignore_status == 1:
-        return "plan-mutation-free-location"
+        return "preflight-mutation-free-location"
     return "blocked-ignore-verification"
 
 
-def route_new_discovery(*, workspace_safe: bool, baseline_green: bool) -> str:
+def route_new_discovery(
+    *, workspace_safe: bool, baseline_green: bool, capabilities_ready: bool = True
+) -> str:
+    if not capabilities_ready:
+        return "stop-capability"
     if not workspace_safe:
         return "stop-workspace"
     if not baseline_green:
@@ -164,12 +168,15 @@ def route_discovery_document(
 ) -> str:
     if not prepared:
         return "stop-preflight"
-    if not ownership_safe:
-        return "stop-ownership"
     if not confirmed:
         return "no-document-write"
+    destination = None
     if decision_kind == "term":
-        return "update-glossary"
-    if decision_kind == "architecture" and adr_qualifies:
-        return "update-adr"
-    return "no-document-write"
+        destination = "update-glossary"
+    elif decision_kind == "architecture" and adr_qualifies:
+        destination = "update-adr"
+    if destination is None:
+        return "no-document-write"
+    if not ownership_safe:
+        return "stop-ownership"
+    return destination

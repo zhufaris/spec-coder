@@ -43,9 +43,9 @@ approval requests.
 
 ## Artifact Contract
 
-Write coding-workflow target-project artifacts only after `plan-coder` selects a
-safe workspace and establishes a green baseline. The workspace can be the
-current checkout or a linked worktree:
+Write coding-workflow target-project artifacts only after workspace preflight
+selects a safe workspace, accounts for initial changes, and establishes a fresh
+green baseline. The workspace can be the current checkout or a linked worktree:
 
 - specification: `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md`;
 - durable ticket plan: `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`;
@@ -67,8 +67,8 @@ verification-command discovery, mutation approval, concurrency protection, and
 `READY`/`WARNING`/`BLOCKED` reporting. Setup does not create coding artifacts or
 a worktree and does not install, stage, commit, push, or persist private state.
 Its exact-diff `AGENTS.md` update is an onboarding mutation and not a coding
-artifact or implementation change, so it may occur without `plan-coder`
-workspace selection or a green project baseline. Setup's own authority,
+artifact or implementation change, so it may occur without coding-workflow
+workspace preflight or a green project baseline. Setup's own authority,
 byte-preservation, approval, and concurrent-change checks are the safety
 boundary; this exception does not authorize any other pre-baseline write.
 

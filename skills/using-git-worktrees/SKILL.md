@@ -16,7 +16,7 @@ This skill adapts the official
 
 ## Input
 
-An explicit isolation selection from `plan-coder`, the target Git repository,
+An explicit isolation selection from workspace preflight, the target Git repository,
 the intended branch/feature slug, current Git state, user workspace preferences,
 and the available native Host worktree tools. This capability is optional and
 must not be invoked for an approved in-place path.
@@ -28,10 +28,10 @@ Return one of:
 - an existing linked worktree path and branch or detached HEAD state;
 - a newly created isolated path and branch through a native Host tool;
 - a newly created path and branch through the Git fallback;
-- a concrete blocker/failure for `plan-coder` to resolve under workspace policy.
+- a concrete blocker/failure for orchestration to resolve under workspace policy.
 
-Report the mechanism used and any cleanup handle. `plan-coder` owns dependency
-preparation and baseline verification after this skill returns.
+Report the mechanism used and any cleanup handle. Workspace preflight owns
+dependency preparation and baseline verification after this skill returns.
 
 ## Process
 
@@ -50,7 +50,7 @@ git rev-parse --show-toplevel
 Resolve the Git directory and common directory to physical absolute paths. If
 they differ and `git rev-parse --show-superproject-working-tree` returns empty,
 the checkout is already a linked-worktree candidate. Create nothing and return
-it to `plan-coder`. Reuse it only when the supplied state establishes that its
+it to workspace preflight. Reuse it only when the supplied state establishes that its
 changes, ownership, starting revision, and task overlap are safe; otherwise
 report the concrete conflict.
 
@@ -67,7 +67,7 @@ retain the corresponding `exit_worktree` cleanup handle/instructions. Native
 tools own placement, branch creation, and harness lifecycle. Do not create
 parallel Git worktree state the Host cannot manage.
 
-Return the native isolated path to `plan-coder`. Do not run dependency setup or
+Return the native isolated path to workspace preflight. Do not run dependency setup or
 tests here.
 
 ### 3. Use Git fallback only without a native tool
@@ -93,8 +93,8 @@ ignored; any other exit status or fatal diagnostic is a verification failure.
 Report a verification failure without proposing an ignore mutation.
 
 For exit `1`, do not edit `.gitignore` silently. If the user still requires the
-project-local location, return the conflict to `plan-coder`; do not request or
-apply a `.gitignore` mutation before the project baseline. Planning must select
+project-local location, return the conflict to workspace preflight; do not request or
+apply a `.gitignore` mutation before the project baseline. Workspace preflight must select
 a mutation-free location, such as the validated sibling fallback, or stop on
 the explicit location constraint. Do not create a commit or continue on the
 unignored path. A sibling path must be absent, have a validated physical parent,
@@ -110,15 +110,15 @@ Never interpolate an unvalidated environment variable, glob, or command
 substitution into the target path. Preserve every existing worktree and user
 branch.
 
-### 4. Return control to planning
+### 4. Return control to workspace preflight
 
 Report the absolute path, branch/detached state, mechanism, and relevant cleanup
-handle. Plan-coder owns dependency preparation and baseline verification. It
-also owns the decision to continue, choose another safe workspace, or stop.
+handle. The orchestrator owns dependency preparation and baseline verification.
+It also owns the decision to continue, choose another safe workspace, or stop.
 
 If native or Git creation fails because of a sandbox or permission denial,
 report the exact failure. Do not silently switch to in-place execution; only
-`plan-coder` can select that path under the approved constraints.
+workspace preflight can select that path under the approved constraints.
 
 ## Stop Conditions
 
@@ -129,7 +129,7 @@ Stop and preserve actual state when:
   task overlap;
 - isolation was required but neither native tooling nor a safe Git fallback is
   available;
-- the project-local directory is unignored and `plan-coder` has not selected a
+- the project-local directory is unignored and workspace preflight has not selected a
   mutation-free location;
 - branch creation would overwrite or conflict with existing state;
 - a sandbox, permission, or Git error prevents creation;

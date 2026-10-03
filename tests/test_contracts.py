@@ -234,7 +234,6 @@ class PluginContractTests(unittest.TestCase):
             set(),
             "manual-only skill declared as an orchestration dependency",
         )
-        self.assertFalse(declared & set(catalog["manual_only"]))
         for skill in (ROOT / "skills").glob("*/SKILL.md"):
             self.assertNotEqual(
                 parse_frontmatter(skill).get("disable-model-invocation", "false").lower(),
@@ -354,14 +353,14 @@ class PluginContractTests(unittest.TestCase):
             "in-place",
             "`.gitignore`",
             "`show-me`",
-            "plan-coder owns dependency preparation and baseline verification",
+            "workspace preflight owns dependency preparation and baseline verification",
             "do not create a commit",
             "linked-worktree candidate",
             "`0` means ignored",
             "`1` means definitively not ignored",
             "mutation-free location",
             "sibling",
-            "return the conflict to `plan-coder`",
+            "return the conflict to workspace preflight",
         ):
             self.assertIn(phrase, normalized)
         self.assertLess(normalized.index("enter_worktree"), normalized.index("git worktree add"))
@@ -626,6 +625,8 @@ class PluginContractTests(unittest.TestCase):
             "## Discovery decision needs no document",
             "## Discovery document ownership conflict",
             "## Manual-only with-doc wrapper",
+            "## Required discovery capability unavailable",
+            "## Resume with discovery documents",
         )
         for heading in headings:
             self.assertIn(heading, scenarios)

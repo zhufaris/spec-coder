@@ -151,7 +151,7 @@ class WorktreeForwardScenarios(unittest.TestCase):
         )
         self.assertEqual(route, "native")
 
-    def test_unignored_local_path_returns_to_planning_for_mutation_free_path(self) -> None:
+    def test_unignored_local_path_returns_to_preflight_for_mutation_free_path(self) -> None:
         route = choose_isolation_route(
             linked_candidate=False,
             superproject=False,
@@ -159,7 +159,7 @@ class WorktreeForwardScenarios(unittest.TestCase):
             native_available=False,
             local_ignore_status=1,
         )
-        self.assertEqual(route, "plan-mutation-free-location")
+        self.assertEqual(route, "preflight-mutation-free-location")
 
 
 class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
@@ -179,6 +179,16 @@ class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
         self.assertEqual(
             route_new_discovery(workspace_safe=True, baseline_green=False),
             "stop-baseline",
+        )
+
+    def test_missing_required_capability_stops_before_discovery(self) -> None:
+        self.assertEqual(
+            route_new_discovery(
+                workspace_safe=True,
+                baseline_green=True,
+                capabilities_ready=False,
+            ),
+            "stop-capability",
         )
 
     def test_planning_consumes_only_fresh_valid_prepared_workspace(self) -> None:
@@ -234,6 +244,26 @@ class WithDocsDiscoveryForwardScenarios(unittest.TestCase):
                 ownership_safe=True,
                 confirmed=True,
                 decision_kind="ephemeral",
+                adr_qualifies=False,
+            ),
+            "no-document-write",
+        )
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=False,
+                confirmed=True,
+                decision_kind="ephemeral",
+                adr_qualifies=False,
+            ),
+            "no-document-write",
+        )
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=False,
+                confirmed=True,
+                decision_kind="architecture",
                 adr_qualifies=False,
             ),
             "no-document-write",
