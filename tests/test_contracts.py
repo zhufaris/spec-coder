@@ -506,6 +506,8 @@ class PluginContractTests(unittest.TestCase):
         self.assertLess(worktree, spec)
         self.assertLess(spec, tickets)
         self.assertIn("baseline", text.lower())
+        self.assertIn("prepared workspace", text.lower())
+        self.assertIn("return to workspace preflight", text.lower())
         self.assertIn("external issue", text.lower())
 
     def test_tdd_coder_contract(self) -> None:
@@ -558,8 +560,15 @@ class PluginContractTests(unittest.TestCase):
             "git log",
             "fresh verification",
             "three consecutive",
+            "workspace preflight",
+            "prepared workspace",
         ):
             self.assertIn(phrase, text.lower())
+        normalized = " ".join(text.lower().split())
+        self.assertLess(
+            normalized.index("complete workspace preflight"),
+            normalized.index("start `grill-coder`"),
+        )
         self.assertNotIn("state.yaml", text.lower())
 
     def test_required_scenarios_are_documented(self) -> None:
@@ -578,6 +587,9 @@ class PluginContractTests(unittest.TestCase):
             "## Required isolation unavailable",
             "## Failing in-place baseline",
             "## Overlapping user changes",
+            "## Pre-discovery workspace",
+            "## Pre-discovery baseline failure",
+            "## Planning revalidates prepared workspace",
         )
         for heading in headings:
             self.assertIn(heading, scenarios)

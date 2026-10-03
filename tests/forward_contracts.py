@@ -136,3 +136,19 @@ def choose_isolation_route(
     if local_ignore_status == 1:
         return "plan-mutation-free-location"
     return "blocked-ignore-verification"
+
+
+def route_new_discovery(*, workspace_safe: bool, baseline_green: bool) -> str:
+    if not workspace_safe:
+        return "stop-workspace"
+    if not baseline_green:
+        return "stop-baseline"
+    return "start-grill"
+
+
+def route_planning_workspace(
+    *, prepared: bool, ownership_valid: bool, baseline_fresh: bool
+) -> str:
+    if not prepared or not ownership_valid or not baseline_fresh:
+        return "return-preflight"
+    return "write-specification"

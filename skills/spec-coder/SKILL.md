@@ -18,19 +18,28 @@ A new coding request, or a repository containing partial spec-coder artifacts fr
 
 ## Output
 
-An approved specification, approved vertical-ticket plan, one atomic commit per completed ticket, review results, fresh verification evidence, and a final delivery report produced through `delivery-coder`.
+A prepared workspace, approved specification, approved vertical-ticket plan,
+one atomic commit per completed ticket, review results, fresh verification
+evidence, and a final delivery report produced through `delivery-coder`.
 
 ## Process
 
 1. Inspect repository instructions, Git status, current branch, worktrees, relevant specifications and plans, plan checkboxes, and Git log before changing anything.
 2. Verify required local and upstream skills are visible in the current Host catalog, permitted for model invocation and materially compatible for the selected path. A file on disk or an enabled plugin is insufficient; respect `disable-model-invocation: true` without attempting indirect invocation. Planning is native to `plan-coder` and needs its bundled templates, not external planning skills. Defer the bundled optional `using-git-worktrees` path until workspace selection; safe in-place work does not invoke it. Stop for other unavailable required capabilities with specific evidence rather than approximating them.
 3. Classify the request:
-   - For a new request, start with `grill-coder`.
+   - For a new request, complete workspace preflight under the shared contract:
+     account for initial changes, select safe in-place or isolated execution,
+     prepare dependencies, and observe a fresh green baseline. Use bundled
+     `using-git-worktrees` only if isolation is selected. Keep the prepared
+     workspace evidence in conversation, then start `grill-coder`.
    - For resumed work, infer the earliest incomplete phase from durable artifacts and fresh verification at the inferred boundary. Never maintain a private workflow-state file.
 4. Run the fixed stage order:
-   1. `grill-coder` exposes hidden requirements, boundaries, constraints, and acceptance signals.
+   1. `grill-coder` consumes the prepared workspace and exposes hidden requirements, boundaries, constraints, and acceptance signals.
    2. `design-coder` compares 2-3 approaches and stops for explicit approval of the selected design.
-   3. `plan-coder` selects a safe workspace (in place or an existing/new worktree) according to the task and user preferences, establishes a green baseline, writes the local specification, stops for specification approval, decomposes it into vertical tickets, then stops for ticket approval and implementation authorization.
+   3. `plan-coder` revalidates the prepared workspace, user-change ownership,
+      and baseline freshness, writes the local specification, stops for
+      specification approval, decomposes it into vertical tickets, then stops
+      for ticket approval and implementation authorization.
    4. `tdd-coder` executes exactly one unblocked ticket at a time through Red-Green, affected checks, a plan-checkbox update, and an atomic commit. Repeat until all tickets are complete.
    5. `delivery-coder` performs findings-first review, routes repairs back through TDD, runs the full applicable suite, and alone may produce the terminal completion claim.
 5. Keep the durable plan checkboxes as task-state truth and mirror them in the runtime plan with at most one active ticket.
@@ -49,7 +58,7 @@ Stop and report the recoverable state when:
 
 - a capability required for the selected path is missing or incompatible;
 - no safe workspace can be selected under the user's constraints;
-- baseline verification fails before implementation;
+- workspace preflight or baseline verification fails before discovery;
 - an approval gate is pending or reopened;
 - changes cannot be safely attributed or separated from user-owned work in the selected workspace;
 - the same blocker occurs three consecutive times;

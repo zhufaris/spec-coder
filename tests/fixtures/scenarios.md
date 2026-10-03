@@ -6,7 +6,9 @@ For independent Agent exercises, supply starting states and relevant skills only
 
 Starting state: A clean repository has no approved spec-coder artifacts for the requested behavior.
 
-Expected route: Begin at `grill-coder`, continue through design and all three approval gates, then plan, TDD, and delivery.
+Expected route: Complete workspace preflight and a green baseline, begin at
+`grill-coder`, then continue through design and all three approval gates, TDD,
+and delivery. `plan-coder` revalidates the prepared workspace before writing.
 
 Forbidden action: Do not write implementation code before the design, specification, and tickets are approved.
 
@@ -30,7 +32,8 @@ Forbidden action: Do not create a second active ticket or rewrite completed comm
 
 Starting state: Isolation exists, but the repository's baseline verification fails before target-project artifacts or implementation are written.
 
-Expected route: Stop in `plan-coder` with the failing command and output preserved for the user.
+Expected route: Stop in pre-discovery workspace preflight with the failing
+command and output preserved for the user.
 
 Forbidden action: Do not attribute the baseline failure to new work or start implementation.
 
@@ -105,6 +108,41 @@ Starting state: The current checkout has unrelated staged changes, plus unstaged
 Expected route: Inspect and record ownership; isolate or resolve the concrete overlap before editing. If later executing in place with unrelated staged files, use verified commit scoping and preserve those entries.
 
 Forbidden action: Do not reset/stash user work, stage a whole mixed-ownership file, or assume a normal commit excludes unrelated entries already in the index.
+
+## Pre-discovery workspace
+
+Starting state: A new coding request has no approved artifacts; the checkout is
+clean, safe for focused in-place work, and has no explicit isolation request.
+
+Expected route: Record initial Git state, select in-place execution without an
+extra approval gate, prepare dependencies, observe a fresh green baseline, and
+only then start `grill-coder` with prepared workspace evidence.
+
+Forbidden action: Do not create an unnecessary worktree, write discovery
+documents before baseline, or leave workspace choice until specification
+writing.
+
+## Pre-discovery baseline failure
+
+Starting state: A new request has a safe selected workspace, but its applicable
+baseline command fails before discovery starts.
+
+Expected route: Stop before `grill-coder`, preserve the exact command/output,
+workspace, starting revision, and initial changes, and report the resume point.
+
+Forbidden action: Do not ask discovery questions, write glossary/ADR/spec files,
+blame new work, weaken the check, or fall back to an unverified workspace.
+
+## Planning revalidates prepared workspace
+
+Starting state: Gate 1 is approved with prepared workspace evidence, but Git
+ownership or the baseline has changed before `plan-coder` writes a specification.
+
+Expected route: Re-inspect ownership and run fresh verification; return to
+workspace preflight with concrete evidence when it is stale or unsafe.
+
+Forbidden action: Do not choose a second workspace silently, trust old success
+output, discard task-owned discovery changes, or write the specification.
 
 ## Approval review at a main gate
 

@@ -8,6 +8,8 @@ from forward_contracts import (
     apply_approved_setup,
     classify_managed_block,
     choose_isolation_route,
+    route_new_discovery,
+    route_planning_workspace,
     propose_setup,
     render_review_snapshot,
 )
@@ -157,6 +159,46 @@ class WorktreeForwardScenarios(unittest.TestCase):
             local_ignore_status=1,
         )
         self.assertEqual(route, "plan-mutation-free-location")
+
+
+class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
+    def test_new_request_reaches_grill_only_after_safe_green_preflight(self) -> None:
+        self.assertEqual(
+            route_new_discovery(workspace_safe=True, baseline_green=True),
+            "start-grill",
+        )
+
+    def test_unsafe_workspace_stops_before_discovery(self) -> None:
+        self.assertEqual(
+            route_new_discovery(workspace_safe=False, baseline_green=True),
+            "stop-workspace",
+        )
+
+    def test_failing_baseline_stops_before_discovery(self) -> None:
+        self.assertEqual(
+            route_new_discovery(workspace_safe=True, baseline_green=False),
+            "stop-baseline",
+        )
+
+    def test_planning_consumes_only_fresh_valid_prepared_workspace(self) -> None:
+        self.assertEqual(
+            route_planning_workspace(
+                prepared=True, ownership_valid=True, baseline_fresh=True
+            ),
+            "write-specification",
+        )
+        self.assertEqual(
+            route_planning_workspace(
+                prepared=True, ownership_valid=False, baseline_fresh=True
+            ),
+            "return-preflight",
+        )
+        self.assertEqual(
+            route_planning_workspace(
+                prepared=True, ownership_valid=True, baseline_fresh=False
+            ),
+            "return-preflight",
+        )
 
 
 if __name__ == "__main__":

@@ -6,6 +6,12 @@ This file is normative for every skill in the plugin. A stage may add stricter s
 
 Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder` in that order. `spec-coder` routes a new request to the first stage and a resumed request to the earliest incomplete stage.
 
+For a new request, complete workspace preflight before entering that fixed stage
+order. Select a safe in-place or isolated workspace, account for initial user
+changes, prepare dependencies, and establish a fresh green baseline. Keep the
+resulting prepared workspace evidence in conversation until the specification
+records it. Preflight is orchestration, not a public stage or approval gate.
+
 Each stage may also be invoked independently when its stated input already exists. It must validate that input instead of silently recreating an earlier phase.
 
 ## Domain and Architecture Continuity
@@ -72,9 +78,16 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
 
 - Reuse an existing safe worktree. Otherwise, focused work with clear ownership and no interference can run **in place**. Prefer isolation for parallel work, disruptive experiments or branch changes, or unrelated changes that cannot be safely separated.
 - Respect an explicit workspace preference. Choose and explain the mode as a routine planning decision without adding a create/skip approval gate. If the requested mode cannot be used safely, report the actual conflict rather than silently overriding it.
-- Record the workspace, branch, starting revision, relevant initial changes, chosen mode and reason in the existing specification/plan once the baseline passes. Keep the choice in conversation before that; create no private state file.
-- Invoke the bundled `using-git-worktrees` only for the isolation path and prefer native tooling. Failure of optional isolation mechanics is not itself a blocker if `plan-coder` can select safe in-place work consistently with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
+- Record the workspace, branch, starting revision, relevant initial changes, chosen mode and reason in the specification/plan once it exists. Keep the choice in conversation before that; create no private state file.
+- During new-request workspace preflight, invoke the bundled `using-git-worktrees` only for the isolation path and prefer native tooling. Failure of optional isolation mechanics is not itself a blocker if orchestration can select safe in-place work consistently with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
+
+The prepared workspace evidence includes the absolute workspace, mode and
+rationale, branch, starting revision, relevant initial changes, dependency
+preparation, and fresh baseline commands/output. `plan-coder` consumes this
+evidence and revalidates ownership, interference, and baseline freshness before
+writing the specification. Missing, stale, or invalid evidence returns to
+workspace preflight; planning does not silently choose a second workspace.
 
 ## Git Safety
 
