@@ -39,7 +39,7 @@ An approved design in conversation context. It identifies the chosen approach, a
 
 When the modeling triggers apply, include the decisions required by the contract's [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) sections in the design handed to planning. Keep the stage's output focused on approved decisions and unresolved readiness, not a repeated contract checklist.
 
-Do not write implementation code. During an orchestrated run, keep project artifacts in conversation until `plan-coder` selects a safe workspace and establishes a green baseline. In-place and isolated workspaces are both supported. Return the approved design content for specification synthesis.
+Do not write implementation code. During an orchestrated run, use the safe workspace and green baseline prepared before discovery; keep non-domain project artifacts in conversation until `plan-coder` revalidates that evidence. In-place and isolated workspaces are both supported. Return the approved design content for specification synthesis.
 
 ## Stop Conditions
 

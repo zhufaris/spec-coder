@@ -1,6 +1,6 @@
 ---
 name: using-git-worktrees
-description: Prepare an optional isolated Git workspace after plan-coder has selected isolation. Use to reuse existing linked worktrees, prefer native Host worktree tools, or safely fall back to git worktree without owning dependency setup, baseline verification, or workspace policy.
+description: Prepare an optional isolated Git workspace after workspace preflight selects isolation. Use to reuse existing linked worktrees, prefer native Host worktree tools, or safely fall back to git worktree without owning dependency setup, baseline verification, or workspace policy.
 ---
 
 # Using Git Worktrees

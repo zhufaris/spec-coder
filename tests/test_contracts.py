@@ -67,7 +67,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.3.0")
+        self.assertEqual(manifest["version"], "0.3.1")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -688,8 +688,19 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(f"`{skill}`", readme)
         self.assertEqual(len(EXPECTED_SKILLS), 9)
         for published_doc in (readme, install_guide, compatibility):
-            self.assertIn("0.3.0", published_doc)
-        self.assertNotIn("0.2.1", "\n".join((install_guide, compatibility)))
+            self.assertIn("0.3.1", published_doc)
+        published_docs = "\n".join((readme, install_guide, compatibility))
+        self.assertNotIn("0.3.0", published_docs)
+        self.assertNotIn("0.2.1", published_docs)
+        for phrase in (
+            "workspace preflight",
+            "fresh green baseline",
+            "`grilling` + `domain-modeling`",
+            "GLOSSARY.md",
+            "ADR",
+            "fresh Codex session",
+        ):
+            self.assertIn(phrase, published_docs)
         self.assertIn("九个 skill", readme)
         self.assertIn("九个 skill", install_guide)
         self.assertNotRegex(readme, r"(?i)trax")

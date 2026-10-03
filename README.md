@@ -2,7 +2,7 @@
 
 `spec-coder` 是一组面向 Codex 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
-当前版本为 `0.3.0`，插件包含九个 model-callable skills。
+当前版本为 `0.3.1`，插件包含九个 model-callable skills。
 
 它参考 Matt Pocock skills 的“小而可组合”结构。插件负责阶段编排、审批门禁、产物位置和 Git 安全策略；`plan-coder` 使用本插件维护的模板完成规格合成与任务拆分，其余阶段组合允许模型调用的上游能力。
 
@@ -11,9 +11,9 @@
 | Skill | 用途 |
 | --- | --- |
 | `spec-coder` | 总入口；识别新任务或恢复点，并编排完整流程 |
-| `grill-coder` | 单问题需求拷问，并默认给出推荐选项 |
+| `grill-coder` | 组合 `grilling` + `domain-modeling` 逐问澄清，并惰性记录已确认的领域语言或 ADR |
 | `design-coder` | 比较 2–3 个方案，完成轻量 DDD 与 Clean Architecture 设计 |
-| `plan-coder` | 按任务选择原地执行或 worktree、建立基线、生成规格和垂直 tickets |
+| `plan-coder` | 重新验证已准备的 workspace，再生成规格和垂直 tickets |
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
 | `show-me` | 在每次 suite-owned 审批前生成紧凑的 inline ASCII review map |
@@ -44,7 +44,7 @@ codex plugin marketplace add zhufaris/spec-coder
 codex plugin add spec-coder@spec-coder
 ```
 
-私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动新的 Codex 会话，再通过 `/skills` 检查九个 skill 是否出现。
+私有仓库安装依赖当前环境已有访问该仓库的 Git 凭据。安装或升级后启动 fresh Codex session，再通过 `/skills` 检查九个 skill 是否出现。
 
 ## Dependencies
 
@@ -56,7 +56,7 @@ codex plugin add spec-coder@spec-coder
 
 必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 已随插件本地化，只在选定隔离路径后调用；原地执行不调用它。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
 
-从 `0.2.1` 起，规划不再依赖手动专用的 `to-spec` / `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；无需为 spec-coder 安装它们或手动调用它们。
+`0.3.1` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec` 或 `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；discovery 直接组合可调用的 `grilling` + `domain-modeling`，规划使用本地模板。
 
 ## Default routing
 
@@ -72,7 +72,9 @@ codex plugin add spec-coder@spec-coder
 
 ## Workflow
 
-Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
+Discovery 开始前先完成 workspace preflight，并取得 fresh green baseline。Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
+
+`grill-coder` 在预检后逐问确认决策。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
 
 Gate 1、Gate 2、Gate 3、重新打开的 Gate 以及 suite-owned mutation authorization 都会先调用本地 `show-me`，在对话中显示简短 ASCII review map。完整 artifact 或 diff 仍是审批依据；图不会自动授予批准，也不依赖 tmux、编辑器或浏览器。
 
@@ -81,7 +83,8 @@ DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Boun
 `plan-coder` 用本地[规格模板](./references/specification-template.md)保存这些决策，再用[ticket 模板](./references/ticket-template.md)按业务能力切出可验证增量，引用相关模型、规则、接口和测试证据。Gate 2 检查设计信息是否完整，Gate 3 检查场景覆盖与实施条件；实现和交付分别验证行为、规则归属与实际依赖。具体要求见 [Domain Design Contract](./references/domain-design-contract.md)，模型、并发与架构反例见 [Domain Design Examples](./references/domain-design-examples.md)。
 
 ```text
-grill-coder
+workspace preflight + fresh green baseline
+    -> grill-coder        [`grilling` + `domain-modeling`; lazy GLOSSARY.md / ADR]
     -> design-coder        [设计审批]
     -> plan-coder          [规格审批 + tickets/实施审批]
     -> tdd-coder           [逐 ticket Red-Green + 原子提交]
