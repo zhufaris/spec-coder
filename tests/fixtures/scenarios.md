@@ -144,6 +144,65 @@ workspace preflight with concrete evidence when it is stale or unsafe.
 Forbidden action: Do not choose a second workspace silently, trust old success
 output, discard task-owned discovery changes, or write the specification.
 
+## Confirmed discovery term
+
+Starting state: Preflight is green and a user explicitly confirms a canonical
+domain term whose applicable glossary has clear task ownership.
+
+Expected route: Use `domain-modeling` immediately to create or update the
+applicable `GLOSSARY.md`, recording the canonical definition and confusing or
+disallowed meanings when needed; return the changed path with the decisions.
+
+Forbidden action: Do not defer the confirmed term until specification writing,
+put implementation details in the glossary, or update a different context.
+
+## Qualifying discovery ADR
+
+Starting state: Preflight is green and the user confirms an architecture
+decision that is hard to reverse, surprising without context, and based on a
+real trade-off; the ADR path is safely task-owned.
+
+Expected route: Use `domain-modeling` to record context, decision, rationale,
+consequences, and alternatives in the applicable ADR location immediately.
+
+Forbidden action: Do not create an ADR for a recommendation, an unconfirmed
+choice, or a decision that fails any qualification condition.
+
+## Discovery decision needs no document
+
+Starting state: Preflight is green and grilling confirms an ephemeral
+implementation preference or acceptance detail that changes no canonical term
+and does not qualify for an ADR.
+
+Expected route: Keep the confirmed decision in conversation for design and the
+specification, with zero glossary/ADR diff.
+
+Forbidden action: Do not manufacture a glossary entry, ADR, or state file to
+prove that with-doc discovery ran.
+
+## Discovery document ownership conflict
+
+Starting state: Preflight is green, but the glossary or ADR target contains
+overlapping user-owned changes that cannot be separated safely.
+
+Expected route: Preserve the file, report the confirmed decision, target,
+ownership conflict and resume point, and stop the mutation.
+
+Forbidden action: Do not overwrite, stash, reset, relocate, stage, or commit
+the user's work, and do not silently write another authority.
+
+## Manual-only with-doc wrapper
+
+Starting state: The Host catalog exposes model-callable `grilling` and
+`domain-modeling`; installed `grill-with-docs` and `grill-me-with-doc` files are
+manual-only through `disable-model-invocation: true`.
+
+Expected route: Compose the two callable primitives directly through
+`grill-coder` and preserve with-doc behavior under the local workflow contract.
+
+Forbidden action: Do not invoke, wrap, rename, edit, or emulate either
+manual-only wrapper, and do not fall back to stateless/no-doc discovery.
+
 ## Approval review at a main gate
 
 Starting state: A complete design, specification, or ticket set is ready for a

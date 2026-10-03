@@ -6,7 +6,7 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 
 ## Capability Map
 
-- `grilling` -> `grill-coder`
+- `grilling` and `domain-modeling` -> `grill-coder`
 - `brainstorming`, `domain-modeling`, `codebase-design`, and `clean-architecture` -> `design-coder`
 - `tdd` -> `tdd-coder`
 - `code-review` and `verification-before-completion` -> `delivery-coder`
@@ -16,8 +16,8 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 - `show-me` is a local approval-review adapter used before every suite-owned
   approval request. It is model-callable with the plugin and does not require
   an external show-me package, tmux, editor, browser, or executable.
-- `using-git-worktrees` is a local optional isolation adapter invoked by
-  `plan-coder` only after the isolation path is selected. It prefers native
+- `using-git-worktrees` is a local optional isolation adapter invoked during
+  workspace preflight only after the isolation path is selected. It prefers native
   Host worktree tools and needs no external skill package.
 - `setup-coder` is a local manually invoked repository-onboarding adapter. It
   reports external capability compatibility but never installs or rewrites an
@@ -35,7 +35,13 @@ These source snapshots identify the integration's provenance, not proof that eve
 
 Before a stage delegates, confirm that each required upstream skill is visible in the current Host skill catalog, permitted for model invocation, and materially compatible with the expected input/output contract. Disk presence, plugin enablement and configuration overrides are not proof of invocation eligibility. Inspect the selected entry's metadata when needed: `disable-model-invocation: true` is a hard boundary even if the file can be read. If the catalog entry or invocation eligibility is absent, do not execute that skill indirectly through file reads, renamed wrappers, configuration changes, edited frontmatter or subagents.
 
-The current Matt Pocock `to-spec` and `to-tickets` entries are manual-only and intentionally excluded from the capability map. They are not dependencies of spec-coder 0.3.0. Users may invoke them manually outside this orchestration; do not require their installation, modify their flags, or ask the user to run them to complete native planning.
+The current Matt Pocock `grill-with-docs`, `to-spec`, and `to-tickets` entries,
+and the locally installed `grill-me-with-doc`, are manual-only and intentionally
+excluded from the capability map. They are not dependencies of spec-coder
+0.3.0. Users may invoke them manually outside this orchestration; do not require
+their installation, modify their flags, rename/wrap them, or ask the user to
+run them to complete the native workflow. `grill-coder` instead composes the
+model-callable `grilling` and `domain-modeling` primitives directly.
 
 The initial orchestrator check defers the bundled `using-git-worktrees` path
 until workspace selection. Its mechanics are irrelevant to safe in-place work.

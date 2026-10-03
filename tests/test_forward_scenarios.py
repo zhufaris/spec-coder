@@ -8,6 +8,7 @@ from forward_contracts import (
     apply_approved_setup,
     classify_managed_block,
     choose_isolation_route,
+    route_discovery_document,
     route_new_discovery,
     route_planning_workspace,
     propose_setup,
@@ -198,6 +199,76 @@ class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
                 prepared=True, ownership_valid=True, baseline_fresh=False
             ),
             "return-preflight",
+        )
+
+
+class WithDocsDiscoveryForwardScenarios(unittest.TestCase):
+    def test_confirmed_term_updates_glossary(self) -> None:
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=True,
+                confirmed=True,
+                decision_kind="term",
+                adr_qualifies=False,
+            ),
+            "update-glossary",
+        )
+
+    def test_qualifying_architecture_decision_updates_adr(self) -> None:
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=True,
+                confirmed=True,
+                decision_kind="architecture",
+                adr_qualifies=True,
+            ),
+            "update-adr",
+        )
+
+    def test_ephemeral_or_unconfirmed_decision_produces_no_write(self) -> None:
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=True,
+                confirmed=True,
+                decision_kind="ephemeral",
+                adr_qualifies=False,
+            ),
+            "no-document-write",
+        )
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=True,
+                confirmed=False,
+                decision_kind="term",
+                adr_qualifies=False,
+            ),
+            "no-document-write",
+        )
+
+    def test_missing_preflight_or_ownership_conflict_stops_write(self) -> None:
+        self.assertEqual(
+            route_discovery_document(
+                prepared=False,
+                ownership_safe=True,
+                confirmed=True,
+                decision_kind="term",
+                adr_qualifies=False,
+            ),
+            "stop-preflight",
+        )
+        self.assertEqual(
+            route_discovery_document(
+                prepared=True,
+                ownership_safe=False,
+                confirmed=True,
+                decision_kind="term",
+                adr_qualifies=False,
+            ),
+            "stop-ownership",
         )
 
 

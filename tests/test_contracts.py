@@ -228,6 +228,12 @@ class PluginContractTests(unittest.TestCase):
         self.assertTrue(declared, "no declared upstream capabilities found")
         visible = set(catalog["model_visible"])
         self.assertEqual(declared - visible, set(), "upstream absent from Host catalog")
+        manual_only = set(catalog["manual_only"])
+        self.assertEqual(
+            declared & manual_only,
+            set(),
+            "manual-only skill declared as an orchestration dependency",
+        )
         self.assertFalse(declared & set(catalog["manual_only"]))
         for skill in (ROOT / "skills").glob("*/SKILL.md"):
             self.assertNotEqual(
@@ -481,10 +487,35 @@ class PluginContractTests(unittest.TestCase):
         self.assertNotIn("TO" + "DO", workflow + compatibility + routing)
 
     def test_grill_coder_contract(self) -> None:
-        text = self.assert_skill_contract("grill-coder", ("grilling",))
+        text = self.assert_skill_contract(
+            "grill-coder", ("grilling", "domain-modeling")
+        )
         self.assertIn("one question at a time", text.lower())
         self.assertIn("recommend", text.lower())
         self.assertIn("original checkout", text.lower())
+        for phrase in (
+            "prepared workspace",
+            "confirmed decision",
+            "glossary.md",
+            "hard to reverse",
+            "surprising without context",
+            "real trade-off",
+            "no document write",
+            "ownership",
+        ):
+            self.assertIn(phrase, text.lower())
+
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        capability_map = compatibility.split("## Capability Map\n", 1)[1].split(
+            "\n## ", 1
+        )[0]
+        grill_line = next(
+            line for line in capability_map.splitlines() if "-> `grill-coder`" in line
+        )
+        self.assertIn("`grilling`", grill_line)
+        self.assertIn("`domain-modeling`", grill_line)
+        self.assertNotIn("`grill-with-docs`", grill_line)
+        self.assertNotIn("`grill-me-with-doc`", grill_line)
 
     def test_design_coder_contract(self) -> None:
         text = self.assert_skill_contract(
@@ -590,6 +621,11 @@ class PluginContractTests(unittest.TestCase):
             "## Pre-discovery workspace",
             "## Pre-discovery baseline failure",
             "## Planning revalidates prepared workspace",
+            "## Confirmed discovery term",
+            "## Qualifying discovery ADR",
+            "## Discovery decision needs no document",
+            "## Discovery document ownership conflict",
+            "## Manual-only with-doc wrapper",
         )
         for heading in headings:
             self.assertIn(heading, scenarios)

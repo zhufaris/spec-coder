@@ -152,3 +152,24 @@ def route_planning_workspace(
     if not prepared or not ownership_valid or not baseline_fresh:
         return "return-preflight"
     return "write-specification"
+
+
+def route_discovery_document(
+    *,
+    prepared: bool,
+    ownership_safe: bool,
+    confirmed: bool,
+    decision_kind: str,
+    adr_qualifies: bool,
+) -> str:
+    if not prepared:
+        return "stop-preflight"
+    if not ownership_safe:
+        return "stop-ownership"
+    if not confirmed:
+        return "no-document-write"
+    if decision_kind == "term":
+        return "update-glossary"
+    if decision_kind == "architecture" and adr_qualifies:
+        return "update-adr"
+    return "no-document-write"

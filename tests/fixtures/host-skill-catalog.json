@@ -12,6 +12,8 @@
     "verification-before-completion"
   ],
   "manual_only": {
+    "grill-with-docs": {"disable-model-invocation": true},
+    "grill-me-with-doc": {"disable-model-invocation": true},
     "to-spec": {"disable-model-invocation": true},
     "to-tickets": {"disable-model-invocation": true}
   }
