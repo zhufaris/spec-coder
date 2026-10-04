@@ -16,6 +16,13 @@ specification. Do not create a ticket. Do not stage. Do not commit or push. Do
 not persist the setup report. Do not create a private setup state or
 `.spec-coder` configuration file.
 
+Read-only inspection of `.spec-coder/model-routing.toml` is allowed. Validate it
+against the subagent routing contract and report the model routing policy as
+absent, valid with its `minimum_tier`, or invalid with conservative
+`inherit-main` behavior. Absence is optional and does not lower readiness;
+invalid content is a `WARNING`. Setup must not create or edit this repository
+policy or either trusted user mapping path.
+
 The approved `AGENTS.md` update is an onboarding mutation, not a coding artifact
 or implementation change. It may therefore run outside the fixed coding phase
 order and before a project baseline. Its exact authority, byte-preservation,
@@ -175,6 +182,7 @@ Capabilities:
 
 Routing:
 - AGENTS.md: current | proposed | updated | blocked
+- model routing policy: absent | valid minimum=<tier> | invalid -> inherit-main
 
 Verification:
 - <kind>: <command> [source; executed | discovered]

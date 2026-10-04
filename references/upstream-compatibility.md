@@ -1,6 +1,6 @@
 # Upstream Compatibility
 
-This compatibility contract applies to spec-coder `0.3.1`.
+This compatibility contract applies to spec-coder `0.4.0`.
 
 The plugin owns specification synthesis and ticket decomposition through `plan-coder` and its bundled [specification](./specification-template.md) and [ticket](./ticket-template.md) templates. Other stages compose installed, model-callable skills by capability and name.
 
@@ -38,10 +38,31 @@ Before a stage delegates, confirm that each required upstream skill is visible i
 The current Matt Pocock `grill-with-docs`, `to-spec`, and `to-tickets` entries,
 and the locally installed `grill-me-with-doc`, are manual-only and intentionally
 excluded from the capability map. They are not dependencies of spec-coder
-0.3.1. Users may invoke them manually outside this orchestration; do not require
+0.4.0. Users may invoke them manually outside this orchestration; do not require
 their installation, modify their flags, rename/wrap them, or ask the user to
 run them to complete the native workflow. `grill-coder` instead composes the
 model-callable `grilling` and `domain-modeling` primitives directly.
+
+## Optional Host Model Routing
+
+Version `0.4.0` still exposes exactly nine bundled skills. Three-tier subagent
+routing (`economy`, `standard`, and `strong`) is an orchestration optimization.
+It is not a required upstream skill and not a required Host model dependency. Provider/model names in
+the user configuration are examples and must be checked against the live Host
+catalog and subagent tool interface before each override.
+
+Trusted mappings live at `$XDG_CONFIG_HOME/spec-coder/model-routing.toml`, with
+`~/.config/spec-coder/model-routing.toml` as the fallback path. Repository
+`.spec-coder/model-routing.toml` policy may only raise `minimum_tier`; it cannot
+name providers/models or lower a workflow classification. Missing or invalid
+mappings and unsupported overrides fall upward through `economy`, `standard`,
+`strong`, then `inherit-main`.
+
+Routing never switches the active main model. `main-only` responsibilities stay
+with the main agent. A failed or boundary-crossing delegated attempt promotes
+directly once to inherited main and does not cycle through configured tiers.
+Model routing cannot bypass `disable-model-invocation`, permissions, sandbox,
+Git ownership, or external-mutation boundaries.
 
 The initial orchestrator check defers the bundled `using-git-worktrees` path
 until workspace selection. Its mechanics are irrelevant to safe in-place work.

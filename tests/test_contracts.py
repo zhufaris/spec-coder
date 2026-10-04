@@ -68,7 +68,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.3.1")
+        self.assertEqual(manifest["version"], "0.4.0")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -447,8 +447,12 @@ class PluginContractTests(unittest.TestCase):
             "two or more complete, ordered, disjoint pairs",
             "stale compatible global",
             "not assessable from supplied evidence",
+            ".spec-coder/model-routing.toml",
+            "read-only",
+            "model routing policy",
         ):
             self.assertIn(phrase, normalized)
+        self.assertIn(SUBAGENT_ROUTING_REFERENCE, text)
         self.assertIn('display_name: "Setup Coder"', metadata)
         self.assertIn('$setup-coder', metadata)
 
@@ -732,8 +736,9 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(f"`{skill}`", readme)
         self.assertEqual(len(EXPECTED_SKILLS), 9)
         for published_doc in (readme, install_guide, compatibility):
-            self.assertIn("0.3.1", published_doc)
+            self.assertIn("0.4.0", published_doc)
         published_docs = "\n".join((readme, install_guide, compatibility))
+        self.assertNotIn("0.3.1", published_docs)
         self.assertNotIn("0.3.0", published_docs)
         self.assertNotIn("0.2.1", published_docs)
         for phrase in (
@@ -763,6 +768,32 @@ class PluginContractTests(unittest.TestCase):
         self.assertNotRegex(
             published_install_surface, r"(?i)traecode|traecli|~/\.trae"
         )
+
+    def test_published_model_routing_contract_is_complete_and_optional(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        install_guide = read_text(ROOT / "INSTALL.md")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        published = "\n".join((readme, install_guide, compatibility))
+
+        for phrase in (
+            "economy",
+            "standard",
+            "strong",
+            "inherit-main",
+            "main-only",
+            "minimum_tier",
+            "$XDG_CONFIG_HOME/spec-coder/model-routing.toml",
+            "~/.config/spec-coder/model-routing.toml",
+            ".spec-coder/model-routing.toml",
+            "live Host",
+        ):
+            self.assertIn(phrase, published)
+        self.assertIn("provider", readme)
+        self.assertIn("model", readme)
+        self.assertIn("直接", published)
+        self.assertIn("active main model", compatibility)
+        self.assertIn("not a required Host model", compatibility)
+        self.assertIn("nine bundled skills", compatibility)
 
 
 if __name__ == "__main__":

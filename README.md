@@ -2,7 +2,7 @@
 
 `spec-coder` 是一组面向 Codex 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
-当前版本为 `0.3.1`，插件包含九个 model-callable skills。
+当前版本为 `0.4.0`，插件包含九个 model-callable skills。
 
 它参考 Matt Pocock skills 的“小而可组合”结构。插件负责阶段编排、审批门禁、产物位置和 Git 安全策略；`plan-coder` 使用本插件维护的模板完成规格合成与任务拆分，其余阶段组合允许模型调用的上游能力。
 
@@ -56,7 +56,42 @@ codex plugin add spec-coder@spec-coder
 
 必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 已随插件本地化，只在选定隔离路径后调用；原地执行不调用它。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
 
-`0.3.1` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec` 或 `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；discovery 直接组合可调用的 `grilling` + `domain-modeling`，规划使用本地模板。
+`0.4.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec` 或 `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；discovery 直接组合可调用的 `grilling` + `domain-modeling`，规划使用本地模板。
+
+## Optional subagent model routing
+
+`0.4.0` 可以只为新建 subagent 配置三挡模型：`economy`、`standard`、`strong`。它不会切换 active main model；Gate 解释、scope 变更、最终架构/安全决策、改动归属、commit、delivery 聚合和 completion claim 始终是 `main-only`。
+
+可信的用户配置位于 `$XDG_CONFIG_HOME/spec-coder/model-routing.toml`；未设置 `XDG_CONFIG_HOME` 时使用 `~/.config/spec-coder/model-routing.toml`：
+
+```toml
+version = 1
+
+[tiers.economy]
+provider = "trae"
+model = "GPT-5.6-Luna"
+
+[tiers.standard]
+provider = "trae"
+model = "GPT-5.6-Sol"
+
+[tiers.strong]
+provider = "trae"
+model = "GPT-5.6-Terra"
+```
+
+每一挡都可省略；出现时必须同时提供非空的 `provider` 和 `model`。这些名称只是示例，实际选择前以 live Host catalog 和 subagent tool interface 为准，不构成必需模型依赖。
+
+目标仓库只能在 `.spec-coder/model-routing.toml` 提高安全下限，不能指定模型：
+
+```toml
+version = 1
+minimum_tier = "standard"
+```
+
+有效顺序是 `economy < standard < strong < inherit-main`。缺少 mapping、模型不可用或 Host 不支持安全 override 时向上查找，最终 `inherit-main`；无效用户配置或试图注入 provider/model 的仓库策略也保守地继承 main。一次真实 delegated attempt 失败、不确定、缺少证据或越界时，保留证据并直接提升到 inherited main，不再轮询其他配置档位。required model 不可用或低于安全下限时明确报告冲突，不静默替换。
+
+`setup-coder` 可以发现并报告仓库策略，但不会创建或修改用户/仓库 routing 配置；任何配置写入都需要单独展示 exact diff 并取得授权。
 
 ## Default routing
 

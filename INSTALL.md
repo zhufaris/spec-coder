@@ -2,7 +2,7 @@
 
 本文供编码 Agent 使用。目标是把 `spec-coder` 安装到当前用户的 Codex 环境，并确认完整工作流可被新会话发现。
 
-本指南对应 `spec-coder 0.3.1`，安装后应发现九个本地 skills。
+本指南对应 `spec-coder 0.4.0`，安装后应发现九个本地 skills。
 
 ## 执行边界
 
@@ -105,9 +105,47 @@ codex plugin list --json
 
 若九个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
-`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.3.1` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
+`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.4.0` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
 
 新任务必须先完成 workspace preflight 并取得 fresh green baseline，再进入 discovery。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。进入规格写入前，`plan-coder` 会重新验证 prepared workspace。
+
+### 可选：配置 subagent 三挡模型
+
+不配置时，subagent 安全地继承 active main model，工作流仍可完整运行。若需要显式 route，只在可信用户配置中把 `economy`、`standard`、`strong` 映射到 live Host 提供的 provider/model：
+
+```text
+$XDG_CONFIG_HOME/spec-coder/model-routing.toml
+~/.config/spec-coder/model-routing.toml  # XDG_CONFIG_HOME 未设置时
+```
+
+```toml
+version = 1
+
+[tiers.economy]
+provider = "trae"
+model = "GPT-5.6-Luna"
+
+[tiers.standard]
+provider = "trae"
+model = "GPT-5.6-Sol"
+
+[tiers.strong]
+provider = "trae"
+model = "GPT-5.6-Terra"
+```
+
+每个 table 必须同时含非空 `provider` 和 `model`。模型名只是示例；安装过程不验证、下载或启用模型。Agent 每次委派前仍需检查 live Host catalog 与 subagent tool interface。
+
+仓库可以用 `.spec-coder/model-routing.toml` 提高最低档位：
+
+```toml
+version = 1
+minimum_tier = "standard"
+```
+
+仓库策略只允许 `version` 和 `minimum_tier`，后者可为 `economy`、`standard`、`strong` 或 `inherit-main`；不得包含 provider/model。缺失 mapping 或 Host 能力时按 `economy -> standard -> strong -> inherit-main` 向上 fallback。delegated attempt 失败或越界时直接提升到 inherited main 一次，不逐档重试。Gate、scope、最终架构/安全决策、commit 和 completion 都是 `main-only`，配置不会切换 active main model。
+
+`setup-coder` 只发现和报告该仓库策略，不自动创建或修改这两个配置。若确需写配置，必须作为独立 mutation 展示 exact diff 并获得授权。
 
 ## 6. 初始化目标仓库
 
