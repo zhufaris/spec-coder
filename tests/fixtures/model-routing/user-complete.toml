@@ -1,0 +1,13 @@
+version = 1
+
+[tiers.economy]
+provider = "trae"
+model = "Luna"
+
+[tiers.standard]
+provider = "trae"
+model = "Sol"
+
+[tiers.strong]
+provider = "trae"
+model = "Terra"

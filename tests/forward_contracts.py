@@ -5,12 +5,14 @@ contracts' state transitions executable so scenarios test outcomes rather than
 only the presence of prose headings.
 """
 
+import tomllib
 from typing import Dict, Iterable, Optional, Tuple
 
 
 READY = "READY"
 WARNING = "WARNING"
 BLOCKED = "BLOCKED"
+ROUTING_TIERS = ("economy", "standard", "strong")
 
 
 def _markers(canonical: bytes):
@@ -180,3 +182,99 @@ def route_discovery_document(
     if not ownership_safe:
         return "stop-ownership"
     return destination
+
+
+def parse_user_model_mapping(
+    content: Optional[bytes],
+) -> Optional[Dict[str, Tuple[str, str]]]:
+    if content is None:
+        return {}
+    try:
+        parsed = tomllib.loads(content.decode("utf-8"))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError):
+        return None
+    if set(parsed) != {"version", "tiers"} or parsed["version"] != 1:
+        return None
+    tiers = parsed["tiers"]
+    if not isinstance(tiers, dict) or not set(tiers).issubset(ROUTING_TIERS):
+        return None
+
+    mapping: Dict[str, Tuple[str, str]] = {}
+    for tier, entry in tiers.items():
+        if not isinstance(entry, dict) or set(entry) != {"provider", "model"}:
+            return None
+        provider = entry["provider"]
+        model = entry["model"]
+        if not isinstance(provider, str) or not provider.strip():
+            return None
+        if not isinstance(model, str) or not model.strip():
+            return None
+        mapping[tier] = (provider, model)
+    return mapping
+
+
+def parse_repository_routing_policy(
+    content: Optional[bytes],
+) -> Tuple[str, bool]:
+    if content is None:
+        return "economy", True
+    try:
+        parsed = tomllib.loads(content.decode("utf-8"))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError):
+        return "inherit-main", False
+    allowed = {"economy", "standard", "strong", "inherit-main"}
+    if set(parsed) != {"version", "minimum_tier"}:
+        return "inherit-main", False
+    if parsed["version"] != 1 or parsed["minimum_tier"] not in allowed:
+        return "inherit-main", False
+    return parsed["minimum_tier"], True
+
+
+def route_configured_subagent(
+    *,
+    classified_tier: str,
+    user_config: Optional[bytes],
+    repository_policy: Optional[bytes],
+    available_models: set[Tuple[str, str]],
+    override_supported: bool,
+    required_model: Optional[Tuple[str, str]] = None,
+    excluded_models: Optional[set[Tuple[str, str]]] = None,
+) -> Tuple[str, Optional[str], Optional[str]]:
+    if classified_tier == "main-only":
+        return "main-only", None, None
+    if classified_tier not in ROUTING_TIERS:
+        return "main-only", None, None
+
+    mapping = parse_user_model_mapping(user_config)
+    repository_minimum, policy_valid = parse_repository_routing_policy(
+        repository_policy
+    )
+    if mapping is None or not policy_valid or repository_minimum == "inherit-main":
+        return "inherit-main", None, None
+
+    if required_model is not None and (
+        not override_supported or required_model not in available_models
+    ):
+        return "required-model-conflict", required_model[0], required_model[1]
+    if not override_supported:
+        return "inherit-main", None, None
+
+    tier_index = {tier: index for index, tier in enumerate(ROUTING_TIERS)}
+    effective = max(tier_index[classified_tier], tier_index[repository_minimum])
+    excluded = excluded_models or set()
+
+    if required_model is not None:
+        for tier in ROUTING_TIERS[effective:]:
+            if mapping.get(tier) == required_model and required_model not in excluded:
+                return tier, required_model[0], required_model[1]
+        return "required-model-conflict", required_model[0], required_model[1]
+
+    for tier in ROUTING_TIERS[effective:]:
+        candidate = mapping.get(tier)
+        if (
+            candidate is not None
+            and candidate in available_models
+            and candidate not in excluded
+        ):
+            return tier, candidate[0], candidate[1]
+    return "inherit-main", None, None

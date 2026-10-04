@@ -30,6 +30,7 @@ PLANNING_REFERENCES = (
 APPROVAL_REFERENCE = "../../references/approval-review-contract.md"
 SETUP_REFERENCE = "../../references/setup-contract.md"
 SETUP_ASSET = "../../assets/agents-snippet.md"
+SUBAGENT_ROUTING_REFERENCE = "../../references/subagent-routing-contract.md"
 
 
 def read_text(path: Path) -> str:
@@ -71,6 +72,25 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
+
+    def test_general_subagent_routing_uses_shared_contract(self) -> None:
+        routing = read_text(ROOT / "references" / "subagent-routing-contract.md")
+        orchestrator = read_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
+        for phrase in (
+            "economy",
+            "standard",
+            "strong",
+            "inherit-main",
+            "main-only",
+            "minimum_tier",
+            "provider",
+            "model",
+            "live host",
+        ):
+            self.assertIn(phrase, routing.lower())
+        self.assertIn(SUBAGENT_ROUTING_REFERENCE, orchestrator)
+        self.assertIn("main-only", orchestrator.lower())
+        self.assertEqual(len(EXPECTED_SKILLS), 9)
 
     def test_codex_marketplace_exposes_root_plugin(self) -> None:
         marketplace = json.loads(

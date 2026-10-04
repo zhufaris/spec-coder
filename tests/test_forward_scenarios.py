@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from forward_contracts import (
     BLOCKED,
@@ -11,7 +12,10 @@ from forward_contracts import (
     route_discovery_document,
     route_new_discovery,
     route_planning_workspace,
+    parse_repository_routing_policy,
+    parse_user_model_mapping,
     propose_setup,
+    route_configured_subagent,
     render_review_snapshot,
 )
 
@@ -19,6 +23,7 @@ from forward_contracts import (
 START = b"<!-- spec-coder:start -->"
 END = b"<!-- spec-coder:end -->"
 CANONICAL = START + b"\nmanaged\n" + END + b"\n"
+ROUTING_FIXTURES = Path(__file__).parent / "fixtures" / "model-routing"
 
 
 class SetupForwardScenarios(unittest.TestCase):
@@ -299,6 +304,125 @@ class WithDocsDiscoveryForwardScenarios(unittest.TestCase):
                 adr_qualifies=False,
             ),
             "stop-ownership",
+        )
+
+
+class SubagentRoutingForwardScenarios(unittest.TestCase):
+    def test_complete_mapping_selects_effective_tier(self) -> None:
+        user_config = (ROUTING_FIXTURES / "user-complete.toml").read_bytes()
+        route = route_configured_subagent(
+            classified_tier="economy",
+            user_config=user_config,
+            repository_policy=(
+                ROUTING_FIXTURES / "repository-standard.toml"
+            ).read_bytes(),
+            available_models={
+                ("trae", "Luna"),
+                ("trae", "Sol"),
+                ("trae", "Terra"),
+            },
+            override_supported=True,
+        )
+        self.assertEqual(route, ("standard", "trae", "Sol"))
+
+    def test_missing_mapping_falls_upward_then_inherits_main(self) -> None:
+        partial = (ROUTING_FIXTURES / "user-partial.toml").read_bytes()
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=partial,
+                repository_policy=None,
+                available_models={("trae", "Terra")},
+                override_supported=True,
+            ),
+            ("strong", "trae", "Terra"),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=partial,
+                repository_policy=None,
+                available_models=set(),
+                override_supported=True,
+            ),
+            ("inherit-main", None, None),
+        )
+
+    def test_invalid_or_model_injecting_config_inherits_main(self) -> None:
+        model_injecting_policy = (
+            b'version = 1\nminimum_tier = "economy"\nmodel = "Luna"\n'
+        )
+        self.assertIsNone(parse_user_model_mapping(b"not = [valid"))
+        self.assertEqual(
+            parse_repository_routing_policy(model_injecting_policy),
+            ("inherit-main", False),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=b"not = [valid",
+                repository_policy=None,
+                available_models={("trae", "Luna")},
+                override_supported=True,
+            ),
+            ("inherit-main", None, None),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=(ROUTING_FIXTURES / "user-complete.toml").read_bytes(),
+                repository_policy=model_injecting_policy,
+                available_models={("trae", "Luna")},
+                override_supported=True,
+            ),
+            ("inherit-main", None, None),
+        )
+
+    def test_main_only_and_missing_override_never_downgrade(self) -> None:
+        config = b"""
+version = 1
+[tiers.economy]
+provider = "trae"
+model = "Luna"
+"""
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="main-only",
+                user_config=config,
+                repository_policy=None,
+                available_models={("trae", "Luna")},
+                override_supported=True,
+            ),
+            ("main-only", None, None),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=config,
+                repository_policy=None,
+                available_models={("trae", "Luna")},
+                override_supported=False,
+            ),
+            ("inherit-main", None, None),
+        )
+
+    def test_required_model_conflict_is_not_silently_substituted(self) -> None:
+        config = b"""
+version = 1
+[tiers.strong]
+provider = "trae"
+model = "Terra"
+"""
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="strong",
+                user_config=config,
+                repository_policy=None,
+                available_models=set(),
+                override_supported=True,
+                required_model=("trae", "Terra"),
+            ),
+            ("required-model-conflict", "trae", "Terra"),
         )
 
 

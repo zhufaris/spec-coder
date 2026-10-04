@@ -5,7 +5,7 @@ description: Orchestrate code-changing requests through requirements grilling, d
 
 # Spec Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages.
+Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages. Route optional subagent work through the [subagent routing contract](../../references/subagent-routing-contract.md).
 
 All initial and reopened approval gates use bundled `show-me` under the shared
 approval review contract. The stage that owns the gate supplies grounded facts,
@@ -26,6 +26,11 @@ evidence, and a final delivery report produced through `delivery-coder`.
 
 1. Inspect repository instructions, Git status, current branch, worktrees, relevant specifications and plans, plan checkboxes, and Git log before changing anything.
 2. Verify required local and upstream skills are visible in the current Host catalog, permitted for model invocation and materially compatible for the selected path. A file on disk or an enabled plugin is insufficient; respect `disable-model-invocation: true` without attempting indirect invocation. Planning is native to `plan-coder` and needs its bundled templates, not external planning skills. Defer the bundled optional `using-git-worktrees` path until workspace selection; safe in-place work does not invoke it. Stop for other unavailable required capabilities with specific evidence rather than approximating them.
+   Before spawning a subagent, classify the bounded task as economy, standard,
+   strong, or main-only; apply trusted user mappings and any repository minimum;
+   inspect the live Host catalog/tool interface; and inherit the main model when
+   no safe compatible override exists. A configured route never transfers
+   approval, attribution, commit, delivery, or completion authority.
 3. Classify the request:
    - For a new request, complete workspace preflight under the shared contract:
      account for initial changes, select safe in-place or isolated execution,
