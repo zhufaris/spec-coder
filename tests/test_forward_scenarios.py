@@ -380,6 +380,24 @@ class SubagentRoutingForwardScenarios(unittest.TestCase):
             ("inherit-main", None, None),
         )
 
+    def test_boolean_schema_versions_are_not_integer_version_one(self) -> None:
+        self.assertIsNone(
+            parse_user_model_mapping(
+                b'version = true\n[tiers.economy]\nprovider = "trae"\nmodel = "Luna"\n'
+            )
+        )
+        self.assertEqual(
+            parse_repository_routing_policy(
+                b'version = true\nminimum_tier = "economy"\n'
+            ),
+            ("inherit-main", False),
+        )
+        self.assertEqual(
+            parse_repository_routing_policy(
+                b'version = 1\nminimum_tier = []\n'
+            ),
+            ("inherit-main", False),
+        )
     def test_main_only_and_missing_override_never_downgrade(self) -> None:
         config = b"""
 version = 1
@@ -425,6 +443,58 @@ model = "Terra"
                 required_model=("trae", "Terra"),
             ),
             ("required-model-conflict", "trae", "Terra"),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=config,
+                repository_policy=b'version = 1\nminimum_tier = "inherit-main"\n',
+                available_models=set(),
+                override_supported=True,
+                required_model=("trae", "Terra"),
+            ),
+            ("required-model-conflict", "trae", "Terra"),
+        )
+
+    def test_explicit_user_constraints_raise_exclude_or_inherit(self) -> None:
+        config = (ROUTING_FIXTURES / "user-complete.toml").read_bytes()
+        available = {
+            ("trae", "Luna"),
+            ("trae", "Sol"),
+            ("trae", "Terra"),
+        }
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=config,
+                repository_policy=None,
+                available_models=available,
+                override_supported=True,
+                user_minimum_tier="strong",
+            ),
+            ("strong", "trae", "Terra"),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=config,
+                repository_policy=None,
+                available_models=available,
+                override_supported=True,
+                excluded_models={("trae", "Luna")},
+            ),
+            ("standard", "trae", "Sol"),
+        )
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=config,
+                repository_policy=None,
+                available_models=available,
+                override_supported=True,
+                user_minimum_tier="inherit-main",
+            ),
+            ("inherit-main", None, None),
         )
 
     def test_bounded_tdd_and_strong_advisory_work_use_configured_tiers(self) -> None:

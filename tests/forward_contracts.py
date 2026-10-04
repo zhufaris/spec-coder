@@ -193,7 +193,11 @@ def parse_user_model_mapping(
         parsed = tomllib.loads(content.decode("utf-8"))
     except (UnicodeDecodeError, tomllib.TOMLDecodeError):
         return None
-    if set(parsed) != {"version", "tiers"} or parsed["version"] != 1:
+    if (
+        set(parsed) != {"version", "tiers"}
+        or type(parsed["version"]) is not int
+        or parsed["version"] != 1
+    ):
         return None
     tiers = parsed["tiers"]
     if not isinstance(tiers, dict) or not set(tiers).issubset(ROUTING_TIERS):
@@ -225,9 +229,15 @@ def parse_repository_routing_policy(
     allowed = {"economy", "standard", "strong", "inherit-main"}
     if set(parsed) != {"version", "minimum_tier"}:
         return "inherit-main", False
-    if parsed["version"] != 1 or parsed["minimum_tier"] not in allowed:
+    minimum_tier = parsed["minimum_tier"]
+    if (
+        type(parsed["version"]) is not int
+        or parsed["version"] != 1
+        or not isinstance(minimum_tier, str)
+        or minimum_tier not in allowed
+    ):
         return "inherit-main", False
-    return parsed["minimum_tier"], True
+    return minimum_tier, True
 
 
 def route_configured_subagent(
@@ -239,28 +249,47 @@ def route_configured_subagent(
     override_supported: bool,
     required_model: Optional[Tuple[str, str]] = None,
     excluded_models: Optional[set[Tuple[str, str]]] = None,
+    user_minimum_tier: Optional[str] = None,
 ) -> Tuple[str, Optional[str], Optional[str]]:
     if classified_tier == "main-only":
         return "main-only", None, None
     if classified_tier not in ROUTING_TIERS:
         return "main-only", None, None
 
-    mapping = parse_user_model_mapping(user_config)
-    repository_minimum, policy_valid = parse_repository_routing_policy(
-        repository_policy
-    )
-    if mapping is None or not policy_valid or repository_minimum == "inherit-main":
-        return "inherit-main", None, None
-
     if required_model is not None and (
         not override_supported or required_model not in available_models
     ):
         return "required-model-conflict", required_model[0], required_model[1]
+
+    mapping = parse_user_model_mapping(user_config)
+    repository_minimum, policy_valid = parse_repository_routing_policy(
+        repository_policy
+    )
+    allowed_user_minimums = {*ROUTING_TIERS, "inherit-main"}
+    user_minimum_valid = (
+        user_minimum_tier is None or user_minimum_tier in allowed_user_minimums
+    )
+    inheritance_required = (
+        repository_minimum == "inherit-main"
+        or user_minimum_tier == "inherit-main"
+    )
+    if mapping is None or not policy_valid or not user_minimum_valid:
+        if required_model is not None:
+            return "required-model-conflict", required_model[0], required_model[1]
+        return "inherit-main", None, None
+    if inheritance_required:
+        if required_model is not None:
+            return "required-model-conflict", required_model[0], required_model[1]
+        return "inherit-main", None, None
     if not override_supported:
         return "inherit-main", None, None
 
     tier_index = {tier: index for index, tier in enumerate(ROUTING_TIERS)}
-    effective = max(tier_index[classified_tier], tier_index[repository_minimum])
+    effective = max(
+        tier_index[classified_tier],
+        tier_index[repository_minimum],
+        tier_index[user_minimum_tier] if user_minimum_tier else 0,
+    )
     excluded = excluded_models or set()
 
     if required_model is not None:

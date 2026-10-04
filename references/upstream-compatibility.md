@@ -54,9 +54,13 @@ catalog and subagent tool interface before each override.
 Trusted mappings live at `$XDG_CONFIG_HOME/spec-coder/model-routing.toml`, with
 `~/.config/spec-coder/model-routing.toml` as the fallback path. Repository
 `.spec-coder/model-routing.toml` policy may only raise `minimum_tier`; it cannot
-name providers/models or lower a workflow classification. Missing or invalid
-mappings and unsupported overrides fall upward through `economy`, `standard`,
-`strong`, then `inherit-main`.
+name providers/models or lower a workflow classification. Missing tier mappings
+or unavailable candidates in a valid configuration fall upward through
+`economy`, `standard`, `strong`, then `inherit-main`. An invalid user mapping or
+repository policy goes directly to `inherit-main` with a warning; it is never
+guessed or partially reused. See the authoritative
+[subagent routing contract](./subagent-routing-contract.md) for selection and
+failure rules.
 
 Routing never switches the active main model. `main-only` responsibilities stay
 with the main agent. A failed or boundary-crossing delegated attempt promotes
