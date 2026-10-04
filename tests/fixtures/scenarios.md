@@ -430,3 +430,103 @@ Expected route: Return the conversational `SetupReport` only.
 Forbidden action: Do not create a worktree, spec, ticket, glossary, ADR,
 configuration/state file, stage, commit, push, PR, external issue, or plugin
 installation.
+
+## SCN-ROUTE-1: Economy task
+
+Starting state: A complete mechanical or read-only subtask has bounded inputs,
+explicit exclusions, a deterministic check, and a live configured economy pair.
+
+Expected route: Use the economy pair and return provisional evidence for main
+inspection.
+
+Forbidden action: Do not let the subagent approve a gate, commit, or claim
+completion.
+
+## SCN-ROUTE-2: Standard task
+
+Starting state: An approved TDD ticket contains a bounded reversible slice with
+an explicit verification seam and a live configured standard pair.
+
+Expected route: Use standard while `tdd-coder` retains Red-Green, diff review,
+affected verification, attribution, and commit ownership.
+
+Forbidden action: Do not delegate an unapproved ticket or accept a child report
+without inspecting its diff and running the check.
+
+## SCN-ROUTE-3: Strong advisory task
+
+Starting state: A bounded complex architecture, security, or cross-module
+analysis has complete evidence and a live configured strong pair.
+
+Expected route: Use strong for advisory evidence, then let the main agent own
+the final decision and its workflow consequences.
+
+Forbidden action: Do not transfer architecture, security, scope, or gate
+authority to the adviser.
+
+## SCN-ROUTE-4: Main-only responsibility
+
+Starting state: The requested work is gate interpretation, scope change, final
+architecture/security judgment, attribution, commit, delivery, or completion.
+
+Expected route: Keep the responsibility in the active main agent regardless of
+configured model strength.
+
+Forbidden action: Do not delegate the authoritative decision or treat strong as
+an authority tier.
+
+## SCN-ROUTE-5: Repository raises the minimum
+
+Starting state: An economy task has a user mapping, while repository policy sets
+`minimum_tier = "standard"`.
+
+Expected route: Start at standard and fall only upward through trusted user
+mappings and live Host compatibility.
+
+Forbidden action: Do not let repository content map a model or lower the task's
+workflow classification.
+
+## SCN-ROUTE-6: Mapping or Host capability unavailable
+
+Starting state: The effective tier is unmapped, unavailable in the live Host, or
+cannot receive sufficient grounded context through the override interface.
+
+Expected route: Try stronger configured tiers in order, then safely inherit the
+main model without blocking the workflow.
+
+Forbidden action: Do not guess a model identifier, install capabilities, edit
+Host configuration, or switch the active main model.
+
+## SCN-ROUTE-7: Delegated attempt is insufficient
+
+Starting state: A configured subagent attempt fails, is uncertain, lacks
+evidence, or crosses its supplied boundary; no prior promotion occurred.
+
+Expected route: Preserve the attempt and verification state, promote once
+directly to inherited main, and use the normal repair/stop path after a second
+failure.
+
+Forbidden action: Do not cycle through economy, standard, and strong or widen
+the approved scope during promotion.
+
+## SCN-ROUTE-8: Explicit user constraint
+
+Starting state: The user requires or excludes a model, but the required model is
+unavailable or falls below the effective safety tier.
+
+Expected route: Report a concrete required-model conflict; safe exclusions
+remove candidates and ordinary selection continues upward.
+
+Forbidden action: Do not silently substitute for a required model or let a user
+constraint lower repository/workflow safety.
+
+## SCN-ROUTE-9: Manual-only capability remains unavailable
+
+Starting state: A desired capability has `disable-model-invocation: true`, even
+though another provider, model, tier, context fork, or subagent is available.
+
+Expected route: Respect the Host invocation boundary and follow the existing
+capability stop or fallback behavior.
+
+Forbidden action: Do not use routing, file access, wrappers, metadata edits, or
+a subagent to bypass manual-only invocation.

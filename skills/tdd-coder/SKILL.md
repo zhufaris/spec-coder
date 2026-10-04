@@ -7,6 +7,8 @@ description: Implement one approved, unblocked vertical ticket through an eviden
 
 Follow the shared [workflow contract](../../references/workflow-contract.md). Compose the installed `tdd` skill at the public testing seams already approved in the specification and ticket plan.
 
+Route optional delegated work through the [subagent routing contract](../../references/subagent-routing-contract.md). A delegated implementation must remain inside the approved ticket, be bounded and reversible, and expose an explicit verification seam. Ambiguous scope, missing context, high-risk mutation, attribution, and commit ownership remain with the main agent.
+
 Read and apply the [domain design contract](../../references/domain-design-contract.md) to resolve ticket constraints and distinguish behavior verification from dependency verification.
 
 Read the [worked examples](../../references/domain-design-examples.md) when implementing rules, concurrency mechanisms or cross-context failures at the approved testing seams.
@@ -25,12 +27,14 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
 3. Write one behavior-focused test through an approved public seam for an applicable scenario or invariant.
 4. Run that focused test and observe the expected failure. If it passes unexpectedly or fails for an unrelated reason, correct the test setup before implementation.
-5. Write the minimum implementation needed for Green. Place rules in the approved domain modules, coordination in application modules, and external conversion in adapters. Do not anticipate later tickets.
+5. Write the minimum implementation needed for Green. Place rules in the approved domain modules, coordination in application modules, and external conversion in adapters. Do not anticipate later tickets. Economy or standard subagents may perform a bounded implementation slice only after the main agent has observed Red and supplied the complete approved boundary, exclusions and verification seam. The main agent re-inspects every delegated diff and retains Red-Green evidence, attribution, affected verification and commit ownership.
 6. Run the focused test. Repeat steps 3-6 one behavior at a time until all applicable ticket scenarios and invariants have test evidence, including existing tests where sufficient. Include approved concurrent interleavings, duplicates and partial failures when relevant; a sequential fake alone does not prove a persistence concurrency guarantee. Then run the affected checks: relevant test modules, lint, type checks, and build steps defined by the repository.
 7. Perform a lightweight self-review for scope, duplication, naming, domain consistency, and accidental architecture violations. Check rule ownership across entry points and verify source dependencies, exposed boundary types and assembly with existing tooling or a concrete source review; passing behavior tests alone does not establish dependency compliance.
 8. Update the durable plan checkbox and runtime mirror only after the affected checks pass.
 9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior.
 10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
+
+A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not retried across configured tiers. Preserve its route, output and verification state for Workflow Orchestration to promote once directly to inherited main. A second failure follows this skill's normal repair or stop conditions.
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 

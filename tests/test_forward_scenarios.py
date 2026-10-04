@@ -14,7 +14,9 @@ from forward_contracts import (
     route_planning_workspace,
     parse_repository_routing_policy,
     parse_user_model_mapping,
+    evaluate_delegated_attempt,
     propose_setup,
+    route_delegated_work,
     route_configured_subagent,
     render_review_snapshot,
 )
@@ -423,6 +425,89 @@ model = "Terra"
                 required_model=("trae", "Terra"),
             ),
             ("required-model-conflict", "trae", "Terra"),
+        )
+
+    def test_bounded_tdd_and_strong_advisory_work_use_configured_tiers(self) -> None:
+        config = (ROUTING_FIXTURES / "user-complete.toml").read_bytes()
+        available = {
+            ("trae", "Luna"),
+            ("trae", "Sol"),
+            ("trae", "Terra"),
+        }
+        self.assertEqual(
+            route_delegated_work(
+                work_kind="ticket-implementation",
+                bounded=True,
+                reversible=True,
+                verification_seam=True,
+                user_config=config,
+                repository_policy=None,
+                available_models=available,
+                override_supported=True,
+            ),
+            ("standard", "trae", "Sol"),
+        )
+        self.assertEqual(
+            route_delegated_work(
+                work_kind="complex-advisory-review",
+                bounded=True,
+                reversible=True,
+                verification_seam=True,
+                user_config=config,
+                repository_policy=None,
+                available_models=available,
+                override_supported=True,
+            ),
+            ("strong", "trae", "Terra"),
+        )
+
+    def test_ambiguous_or_authoritative_work_remains_main_only(self) -> None:
+        config = (ROUTING_FIXTURES / "user-complete.toml").read_bytes()
+        common = {
+            "user_config": config,
+            "repository_policy": None,
+            "available_models": {("trae", "Terra")},
+            "override_supported": True,
+        }
+        self.assertEqual(
+            route_delegated_work(
+                work_kind="ticket-implementation",
+                bounded=False,
+                reversible=True,
+                verification_seam=True,
+                **common,
+            ),
+            ("main-only", None, None),
+        )
+        self.assertEqual(
+            route_delegated_work(
+                work_kind="completion-claim",
+                bounded=True,
+                reversible=True,
+                verification_seam=True,
+                **common,
+            ),
+            ("main-only", None, None),
+        )
+
+    def test_attempt_requires_main_verification_and_promotes_only_once(self) -> None:
+        self.assertEqual(
+            evaluate_delegated_attempt(
+                outcome="success", main_verified=False, already_promoted=False
+            ),
+            "await-main-verification",
+        )
+        self.assertEqual(
+            evaluate_delegated_attempt(
+                outcome="failed", main_verified=False, already_promoted=False
+            ),
+            "promote-inherit-main",
+        )
+        self.assertEqual(
+            evaluate_delegated_attempt(
+                outcome="failed", main_verified=False, already_promoted=True
+            ),
+            "stop-after-promotion",
         )
 
 

@@ -572,6 +572,15 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, text.lower())
         self.assertIn("git add -A", text)
+        self.assertIn(SUBAGENT_ROUTING_REFERENCE, text)
+        for phrase in (
+            "bounded",
+            "verification seam",
+            "main agent",
+            "red-green",
+            "commit ownership",
+        ):
+            self.assertIn(phrase, text.lower())
 
     def test_delivery_coder_contract(self) -> None:
         text = self.assert_skill_contract(
@@ -587,6 +596,14 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, text.lower())
         self.assertIn("tdd-coder", text)
+        self.assertIn(SUBAGENT_ROUTING_REFERENCE, text)
+        for phrase in (
+            "bounded evidence",
+            "main agent",
+            "standards/spec",
+            "completion",
+        ):
+            self.assertIn(phrase, text.lower())
 
     def test_exact_skill_set_exists(self) -> None:
         actual = {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()}
@@ -689,13 +706,19 @@ class PluginContractTests(unittest.TestCase):
         )
         for heading in setup_headings:
             self.assertIn(heading, scenarios)
+        routing_headings = tuple(
+            f"## SCN-ROUTE-{number}:" for number in range(1, 10)
+        )
+        for heading in routing_headings:
+            self.assertIn(heading, scenarios)
         for field in ("Starting state:", "Expected route:", "Forbidden action:"):
             self.assertEqual(
                 scenarios.count(field),
                 len(headings)
                 + len(approval_headings)
                 + len(worktree_headings)
-                + len(setup_headings),
+                + len(setup_headings)
+                + len(routing_headings),
             )
 
     def test_repository_is_self_describing_and_installable(self) -> None:

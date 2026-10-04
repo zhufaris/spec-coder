@@ -278,3 +278,54 @@ def route_configured_subagent(
         ):
             return tier, candidate[0], candidate[1]
     return "inherit-main", None, None
+
+
+def route_delegated_work(
+    *,
+    work_kind: str,
+    bounded: bool,
+    reversible: bool,
+    verification_seam: bool,
+    user_config: Optional[bytes],
+    repository_policy: Optional[bytes],
+    available_models: set[Tuple[str, str]],
+    override_supported: bool,
+) -> Tuple[str, Optional[str], Optional[str]]:
+    if not bounded or not reversible or not verification_seam:
+        classified_tier = "main-only"
+    elif work_kind in {"bounded-mechanical", "bounded-read-only"}:
+        classified_tier = "economy"
+    elif work_kind in {
+        "ticket-implementation",
+        "diagnosis",
+        "test-evidence",
+        "review-evidence",
+    }:
+        classified_tier = "standard"
+    elif work_kind in {
+        "complex-advisory-review",
+        "architecture-options",
+        "security-analysis",
+        "cross-module-analysis",
+    }:
+        classified_tier = "strong"
+    else:
+        classified_tier = "main-only"
+
+    return route_configured_subagent(
+        classified_tier=classified_tier,
+        user_config=user_config,
+        repository_policy=repository_policy,
+        available_models=available_models,
+        override_supported=override_supported,
+    )
+
+
+def evaluate_delegated_attempt(
+    *, outcome: str, main_verified: bool, already_promoted: bool
+) -> str:
+    if outcome == "success":
+        return "evidence-accepted" if main_verified else "await-main-verification"
+    if outcome in {"failed", "uncertain", "lacks-evidence", "boundary-crossing"}:
+        return "stop-after-promotion" if already_promoted else "promote-inherit-main"
+    return "stop-invalid-attempt-outcome"
