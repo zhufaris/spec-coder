@@ -20,6 +20,22 @@ Apply the [domain design contract](./domain-design-contract.md) from discovery t
 
 ## Approval Gates
 
+Every suite-owned human review follows the
+[approval review contract](./approval-review-contract.md): the owning skill
+invokes bundled `show-me` before asking and supplies 2-4 grounded, materially
+distinct labeled options with their consequences. Authorization reviews use
+approve and continue, request changes, and reject and stop. Genuine choices
+use their real alternatives; neither fake choices nor options that widen the
+shown authority are allowed. The owning skill asks and interprets the answer;
+`show-me` only validates and renders the review and never approves anything.
+
+This requirement covers design alternative selection, Gate 1, Gate 2, Gate 3,
+a reopened gate, and a named mutation authorization. Design alternative
+selection remains the existing pre-Gate approach choice and is distinct from
+Gate 1; it does not add a fourth gate. Ordinary status, clarification,
+read-only reporting or inspection, and already authorized work are not human
+review interactions and do not generate review options.
+
 Stop for explicit user approval after:
 
 1. the selected design;
@@ -31,9 +47,9 @@ Approval applies only to the artifact presented at that gate. A scope or archite
 Before asking at Gate 1, Gate 2, or Gate 3, the owning stage must follow the
 [approval review contract](./approval-review-contract.md) and invoke bundled
 `show-me`. Supply the artifact or exact proposed mutation, key decisions,
-risks/blockers, approval effect, and next stage. Present the authoritative
-artifact or diff and the ASCII review map before the explicit approval
-question; the map does not grant approval.
+risks/blockers, approval effect, next stage, and review options. Present the
+authoritative artifact or diff and the ASCII review map before the explicit
+approval question; the map does not grant approval.
 
 A reopened gate uses the same review contract and must show the prior approval,
 changed fact, affected decision, and returned gate. Any other suite-owned
@@ -52,7 +68,12 @@ green baseline. The workspace can be the current checkout or a linked worktree:
 - domain terminology: root `GLOSSARY.md`, only when terms change;
 - architecture decisions: `docs/adr/`, only for decisions that are hard to reverse, surprising without context, and based on a real trade-off.
 
-The plan is the task-status source of truth. Mirror it in the runtime plan with at most one item in progress. Do not create a private workflow-state file.
+The plan checkboxes are the task-status source of truth. Mirror them in the
+runtime plan with at most **one active execution wave**, not one active ticket.
+Keep that wave's member ticket IDs, execution modes, and Host/recovery handles
+in conversation only. Do not create a private workflow-state file. On resume,
+infer remaining work from unchecked tickets and committed Git state, then form
+a fresh wave; do not treat a previously discussed wave as durable state.
 
 ## Default Routing
 
@@ -80,6 +101,12 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
 - Respect an explicit workspace preference. Choose and explain the mode as a routine planning decision without adding a create/skip approval gate. If the requested mode cannot be used safely, report the actual conflict rather than silently overriding it.
 - Record the workspace, branch, starting revision, relevant initial changes, chosen mode and reason in the specification/plan once it exists. Keep the choice in conversation before that; create no private state file.
 - During new-request workspace preflight, invoke the bundled `using-git-worktrees` only for the isolation path and prefer native tooling. Failure of optional isolation mechanics is not itself a blocker if orchestration can select safe in-place work consistently with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
+- Worktree isolation remains optional for serial delegation. When the main
+  orchestrator requests a parallel mutation wave, however, each worker must
+  receive real Host/task isolation or a separately validated Git worktree at
+  the recorded wave base. File disjointness inside one shared checkout is not
+  isolation. If per-worker isolation is unavailable, serialize the direct
+  workers; do not make worktrees mandatory merely because delegation is used.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
 
 The prepared workspace evidence includes the absolute workspace, mode and
@@ -112,7 +139,13 @@ workspace preflight; planning does not silently choose a second workspace.
 
 ## Recovery
 
-Inspect the current workspace/mode and branch, recorded initial changes, approved specification, plan checkboxes, Git log, and fresh verification output. Select the earliest incomplete phase supported by that evidence; approved in-place work does not need a worktree on resume. Re-run verification at the inferred boundary and never trust an old success claim.
+Inspect the current workspace/mode and branch, recorded initial changes,
+approved specification, plan checkboxes, Git log, and fresh verification
+output. Select the earliest incomplete phase supported by that evidence;
+approved in-place work does not need a worktree on resume. Reconstruct wave
+readiness from unchecked tickets and committed Git rather than a private state
+file or stale conversational handles. Re-run verification at the inferred
+boundary and never trust an old success claim.
 
 ## Verification Layers
 

@@ -1,6 +1,6 @@
 # Upstream Compatibility
 
-This compatibility contract applies to spec-coder `0.4.0`.
+This compatibility contract applies to spec-coder `0.5.0`.
 
 The plugin owns specification synthesis and ticket decomposition through `plan-coder` and its bundled [specification](./specification-template.md) and [ticket](./ticket-template.md) templates. Other stages compose installed, model-callable skills by capability and name.
 
@@ -16,9 +16,10 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 - `show-me` is a local approval-review adapter used before every suite-owned
   approval request. It is model-callable with the plugin and does not require
   an external show-me package, tmux, editor, browser, or executable.
-- `using-git-worktrees` is a local optional isolation adapter invoked during
-  workspace preflight only after the isolation path is selected. It prefers native
-  Host worktree tools and needs no external skill package.
+- `using-git-worktrees` is a local optional isolation adapter invoked after an
+  isolation path is selected during workspace preflight or for approved
+  post-Gate-3 per-worker isolation. It prefers native Host worktree tools and
+  needs no external skill package.
 - `setup-coder` is a local manually invoked repository-onboarding adapter. It
   reports external capability compatibility but never installs or rewrites an
   upstream skill.
@@ -38,21 +39,62 @@ Before a stage delegates, confirm that each required upstream skill is visible i
 The current Matt Pocock `grill-with-docs`, `to-spec`, and `to-tickets` entries,
 and the locally installed `grill-me-with-doc`, are manual-only and intentionally
 excluded from the capability map. They are not dependencies of spec-coder
-0.4.0. Users may invoke them manually outside this orchestration; do not require
+0.5.0. Users may invoke them manually outside this orchestration; do not require
 their installation, modify their flags, rename/wrap them, or ask the user to
 run them to complete the native workflow. `grill-coder` instead composes the
 model-callable `grilling` and `domain-modeling` primitives directly.
 
+## Default Delegation and Review Compatibility
+
+Every eligible approved ticket uses default delegation to one direct worker,
+including a wave with only one ticket. A request-wide opt-out, ticket-specific
+opt-out, or review-specific opt-out selects main-local execution only for that
+scope and prohibits direct and indirect spawning there. Delegation eligibility
+requires dependency readiness, grounded inputs, bounded reversible scope, an
+independently inspectable seam, and no main-only authority or credentials.
+
+One dependency-aware execution wave is active at a time. A parallel wave has
+at most four ownership-safe tickets, never exceeds live Host direct-child
+capacity, and requires real Host/task workspace isolation. When isolation is
+not available, delegation continues through serialized direct workers; path
+disjointness inside one shared workspace is not isolation. When spawn
+unavailable, main records the reason and runs the same workflow locally unless
+delegation was explicitly required, in which case the missing capability is a
+blocker.
+
+Delivery uses exactly two independent direct reviewers by default. One gathers
+evidence for the Standards axis and one for the Spec axis; main owns the final
+findings and conclusions. The upstream `code-review` skill is a review method,
+not authority to change the selected execution mode. Under a request-wide or
+review-specific opt-out, or when spawn is unavailable and delegated review was
+not explicitly required, main performs equivalent independent Standards and
+Spec passes locally. It must not invoke upstream `code-review` if that path
+would spawn children or otherwise violate the local mode. When spawn is
+unavailable and delegated review was explicitly required, delivery stops with
+a concrete Host-capability blocker.
+
+All suite-owned approvals and mutation reviews use bundled `show-me` to present
+two to four grounded, materially distinct choices and their consequences.
+Presentation does not grant approval or expand authority.
+
 ## Optional Host Model Routing
 
-Version `0.4.0` still exposes exactly nine bundled skills. Three-tier subagent
-routing (`economy`, `standard`, and `strong`) is an orchestration optimization.
-It is not a required upstream skill and not a required Host model dependency. Provider/model names in
-the user configuration are examples and must be checked against the live Host
-catalog and subagent tool interface before each override.
+Version `0.5.0` exposes exactly nine bundled skills. The trusted plugin-owned
+bundled defaults use schema version 1 and map `economy` to `trae` /
+`GPT-5.6-Luna`, `standard` to `trae` / `GPT-5.6-Terra`, and `strong` to `trae` /
+`GPT-5.6-Sol`. They require no initial configuration. Three-tier subagent
+routing is an orchestration optimization, not a required upstream skill and
+not a required Host model dependency. Provider/model identifiers must be
+checked against the live Host catalog and subagent tool interface before each
+override.
 
-Trusted mappings live at `$XDG_CONFIG_HOME/spec-coder/model-routing.toml`, with
-`~/.config/spec-coder/model-routing.toml` as the fallback path. Repository
+An optional trusted user mapping lives at
+`$XDG_CONFIG_HOME/spec-coder/model-routing.toml`, with
+`~/.config/spec-coder/model-routing.toml` as the fallback path. A valid user
+file completely replaces the bundle rather than merging with it. An invalid
+user file warns and selects `inherit-main`; it does not fall back to the
+bundle. Setup must show an exact diff and receive explicit approval before
+creating or editing user-owned configuration. Repository
 `.spec-coder/model-routing.toml` policy may only raise `minimum_tier`; it cannot
 name providers/models or lower a workflow classification. Missing tier mappings
 or unavailable candidates in a valid configuration fall upward through
@@ -62,11 +104,19 @@ guessed or partially reused. See the authoritative
 [subagent routing contract](./subagent-routing-contract.md) for selection and
 failure rules.
 
-Routing never switches the active main model. `main-only` responsibilities stay
-with the main agent. A failed or boundary-crossing delegated attempt promotes
-directly once to inherited main and does not cycle through configured tiers.
-Model routing cannot bypass `disable-model-invocation`, permissions, sandbox,
-Git ownership, or external-mutation boundaries.
+Routing never switches the active main model; it remains the current
+Agent/session model. The complete agent tree has at most two layers, and only
+the active main agent may spawn or delegate. Every direct-child brief states
+`delegation_allowed = false`; a child returns further delegation needs to main
+instead of using a skill, workflow, tool, or agent indirectly. A failed or
+boundary-crossing delegated attempt may be promoted only when main creates an
+inherited-main layer-2 sibling. It does not cycle through configured tiers.
+
+If the live Host can deny spawn tools to a child, main uses that capability as
+defense in depth. The portable contract does not require such a feature and is
+not Host-level sandbox isolation. Model routing cannot bypass
+`disable-model-invocation`, permissions, sandbox, Git ownership, or
+external-mutation boundaries.
 
 The initial orchestrator check defers the bundled `using-git-worktrees` path
 until workspace selection. Its mechanics are irrelevant to safe in-place work.

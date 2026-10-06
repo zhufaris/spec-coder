@@ -2,7 +2,7 @@
 
 本文供编码 Agent 使用。目标是把 `spec-coder` 安装到当前用户的 Codex 环境，并确认完整工作流可被新会话发现。
 
-本指南对应 `spec-coder 0.4.0`，安装后应发现九个本地 skills。
+本指南对应 `spec-coder 0.5.0`，安装后应发现九个本地 skills。
 
 ## 执行边界
 
@@ -105,13 +105,25 @@ codex plugin list --json
 
 若九个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
-`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.4.0` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
+`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.5.0` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
 
 新任务必须先完成 workspace preflight 并取得 fresh green baseline，再进入 discovery。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。进入规格写入前，`plan-coder` 会重新验证 prepared workspace。
 
-### 可选：配置 subagent 三挡模型
+### 默认委派与执行边界
 
-不配置时，subagent 安全地继承 active main model，工作流仍可完整运行。若需要显式 route，只在可信用户配置中把 `economy`、`standard`、`strong` 映射到 live Host 提供的 provider/model：
+Gate 3 后，default delegation 会把每个 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。main 每次只运行一个 dependency-aware wave，parallel wave 为 at most four 个 tickets 且受 live Host capacity 限制。
+
+Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；不要以共享 workspace 中的文件不相交代替隔离。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
+
+Agent tree 为 at most two layers，only the active main agent 可以 spawn。每个 child brief 都必须包含 `delegation_allowed = false`；child 需要更多协作时返回证据与 blocker，不能自行再委派。
+
+delivery 默认创建两个独立、只读 direct reviewers，分别检查 Standards axis 和 Spec axis。review-specific opt-out 或 request-wide opt-out 会改为 main-local 两轴 review；spawn unavailable 且 delegated review was explicitly required 时必须阻塞，否则 main 执行相同的本地 review。
+
+所有 suite-owned approval 和 mutation authorization 都先通过 `show-me` 提供 two to four 个 grounded choices 及各自后果，再请求选择。
+
+### 可选：覆盖 bundled model defaults
+
+插件 bundled defaults 已固定把 `economy`、`standard`、`strong` 映射到 Luna、Terra、Sol，因此 no initial configuration 即可进行 routing。main 始终使用 current Agent/session model；routing 只影响新建 subagent，不会切换 main。若要覆盖 defaults，只在以下 trusted user 配置中映射 live Host 提供的 provider/model：
 
 ```text
 $XDG_CONFIG_HOME/spec-coder/model-routing.toml
@@ -127,14 +139,14 @@ model = "GPT-5.6-Luna"
 
 [tiers.standard]
 provider = "trae"
-model = "GPT-5.6-Sol"
+model = "GPT-5.6-Terra"
 
 [tiers.strong]
 provider = "trae"
-model = "GPT-5.6-Terra"
+model = "GPT-5.6-Sol"
 ```
 
-每个 table 必须同时含非空 `provider` 和 `model`。模型名只是示例；安装过程不验证、下载或启用模型。Agent 每次委派前仍需检查 live Host catalog 与 subagent tool interface。
+每个 table 必须同时含非空 `provider` 和 `model`。有效用户文件会完整替换 bundled defaults，不进行逐档合并；无效用户文件会告警并选择 `inherit-main`，不会使用 bundle。安装过程不验证、下载或启用模型；Agent 每次委派前仍需检查 live Host catalog 与 subagent tool interface。
 
 仓库可以用 `.spec-coder/model-routing.toml` 提高最低档位：
 
@@ -145,7 +157,11 @@ minimum_tier = "standard"
 
 仓库策略只允许 `version` 和 `minimum_tier`，后者可为 `economy`、`standard`、`strong` 或 `inherit-main`；不得包含 provider/model。缺失 mapping 或 Host 能力时按 `economy -> standard -> strong -> inherit-main` 向上 fallback。delegated attempt 失败或越界时直接提升到 inherited main 一次，不逐档重试。Gate、scope、最终架构/安全决策、commit 和 completion 都是 `main-only`，配置不会切换 active main model。
 
-`setup-coder` 只发现和报告该仓库策略，不自动创建或修改这两个配置。若确需写配置，必须作为独立 mutation 展示 exact diff 并获得授权。
+Agent tree 固定为两层：只有 active main 可以创建第 2 层 direct subagent。每个 child brief 必须明确写入 `delegation_allowed = false`；child 不得直接或间接再委派，需要更多 agent 时返回证据和 blocker 给 main。promotion 也由 main 创建新的第 2 层 sibling。若 Host 支持移除 child spawn tool，应启用该 defense in depth；否则仍执行同一契约，并明确这不是 Host 层沙箱隔离。
+
+`setup-coder` 只发现和报告该仓库策略，不自动创建或修改这两个配置。若确需创建或编辑用户拥有的配置，必须作为独立 mutation 展示 exact diff 并获得明确授权。
+
+`0.5.0` 使用 Luna/economy、Terra/standard、Sol/strong。安装器不会自动迁移已有用户配置；任何调整都需要先展示 exact diff 并由用户明确授权。
 
 ## 6. 初始化目标仓库
 

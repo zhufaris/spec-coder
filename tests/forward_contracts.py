@@ -5,7 +5,9 @@ contracts' state transitions executable so scenarios test outcomes rather than
 only the presence of prose headings.
 """
 
+import re
 import tomllib
+from collections.abc import Mapping
 from typing import Dict, Iterable, Optional, Tuple
 
 
@@ -13,6 +15,35 @@ READY = "READY"
 WARNING = "WARNING"
 BLOCKED = "BLOCKED"
 ROUTING_TIERS = ("economy", "standard", "strong")
+HUMAN_REVIEW_KINDS = {
+    "design alternative selection",
+    "gate 1",
+    "gate 2",
+    "gate 3",
+    "reopened gate",
+    "named mutation",
+}
+AUTHORIZATION_REVIEW_KINDS = {
+    "gate 1",
+    "gate 2",
+    "gate 3",
+    "reopened gate",
+    "named mutation",
+}
+AUTHORIZATION_INTENT_TOKENS = {
+    "approve": {"approve", "approves", "approved", "approving"},
+    "change": {
+        "change",
+        "changes",
+        "changed",
+        "changing",
+        "revise",
+        "revises",
+        "revised",
+        "revising",
+    },
+    "reject": {"reject", "rejects", "rejected", "rejecting"},
+}
 
 
 def _markers(canonical: bytes):
@@ -104,21 +135,144 @@ def render_review_snapshot(snapshot: Dict[str, object], width: int) -> str:
         "blockers",
         "approval_effect",
         "next_stage",
+        "review_options",
     )
     missing = [field for field in required if field not in snapshot]
     if missing:
         raise ValueError("missing ReviewSnapshot fields: " + ", ".join(missing))
+
+    raw_approval_kind = snapshot["approval_kind"]
+    if not isinstance(raw_approval_kind, str):
+        raise ValueError("approval_kind must name a suite-owned human review")
+    approval_kind = raw_approval_kind.strip()
+    if approval_kind.casefold() not in HUMAN_REVIEW_KINDS:
+        raise ValueError("approval_kind must name a suite-owned human review")
+
+    scalar_fields = ("artifact", "approval_effect", "next_stage")
+    normalized_scalars = {}
+    for field in scalar_fields:
+        value = snapshot[field]
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field} must be a nonempty string")
+        normalized_scalars[field] = value.strip()
+
+    raw_decisions = snapshot["decisions"]
+    if not isinstance(raw_decisions, (list, tuple)) or not raw_decisions:
+        raise ValueError("decisions must be a nonempty list or tuple")
+    if any(
+        not isinstance(decision, str) or not decision.strip()
+        for decision in raw_decisions
+    ):
+        raise ValueError("decisions must contain only nonempty strings")
+    decisions = tuple(decision.strip() for decision in raw_decisions)
+
+    raw_blockers = snapshot["blockers"]
+    if not isinstance(raw_blockers, (list, tuple)):
+        raise ValueError("blockers must be a list or tuple")
+    if any(
+        not isinstance(blocker, str) or not blocker.strip()
+        for blocker in raw_blockers
+    ):
+        raise ValueError("blockers must contain only nonempty strings")
+    blockers = tuple(blocker.strip() for blocker in raw_blockers)
+
+    raw_excluded_authority = snapshot.get("excluded_authority", ())
+    if not isinstance(raw_excluded_authority, (list, tuple)):
+        raise ValueError("excluded_authority must be a list or tuple")
+    if any(
+        not isinstance(phrase, str) or not phrase.strip()
+        for phrase in raw_excluded_authority
+    ):
+        raise ValueError("excluded_authority must contain only nonempty strings")
+    excluded_authority = tuple(
+        phrase.strip() for phrase in raw_excluded_authority
+    )
+    normalized_excluded_authority = tuple(
+        phrase.casefold() for phrase in excluded_authority
+    )
+
+    raw_options = snapshot["review_options"]
+    if not isinstance(raw_options, (list, tuple)) or not 2 <= len(raw_options) <= 4:
+        raise ValueError("review_options must contain 2-4 entries")
+
+    option_fields = {"label", "choice", "consequence"}
+    options = []
+    normalized_labels = set()
+    normalized_pairs = set()
+    for option in raw_options:
+        if not isinstance(option, Mapping) or set(option) != option_fields:
+            raise ValueError(
+                "each review option must contain exactly label, choice, and consequence"
+            )
+        values = {field: option[field] for field in option_fields}
+        if any(
+            not isinstance(value, str) or not value.strip()
+            for value in values.values()
+        ):
+            raise ValueError("review option fields must be nonempty strings")
+        label = values["label"].strip()
+        normalized_label = label.casefold()
+        if normalized_label in normalized_labels:
+            raise ValueError("review option labels must be unique")
+        normalized_labels.add(normalized_label)
+
+        choice = values["choice"].strip()
+        consequence = values["consequence"].strip()
+        normalized_pair = (choice.casefold(), consequence.casefold())
+        if normalized_pair in normalized_pairs:
+            raise ValueError("review options must be materially distinct")
+        normalized_pairs.add(normalized_pair)
+
+        combined_option = f"{choice} {consequence}".casefold()
+        if any(
+            phrase in combined_option for phrase in normalized_excluded_authority
+        ):
+            raise ValueError("review option widens the supplied authority")
+        options.append(
+            f"{label}: {choice} ({consequence})"
+        )
+
+    if approval_kind.casefold() in AUTHORIZATION_REVIEW_KINDS:
+        choice_tokens = {
+            token
+            for option in raw_options
+            for token in re.findall(r"[a-z0-9]+", option["choice"].casefold())
+        }
+        missing_intents = [
+            intent
+            for intent, accepted_tokens in AUTHORIZATION_INTENT_TOKENS.items()
+            if choice_tokens.isdisjoint(accepted_tokens)
+        ]
+        if missing_intents:
+            raise ValueError(
+                "authorization review options must express approve, "
+                "change/revise, and reject intents"
+            )
+
     fields = [
-        str(snapshot["approval_kind"]),
-        str(snapshot["artifact"]),
-        "; ".join(snapshot["decisions"]),
-        "; ".join(snapshot["blockers"]) or "no blocker",
-        str(snapshot["approval_effect"]),
-        str(snapshot["next_stage"]),
+        approval_kind,
+        normalized_scalars["artifact"],
+        "; ".join(decisions),
+        "; ".join(blockers) or "no blocker",
+        normalized_scalars["approval_effect"],
+        normalized_scalars["next_stage"],
+        *(
+            ["excluded authority: " + "; ".join(excluded_authority)]
+            if excluded_authority
+            else []
+        ),
+        *options,
     ]
     if sum(len(field) for field in fields) + 20 > width:
         return " -> ".join(fields)
     return " | ".join(fields)
+
+
+def requires_human_review(interaction_kind: str) -> bool:
+    """Return whether a suite-owned interaction needs review options."""
+    if not isinstance(interaction_kind, str):
+        return False
+    return interaction_kind.strip().casefold() in HUMAN_REVIEW_KINDS
 
 
 def choose_isolation_route(
@@ -182,6 +336,202 @@ def route_discovery_document(
     if not ownership_safe:
         return "stop-ownership"
     return destination
+
+
+def decide_execution_mode(
+    *,
+    dependency_ready: bool,
+    grounded_inputs: bool,
+    bounded: bool,
+    reversible: bool,
+    verification_seam: bool,
+    main_only: bool,
+    opt_out: bool,
+    spawn_available: bool,
+    available_slots: int,
+    delegation_required: bool,
+) -> str:
+    if not dependency_ready:
+        return "pending"
+    if opt_out:
+        return "local"
+
+    delegation_eligible = (
+        grounded_inputs
+        and bounded
+        and reversible
+        and verification_seam
+        and not main_only
+    )
+    if not delegation_eligible:
+        return "block" if delegation_required else "local"
+    if not spawn_available:
+        return "block" if delegation_required else "local"
+    if available_slots <= 0:
+        return "wait"
+    return "delegate"
+
+
+def select_execution_wave(
+    tickets: Iterable[Dict[str, object]],
+    *,
+    host_available_slots: int,
+    isolated: bool,
+) -> Tuple[Tuple[str, str], ...]:
+    """Select the next ready local or delegated execution wave in plan order."""
+    ready = tuple(ticket for ticket in tickets if ticket.get("dependency_ready"))
+    if not ready:
+        return ()
+
+    first = ready[0]
+    first_mode = str(first.get("mode", "local"))
+    if first_mode == "local":
+        return ((str(first["id"]), first_mode),)
+    if first_mode != "delegate":
+        return ()
+
+    delegated_candidates = tuple(
+        {
+            **ticket,
+            "delegation_eligible": (
+                ticket.get("mode") == "delegate"
+                and ticket.get("delegation_eligible", True)
+            ),
+        }
+        for ticket in ready
+    )
+    selected = select_delegated_wave(
+        delegated_candidates,
+        host_available_slots=host_available_slots,
+        isolated=isolated,
+    )
+    return tuple((ticket_id, "delegate") for ticket_id in selected)
+
+
+def git_worktree_add_args(
+    *, absolute_path: str, branch_name: str, wave_base: str
+) -> Tuple[str, ...]:
+    return (
+        "git",
+        "worktree",
+        "add",
+        absolute_path,
+        "-b",
+        branch_name,
+        wave_base,
+    )
+
+
+def integrate_wave_result(
+    *,
+    base_matches: bool,
+    accepted_sibling_advancement: bool,
+    ownership_disjoint: bool,
+    transfer_clean: bool,
+    diff_explained: bool,
+    verification_passes: bool,
+) -> str:
+    valid_base = base_matches or accepted_sibling_advancement
+    safe_result = (
+        ownership_disjoint
+        and transfer_clean
+        and diff_explained
+        and verification_passes
+    )
+    return "accept" if valid_base and safe_result else "requeue-serialized"
+
+
+def apply_mid_run_opt_out(
+    *,
+    integrated_commits: Iterable[str],
+    returned_attributable_results: Iterable[str],
+    undispatched_tickets: Iterable[str],
+) -> Dict[str, object]:
+    return {
+        "integrated": tuple(integrated_commits),
+        "inspect_before_disposition": tuple(returned_attributable_results),
+        "stopped_before_dispatch": tuple(undispatched_tickets),
+        "promotion": "stopped",
+        "cancellation_or_discard": "requires-safe-disposition",
+        "remaining_execution": "main-local-after-attribution",
+    }
+
+
+def decide_workspace_disposition(
+    *, result_disposition: str, ownership_clean: bool, user_owned_changes: bool
+) -> str:
+    disposed = result_disposition in {"accepted", "explicitly-discarded"}
+    if disposed and ownership_clean and not user_owned_changes:
+        return "cleanup-authorized"
+    return "retain-recovery-handle"
+
+
+def choose_delivery_review_mode(
+    *,
+    opt_out: bool,
+    spawn_available: bool,
+    delegation_required: bool,
+    available_slots: int = 1,
+) -> str:
+    if opt_out:
+        return "main-local-two-axis"
+    if not spawn_available:
+        return "block" if delegation_required else "main-local-two-axis"
+    if available_slots <= 0:
+        return "wait"
+    return "delegate-standards-and-spec"
+
+
+def prepare_delivery_review_briefs(mode: str) -> Tuple[Dict[str, object], ...]:
+    if mode != "delegate-standards-and-spec":
+        return ()
+    return tuple(
+        {
+            "axis": axis,
+            "layer": 2,
+            "read_only": True,
+            "delegation_allowed": False,
+            "must_not_spawn": True,
+        }
+        for axis in ("standards", "spec")
+    )
+
+
+def select_delegated_wave(
+    tickets: Iterable[Dict[str, object]],
+    *,
+    host_available_slots: int,
+    isolated: bool,
+) -> Tuple[str, ...]:
+    limit = min(4, max(0, host_available_slots))
+    if not isolated:
+        limit = min(limit, 1)
+
+    candidates = tuple(tickets)
+    conflicts_by_id = {
+        str(ticket["id"]): set(ticket.get("conflicts", set()))
+        for ticket in candidates
+    }
+    selected = []
+    for ticket in candidates:
+        if len(selected) >= limit:
+            break
+        if not ticket.get("dependency_ready") or not ticket.get(
+            "delegation_eligible"
+        ):
+            continue
+
+        ticket_id = str(ticket["id"])
+        ticket_conflicts = conflicts_by_id[ticket_id]
+        if any(
+            selected_id in ticket_conflicts
+            or ticket_id in conflicts_by_id[selected_id]
+            for selected_id in selected
+        ):
+            continue
+        selected.append(ticket_id)
+
+    return tuple(selected)
 
 
 def parse_user_model_mapping(
@@ -250,6 +600,7 @@ def route_configured_subagent(
     required_model: Optional[Tuple[str, str]] = None,
     excluded_models: Optional[set[Tuple[str, str]]] = None,
     user_minimum_tier: Optional[str] = None,
+    bundled_config: Optional[bytes] = None,
 ) -> Tuple[str, Optional[str], Optional[str]]:
     if classified_tier == "main-only":
         return "main-only", None, None
@@ -261,7 +612,9 @@ def route_configured_subagent(
     ):
         return "required-model-conflict", required_model[0], required_model[1]
 
-    mapping = parse_user_model_mapping(user_config)
+    mapping = parse_user_model_mapping(
+        bundled_config if user_config is None else user_config
+    )
     repository_minimum, policy_valid = parse_repository_routing_policy(
         repository_policy
     )
@@ -358,3 +711,15 @@ def evaluate_delegated_attempt(
     if outcome in {"failed", "uncertain", "lacks-evidence", "boundary-crossing"}:
         return "stop-after-promotion" if already_promoted else "promote-inherit-main"
     return "stop-invalid-attempt-outcome"
+
+
+def prepare_subagent_spawn(
+    *,
+    caller_layer: int,
+    caller_may_delegate: bool,
+    host_can_deny_child_spawn: bool,
+) -> Tuple[str, Optional[int], Optional[bool]]:
+    if caller_layer != 1 or not caller_may_delegate:
+        return "return-to-main", None, None
+    guard = "host" if host_can_deny_child_spawn else "contract"
+    return f"spawn-direct-{guard}-guarded", 2, False

@@ -9,16 +9,26 @@ from forward_contracts import (
     apply_approved_setup,
     classify_managed_block,
     choose_isolation_route,
+    choose_delivery_review_mode,
+    decide_workspace_disposition,
+    decide_execution_mode,
+    git_worktree_add_args,
+    integrate_wave_result,
+    apply_mid_run_opt_out,
     route_discovery_document,
     route_new_discovery,
     route_planning_workspace,
     parse_repository_routing_policy,
     parse_user_model_mapping,
+    prepare_subagent_spawn,
+    prepare_delivery_review_briefs,
     evaluate_delegated_attempt,
     propose_setup,
     route_delegated_work,
     route_configured_subagent,
     render_review_snapshot,
+    select_delegated_wave,
+    select_execution_wave,
 )
 
 
@@ -26,6 +36,7 @@ START = b"<!-- spec-coder:start -->"
 END = b"<!-- spec-coder:end -->"
 CANONICAL = START + b"\nmanaged\n" + END + b"\n"
 ROUTING_FIXTURES = Path(__file__).parent / "fixtures" / "model-routing"
+BUNDLED_ROUTING = Path(__file__).resolve().parents[1] / "config" / "model-routing.toml"
 
 
 class SetupForwardScenarios(unittest.TestCase):
@@ -104,6 +115,23 @@ class ApprovalForwardScenarios(unittest.TestCase):
                 "blockers": ["Required capability is unresolved"],
                 "approval_effect": "authorize ticket planning",
                 "next_stage": "Gate 3",
+                "review_options": [
+                    {
+                        "label": "A",
+                        "choice": "Approve",
+                        "consequence": "Continue to ticket planning",
+                    },
+                    {
+                        "label": "B",
+                        "choice": "Request changes",
+                        "consequence": "Revise and re-review Gate 2",
+                    },
+                    {
+                        "label": "C",
+                        "choice": "Reject and stop",
+                        "consequence": "Stop this change",
+                    },
+                ],
             },
             width=40,
         )
@@ -111,6 +139,8 @@ class ApprovalForwardScenarios(unittest.TestCase):
         self.assertIn("Required capability is unresolved", rendered)
         self.assertIn("Gate 2 -> spec.md", rendered)
         self.assertIn("-> Gate 3", rendered)
+        self.assertIn("A: Approve", rendered)
+        self.assertIn("Continue to ticket planning", rendered)
 
     def test_missing_or_ungrounded_snapshot_data_stops_rendering(self) -> None:
         with self.assertRaises(ValueError):
@@ -167,6 +197,24 @@ class WorktreeForwardScenarios(unittest.TestCase):
             local_ignore_status=1,
         )
         self.assertEqual(route, "preflight-mutation-free-location")
+
+    def test_git_fallback_is_anchored_to_the_recorded_wave_base(self) -> None:
+        self.assertEqual(
+            git_worktree_add_args(
+                absolute_path="/tmp/spec-coder-t1",
+                branch_name="spec-coder/t1",
+                wave_base="abc1234",
+            ),
+            (
+                "git",
+                "worktree",
+                "add",
+                "/tmp/spec-coder-t1",
+                "-b",
+                "spec-coder/t1",
+                "abc1234",
+            ),
+        )
 
 
 class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
@@ -310,6 +358,384 @@ class WithDocsDiscoveryForwardScenarios(unittest.TestCase):
 
 
 class SubagentRoutingForwardScenarios(unittest.TestCase):
+    def test_bundled_mapping_has_the_approved_three_tiers(self) -> None:
+        self.assertEqual(
+            parse_user_model_mapping(BUNDLED_ROUTING.read_bytes()),
+            {
+                "economy": ("trae", "GPT-5.6-Luna"),
+                "standard": ("trae", "GPT-5.6-Terra"),
+                "strong": ("trae", "GPT-5.6-Sol"),
+            },
+        )
+
+    def test_absent_user_mapping_uses_bundled_defaults(self) -> None:
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=None,
+                bundled_config=BUNDLED_ROUTING.read_bytes(),
+                repository_policy=None,
+                available_models={("trae", "GPT-5.6-Luna")},
+                override_supported=True,
+            ),
+            ("economy", "trae", "GPT-5.6-Luna"),
+        )
+
+    def test_valid_user_mapping_replaces_instead_of_merging_bundled_tiers(self) -> None:
+        user_config = b"""
+version = 1
+[tiers.strong]
+provider = "trae"
+model = "Custom-Sol"
+"""
+
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=user_config,
+                bundled_config=BUNDLED_ROUTING.read_bytes(),
+                repository_policy=None,
+                available_models={
+                    ("trae", "GPT-5.6-Luna"),
+                    ("trae", "Custom-Sol"),
+                },
+                override_supported=True,
+            ),
+            ("strong", "trae", "Custom-Sol"),
+        )
+
+    def test_invalid_user_mapping_does_not_silently_use_bundled_defaults(self) -> None:
+        self.assertEqual(
+            route_configured_subagent(
+                classified_tier="economy",
+                user_config=b"not = [valid",
+                bundled_config=BUNDLED_ROUTING.read_bytes(),
+                repository_policy=None,
+                available_models={("trae", "GPT-5.6-Luna")},
+                override_supported=True,
+            ),
+            ("inherit-main", None, None),
+        )
+
+    def test_eligible_work_delegates_by_default_and_opt_out_is_local(self) -> None:
+        eligible = dict(
+            dependency_ready=True,
+            grounded_inputs=True,
+            bounded=True,
+            reversible=True,
+            verification_seam=True,
+            main_only=False,
+            spawn_available=True,
+            available_slots=1,
+            delegation_required=False,
+        )
+
+        self.assertEqual(decide_execution_mode(opt_out=False, **eligible), "delegate")
+        self.assertEqual(decide_execution_mode(opt_out=True, **eligible), "local")
+
+    def test_incomplete_dependency_remains_pending_and_is_not_dispatched(self) -> None:
+        self.assertEqual(
+            decide_execution_mode(
+                dependency_ready=False,
+                grounded_inputs=True,
+                bounded=True,
+                reversible=True,
+                verification_seam=True,
+                main_only=False,
+                opt_out=False,
+                spawn_available=True,
+                available_slots=1,
+                delegation_required=False,
+            ),
+            "pending",
+        )
+
+    def test_ready_but_unsafe_work_stays_local_or_blocks_when_required(self) -> None:
+        unsafe = dict(
+            dependency_ready=True,
+            grounded_inputs=False,
+            bounded=True,
+            reversible=True,
+            verification_seam=True,
+            main_only=False,
+            opt_out=False,
+            spawn_available=True,
+            available_slots=1,
+        )
+
+        self.assertEqual(
+            decide_execution_mode(delegation_required=False, **unsafe), "local"
+        )
+        self.assertEqual(
+            decide_execution_mode(delegation_required=True, **unsafe), "block"
+        )
+
+    def test_spawn_absence_falls_back_but_temporary_capacity_waits(self) -> None:
+        candidate = dict(
+            dependency_ready=True,
+            grounded_inputs=True,
+            bounded=True,
+            reversible=True,
+            verification_seam=True,
+            main_only=False,
+            opt_out=False,
+        )
+
+        self.assertEqual(
+            decide_execution_mode(
+                spawn_available=False,
+                available_slots=0,
+                delegation_required=False,
+                **candidate,
+            ),
+            "local",
+        )
+        self.assertEqual(
+            decide_execution_mode(
+                spawn_available=False,
+                available_slots=0,
+                delegation_required=True,
+                **candidate,
+            ),
+            "block",
+        )
+        self.assertEqual(
+            decide_execution_mode(
+                spawn_available=True,
+                available_slots=0,
+                delegation_required=False,
+                **candidate,
+            ),
+            "wait",
+        )
+
+    def test_wave_filters_dependencies_eligibility_and_conflicts(self) -> None:
+        tickets = [
+            {"id": "T1", "dependency_ready": True, "delegation_eligible": True, "conflicts": set()},
+            {"id": "T2", "dependency_ready": False, "delegation_eligible": True, "conflicts": set()},
+            {"id": "T3", "dependency_ready": True, "delegation_eligible": False, "conflicts": set()},
+            {"id": "T4", "dependency_ready": True, "delegation_eligible": True, "conflicts": {"T1"}},
+            {"id": "T5", "dependency_ready": True, "delegation_eligible": True, "conflicts": set()},
+        ]
+
+        self.assertEqual(
+            select_delegated_wave(tickets, host_available_slots=4, isolated=True),
+            ("T1", "T5"),
+        )
+
+    def test_wave_respects_host_capacity_hard_cap_and_isolation(self) -> None:
+        tickets = [
+            {"id": f"T{index}", "dependency_ready": True, "delegation_eligible": True, "conflicts": set()}
+            for index in range(1, 7)
+        ]
+
+        self.assertEqual(
+            select_delegated_wave(tickets, host_available_slots=6, isolated=True),
+            ("T1", "T2", "T3", "T4"),
+        )
+        self.assertEqual(
+            select_delegated_wave(tickets, host_available_slots=2, isolated=True),
+            ("T1", "T2"),
+        )
+        self.assertEqual(
+            select_delegated_wave(tickets, host_available_slots=4, isolated=False),
+            ("T1",),
+        )
+
+    def test_execution_wave_keeps_local_work_serial_and_skips_pending(self) -> None:
+        tickets = [
+            {"id": "T1", "dependency_ready": False, "mode": "delegate", "conflicts": set()},
+            {"id": "T2", "dependency_ready": True, "mode": "local", "conflicts": set()},
+            {"id": "T3", "dependency_ready": True, "mode": "delegate", "conflicts": set()},
+        ]
+
+        self.assertEqual(
+            select_execution_wave(tickets, host_available_slots=4, isolated=True),
+            (("T2", "local"),),
+        )
+
+    def test_wait_and_block_outcomes_do_not_form_execution_waves(self) -> None:
+        for mode in ("wait", "block"):
+            with self.subTest(mode=mode):
+                self.assertEqual(
+                    select_execution_wave(
+                        [
+                            {
+                                "id": "T1",
+                                "dependency_ready": True,
+                                "mode": mode,
+                                "conflicts": set(),
+                            }
+                        ],
+                        host_available_slots=0,
+                        isolated=True,
+                    ),
+                    (),
+                )
+
+
+class ExecutionRecoveryForwardScenarios(unittest.TestCase):
+    def test_same_base_and_accepted_sibling_advancement_have_explicit_outcomes(self) -> None:
+        common = dict(
+            ownership_disjoint=True,
+            transfer_clean=True,
+            diff_explained=True,
+            verification_passes=True,
+        )
+        self.assertEqual(
+            integrate_wave_result(
+                base_matches=True,
+                accepted_sibling_advancement=False,
+                **common,
+            ),
+            "accept",
+        )
+        self.assertEqual(
+            integrate_wave_result(
+                base_matches=False,
+                accepted_sibling_advancement=True,
+                **common,
+            ),
+            "accept",
+        )
+        self.assertEqual(
+            integrate_wave_result(
+                base_matches=False,
+                accepted_sibling_advancement=False,
+                **common,
+            ),
+            "requeue-serialized",
+        )
+        for unsafe_field in (
+            "ownership_disjoint",
+            "diff_explained",
+            "verification_passes",
+        ):
+            unsafe = dict(common)
+            unsafe[unsafe_field] = False
+            with self.subTest(unsafe_field=unsafe_field):
+                self.assertEqual(
+                    integrate_wave_result(
+                        base_matches=True,
+                        accepted_sibling_advancement=False,
+                        **unsafe,
+                    ),
+                    "requeue-serialized",
+                )
+        self.assertEqual(
+            integrate_wave_result(
+                base_matches=True,
+                accepted_sibling_advancement=False,
+                ownership_disjoint=True,
+                transfer_clean=False,
+                diff_explained=True,
+                verification_passes=True,
+            ),
+            "requeue-serialized",
+        )
+
+    def test_mid_run_opt_out_stops_new_dispatch_and_preserves_attribution(self) -> None:
+        self.assertEqual(
+            apply_mid_run_opt_out(
+                integrated_commits=("T1",),
+                returned_attributable_results=("T2",),
+                undispatched_tickets=("T3",),
+            ),
+            {
+                "integrated": ("T1",),
+                "inspect_before_disposition": ("T2",),
+                "stopped_before_dispatch": ("T3",),
+                "promotion": "stopped",
+                "cancellation_or_discard": "requires-safe-disposition",
+                "remaining_execution": "main-local-after-attribution",
+            },
+        )
+
+    def test_workspace_cleanup_requires_disposition_and_clean_ownership(self) -> None:
+        self.assertEqual(
+            decide_workspace_disposition(
+                result_disposition="accepted",
+                ownership_clean=True,
+                user_owned_changes=False,
+            ),
+            "cleanup-authorized",
+        )
+        self.assertEqual(
+            decide_workspace_disposition(
+                result_disposition="pending",
+                ownership_clean=True,
+                user_owned_changes=False,
+            ),
+            "retain-recovery-handle",
+        )
+        self.assertEqual(
+            decide_workspace_disposition(
+                result_disposition="explicitly-discarded",
+                ownership_clean=True,
+                user_owned_changes=True,
+            ),
+            "retain-recovery-handle",
+        )
+
+    def test_delivery_mode_covers_delegation_opt_out_and_spawn_fallback(self) -> None:
+        self.assertEqual(
+            choose_delivery_review_mode(
+                opt_out=False,
+                spawn_available=True,
+                delegation_required=False,
+                available_slots=2,
+            ),
+            "delegate-standards-and-spec",
+        )
+        self.assertEqual(
+            choose_delivery_review_mode(
+                opt_out=True,
+                spawn_available=True,
+                delegation_required=False,
+                available_slots=2,
+            ),
+            "main-local-two-axis",
+        )
+        self.assertEqual(
+            choose_delivery_review_mode(
+                opt_out=False,
+                spawn_available=False,
+                delegation_required=False,
+                available_slots=0,
+            ),
+            "main-local-two-axis",
+        )
+        self.assertEqual(
+            choose_delivery_review_mode(
+                opt_out=False,
+                spawn_available=False,
+                delegation_required=True,
+                available_slots=0,
+            ),
+            "block",
+        )
+        self.assertEqual(
+            choose_delivery_review_mode(
+                opt_out=False,
+                spawn_available=True,
+                delegation_required=False,
+                available_slots=0,
+            ),
+            "wait",
+        )
+
+    def test_delegated_delivery_prepares_two_read_only_direct_briefs(self) -> None:
+        briefs = prepare_delivery_review_briefs("delegate-standards-and-spec")
+
+        self.assertEqual(tuple(brief["axis"] for brief in briefs), ("standards", "spec"))
+        for brief in briefs:
+            self.assertEqual(brief["layer"], 2)
+            self.assertTrue(brief["read_only"])
+            self.assertFalse(brief["delegation_allowed"])
+            self.assertTrue(brief["must_not_spawn"])
+
+        self.assertEqual(prepare_delivery_review_briefs("main-local-two-axis"), ())
+
     def test_complete_mapping_selects_effective_tier(self) -> None:
         user_config = (ROUTING_FIXTURES / "user-complete.toml").read_bytes()
         route = route_configured_subagent(
@@ -578,6 +1004,52 @@ model = "Terra"
                 outcome="failed", main_verified=False, already_promoted=True
             ),
             "stop-after-promotion",
+        )
+
+    def test_only_main_prepares_direct_child_with_delegation_disabled(self) -> None:
+        self.assertEqual(
+            prepare_subagent_spawn(
+                caller_layer=1,
+                caller_may_delegate=True,
+                host_can_deny_child_spawn=False,
+            ),
+            ("spawn-direct-contract-guarded", 2, False),
+        )
+        self.assertEqual(
+            prepare_subagent_spawn(
+                caller_layer=1,
+                caller_may_delegate=True,
+                host_can_deny_child_spawn=True,
+            ),
+            ("spawn-direct-host-guarded", 2, False),
+        )
+
+    def test_child_direct_or_indirect_delegation_returns_to_main(self) -> None:
+        for caller_may_delegate in (False, True):
+            with self.subTest(caller_may_delegate=caller_may_delegate):
+                self.assertEqual(
+                    prepare_subagent_spawn(
+                        caller_layer=2,
+                        caller_may_delegate=caller_may_delegate,
+                        host_can_deny_child_spawn=False,
+                    ),
+                    ("return-to-main", None, None),
+                )
+
+    def test_promotion_is_a_main_owned_layer_two_sibling(self) -> None:
+        self.assertEqual(
+            evaluate_delegated_attempt(
+                outcome="failed", main_verified=False, already_promoted=False
+            ),
+            "promote-inherit-main",
+        )
+        self.assertEqual(
+            prepare_subagent_spawn(
+                caller_layer=1,
+                caller_may_delegate=True,
+                host_can_deny_child_spawn=False,
+            ),
+            ("spawn-direct-contract-guarded", 2, False),
         )
 
 

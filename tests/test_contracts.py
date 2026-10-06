@@ -68,7 +68,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.4.0")
+        self.assertEqual(manifest["version"], "0.5.0")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -91,6 +91,27 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn(SUBAGENT_ROUTING_REFERENCE, orchestrator)
         self.assertIn("main-only", orchestrator.lower())
         self.assertEqual(len(EXPECTED_SKILLS), 9)
+
+    def test_subagent_tree_is_limited_to_two_layers(self) -> None:
+        routing = read_text(ROOT / "references" / "subagent-routing-contract.md")
+        delegating_stages = {
+            stage: read_text(ROOT / "skills" / stage / "SKILL.md")
+            for stage in ("spec-coder", "tdd-coder", "delivery-coder")
+        }
+        for phrase in (
+            "at most two layers",
+            "only the active main agent",
+            "delegation_allowed = false",
+            "indirect",
+            "return",
+            "sibling",
+        ):
+            self.assertIn(phrase, routing.lower())
+        for stage, text in delegating_stages.items():
+            with self.subTest(stage=stage):
+                self.assertIn(SUBAGENT_ROUTING_REFERENCE, text)
+                self.assertIn("delegation_allowed = false", text.lower())
+                self.assertIn("return", text.lower())
 
     def test_codex_marketplace_exposes_root_plugin(self) -> None:
         marketplace = json.loads(
@@ -715,6 +736,11 @@ class PluginContractTests(unittest.TestCase):
         )
         for heading in routing_headings:
             self.assertIn(heading, scenarios)
+        depth_headings = tuple(
+            f"## SCN-DEPTH-{number}:" for number in range(1, 6)
+        )
+        for heading in depth_headings:
+            self.assertIn(heading, scenarios)
         for field in ("Starting state:", "Expected route:", "Forbidden action:"):
             self.assertEqual(
                 scenarios.count(field),
@@ -722,7 +748,8 @@ class PluginContractTests(unittest.TestCase):
                 + len(approval_headings)
                 + len(worktree_headings)
                 + len(setup_headings)
-                + len(routing_headings),
+                + len(routing_headings)
+                + len(depth_headings),
             )
 
     def test_repository_is_self_describing_and_installable(self) -> None:
@@ -736,8 +763,10 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(f"`{skill}`", readme)
         self.assertEqual(len(EXPECTED_SKILLS), 9)
         for published_doc in (readme, install_guide, compatibility):
-            self.assertIn("0.4.0", published_doc)
+            self.assertIn("0.5.0", published_doc)
         published_docs = "\n".join((readme, install_guide, compatibility))
+        self.assertNotIn("0.4.1", published_docs)
+        self.assertNotIn("0.4.0", published_docs)
         self.assertNotIn("0.3.1", published_docs)
         self.assertNotIn("0.3.0", published_docs)
         self.assertNotIn("0.2.1", published_docs)
@@ -769,6 +798,35 @@ class PluginContractTests(unittest.TestCase):
             published_install_surface, r"(?i)traecode|traecli|~/\.trae"
         )
 
+    def test_published_default_delegation_contract_is_complete(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        install_guide = read_text(ROOT / "INSTALL.md")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        published = "\n".join((readme, install_guide, compatibility)).lower()
+
+        for phrase in (
+            "default delegation",
+            "request-wide opt-out",
+            "ticket-specific opt-out",
+            "review-specific opt-out",
+            "at most four",
+            "real host/task workspace isolation",
+            "serialized direct workers",
+            "spawn unavailable",
+            "delegated review was explicitly required",
+            "standards axis",
+            "spec axis",
+            "main-only",
+            "at most two layers",
+            "delegation_allowed = false",
+            "bundled defaults",
+            "no initial configuration",
+            "exact diff",
+            "two to four",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, published)
+
     def test_published_model_routing_contract_is_complete_and_optional(self) -> None:
         readme = read_text(ROOT / "README.md")
         install_guide = read_text(ROOT / "INSTALL.md")
@@ -790,8 +848,29 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(phrase, published)
         self.assertIn("provider", readme)
         self.assertIn("model", readme)
+        expected_mappings = (
+            '[tiers.economy]\nprovider = "trae"\nmodel = "GPT-5.6-Luna"',
+            '[tiers.standard]\nprovider = "trae"\nmodel = "GPT-5.6-Terra"',
+            '[tiers.strong]\nprovider = "trae"\nmodel = "GPT-5.6-Sol"',
+        )
+        for document in (readme, install_guide):
+            for mapping in expected_mappings:
+                self.assertIn(mapping, document)
+            self.assertNotIn(
+                '[tiers.standard]\nprovider = "trae"\nmodel = "GPT-5.6-Sol"',
+                document,
+            )
+            self.assertNotIn(
+                '[tiers.strong]\nprovider = "trae"\nmodel = "GPT-5.6-Terra"',
+                document,
+            )
         self.assertIn("直接", published)
         self.assertIn("active main model", compatibility)
+        self.assertIn("current Agent/session model", published)
+        self.assertIn("at most two layers", published)
+        self.assertIn("delegation_allowed = false", published)
+        self.assertRegex(published, r"only\s+the active main agent")
+        self.assertIn("not Host-level sandbox isolation", published)
         self.assertIn("not a required Host model", compatibility)
         self.assertIn("nine bundled skills", compatibility)
 

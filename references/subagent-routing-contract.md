@@ -1,8 +1,9 @@
 # Subagent Routing Contract
 
-This contract governs optional model selection for spawned subagents. It is
-normative for every spec-coder stage that delegates work. It does not create a
-workflow stage, bundled skill, persisted routing state, or permission boundary.
+This contract governs default delegation eligibility, safe execution-wave
+selection, and model selection for direct subagents. It is normative for every
+spec-coder stage that delegates work. It does not create a workflow stage,
+bundled skill, persisted routing state, or permission boundary.
 
 ## Authority
 
@@ -11,10 +12,21 @@ and verification. The live Host owns available provider/model identifiers,
 context-fork restrictions, and the subagent tool interface. A target repository
 may only raise the minimum tier; it never maps models or grants authority.
 
+The complete agent tree has at most two layers: layer 1 is the active main
+agent and layer 2 contains only its direct subagents. Only the active main agent
+may spawn or delegate. Every direct-child task brief must state
+`delegation_allowed = false`; a child has no authority to create another child
+or transfer work indirectly through a skill, workflow, tool, or other agent.
+If a child needs further delegation, it must return its evidence and blocker to
+the active main agent before any other agent is created.
+
 The active main agent retains scope decisions, approval interpretation,
 user-change attribution, commit ownership, delivery aggregation, and completion
 claims. These are `main-only` responsibilities even when a strong model is
-available. Subagent output is evidence, not authorization.
+available. Subagent output is evidence, not authorization. When the Host can
+deny child spawn tools, main uses that restriction as defense in depth. This
+contract remains authoritative when the Host cannot provide such enforcement;
+do not claim portable sandbox isolation.
 
 ## Tiers
 
@@ -35,9 +47,89 @@ A delegable task must have complete grounded input, explicit exclusions,
 bounded and reversible scope, and a result or verification seam the main agent
 can independently inspect.
 
+## Delegation Eligibility and Execution Mode
+
+Dependency readiness and delegation eligibility are separate decisions. An
+approved ticket is delegation-eligible when its inputs are grounded, its scope
+is bounded and reversible, the main agent has an independently inspectable
+verification seam, and it carries no main-only authority or credentials. Every
+dependency-ready eligible ticket delegates to one direct child by default,
+including a wave containing only one ticket.
+
+An explicit request-, ticket-, or review-scoped opt-out selects local execution
+for exactly that scope and forbids both direct and indirect spawning there.
+Opt-out is conversational, prospective, and request-scoped: do not write it to
+repository or user configuration. It stops new dispatch and promotion in the
+affected scope; already dispatched work follows the normal main-owned
+inspection and acceptance rules unless the user separately requests safe
+cancellation or discard.
+
+Select the execution mode in this order:
+
+1. A ticket whose dependencies are not ready remains `pending` and is not
+   dispatched. This check precedes opt-out and delegation eligibility; a
+   pending ticket never becomes `local` or `block`.
+2. An applicable opt-out selects `local` for a dependency-ready ticket.
+3. A delegation-ineligible ticket selects `local`; if delegation
+   was explicitly required for that scope, select `block` instead.
+4. Absent Host spawn capability selects `local` with the reason recorded; if
+   delegation was explicitly required, select `block` instead.
+5. Spawn capability with zero currently available direct-child slots selects
+   `wait`; use the Host wait/resume mechanism and recompute live capacity.
+6. Otherwise, select `delegate`.
+
+Model routing is evaluated separately after delegation eligibility. An
+`inherit-main` route, missing mapping, invalid optional mapping fallback, or
+unavailable optional override does not turn eligible work into local work. An
+unavailable explicitly required model remains a concrete routing conflict.
+
+## Execution Waves
+
+After Gate 3, form an immutable conceptual `ExecutionWave` from currently
+dependency-ready tickets in approved plan order. If the next ready ticket is
+main-local, it forms a one-ticket wave and never overlaps delegated mutation.
+For a delegated wave, consider only delegation-eligible tickets and greedily
+preserve approved plan order while excluding any candidate that declares a
+mutation conflict with a selected ticket, or that a selected ticket declares a
+conflict with. A delegated wave contains at most `min(4, live Host available
+direct-child slots)` tickets.
+
+Parallel mutation additionally requires real Host/task workspace isolation.
+When isolation is unavailable, a delegated wave contains at most one ticket;
+continue default delegation through serialized direct workers. Apparent path
+disjointness in one shared workspace is not sufficient isolation. Recompute
+dependencies, ownership conflicts, isolation, and capacity only after the main
+agent has accounted for returned results and advanced accepted plan state.
+
+There is at most one active execution wave. Wave membership and transient Host
+handles remain conversational evidence; the approved plan checkboxes and
+committed Git state remain durable. Do not create a scheduler database, private
+state file, or persistent opt-out record.
+
+Only tickets whose computed mode is `local` or `delegate` form an execution
+wave. A `wait`, `block`, `pending`, or unknown outcome forms no wave and grants
+no dispatch authority.
+
+If an opt-out arrives during a delegated run, stop new dispatch and promotion.
+Keep integrated commits attributed, inspect returned attributable results
+before disposition, and leave undispatched tickets stopped. Cancellation or
+discard still requires a separately safe disposition; after attribution, the
+remaining affected execution is main-local.
+
 ## Configuration
 
-Read trusted user mappings from:
+The plugin ships its trusted default mapping at:
+
+```text
+config/model-routing.toml
+```
+
+The bundled file uses schema version 1 and maps `economy` to
+`trae` / `GPT-5.6-Luna`, `standard` to `trae` / `GPT-5.6-Terra`, and
+`strong` to `trae` / `GPT-5.6-Sol`. If the bundled file is missing or invalid,
+route conservatively to `inherit-main`.
+
+An optional trusted user mapping is read from:
 
 ```text
 $XDG_CONFIG_HOME/spec-coder/model-routing.toml
@@ -57,8 +149,16 @@ model = "GPT-5.6-Luna"
 Each present tier requires exactly nonempty string `provider` and `model`
 fields. Reject unsupported versions, unknown top-level fields, unknown tiers,
 unknown tier fields, partial pairs, non-string values, malformed TOML, and
-duplicate tables. Invalid trusted configuration produces a warning and routes
-to `inherit-main`; do not guess or rewrite it.
+duplicate tables. When no user file is present, use the bundled mapping. When
+a user file is present, it completely replaces the bundled mapping; do not
+merge missing tiers from the bundle. An invalid user file produces a warning
+and routes to `inherit-main`; never fall back to the bundle, guess, or rewrite
+the user file.
+
+Mapping-source precedence is therefore: a present user file exclusively,
+otherwise the plugin-owned bundled file, otherwise `inherit-main`. Repository
+policy and current-session constraints only raise or restrict the resulting
+route; they are not mapping sources.
 
 An optional repository policy lives at `.spec-coder/model-routing.toml`:
 
@@ -71,11 +171,16 @@ It permits exactly `version` and `minimum_tier`. The minimum is `economy`,
 `standard`, `strong`, or `inherit-main`. Any provider/model value, unknown
 field, invalid value, unsupported version, or malformed TOML conservatively
 routes to `inherit-main` with a warning. Repository policy can never lower the
-workflow classification. Do not create or edit either configuration without
-separate exact-diff authorization.
+workflow classification. A target repository cannot map provider/model pairs.
 
-Model names above are examples, not required capabilities or stable aliases.
-Do not install a model or edit Host configuration to satisfy an optional route.
+Setup and installation may distribute or replace the plugin-owned bundled
+file as part of the plugin payload, but must not create, edit, or rewrite the
+user mapping or repository policy. Do not create or edit either optional
+configuration without separate exact-diff authorization.
+
+The bundled model identifiers are routing defaults, not guaranteed Host
+capabilities or stable aliases. Do not install a model or edit Host
+configuration to satisfy an optional route.
 
 ## Route Selection
 
@@ -101,10 +206,13 @@ strong -> inherit-main
    transferred to the child, use `inherit-main`. This is not a blocker.
 
 When the Host requires a fresh or limited-history child for a model override,
-send a self-contained task brief with evidence, mutation scope, exclusions,
-verification seam, and expected output. Never use a subagent to bypass
-`disable-model-invocation`, permissions, sandbox rules, or external-mutation
-authority.
+the active main agent sends a self-contained task brief with evidence, mutation
+scope, exclusions, verification seam, expected output, and the literal
+`delegation_allowed = false`. Before spawning, use a Host option that denies
+child spawn/delegation tools when one is actually supported. Absence of that
+option does not block a contract-guarded direct child or expand its authority.
+Never use a subagent to bypass `disable-model-invocation`, permissions, sandbox
+rules, or external-mutation authority.
 
 ## Attempt Evidence and Promotion
 
@@ -114,21 +222,27 @@ success does not authorize a gate, commit, or completion claim.
 
 After a real delegated attempt fails, expresses uncertainty, lacks required
 evidence, or crosses its boundary, preserve the original task, chosen route,
-output, failure evidence, and verification state. Promote exactly once and
-directly to an inherited-main subagent. Do not cycle through other configured
-tiers after an attempt. Further failure follows the normal workflow blocker or
-TDD repair path; promotion neither widens scope nor creates an approval gate.
+output, failure evidence, and verification state. Promotion is main-owned: the
+active main agent may promote exactly once by creating an inherited-main
+layer-2 sibling with `delegation_allowed = false`. The failed child must return
+to main and cannot create its replacement. Do not cycle through other
+configured tiers after an attempt. Further failure follows the normal workflow
+blocker or TDD repair path; promotion neither widens scope nor creates an
+approval gate.
 
 ## Stage Responsibilities
 
 - `spec-coder` owns general classification, live Host compatibility, and
   promotion.
-- `tdd-coder` may delegate only within an approved ticket and keeps Red-Green,
-  diff review, affected verification, attribution, and commit ownership.
-- `delivery-coder` may delegate bounded evidence collection but keeps final
-  Standards/Spec findings, repair judgment, integration review, and completion.
+- `tdd-coder` delegates eligible work only within an approved ticket and keeps
+  Red-Green, diff review, affected verification, attribution, and commit
+  ownership.
+- `delivery-coder` delegates eligible bounded evidence collection by default
+  but keeps final Standards/Spec findings, repair judgment, integration review,
+  and completion.
 - Other stages may consume advisory evidence but cannot weaken this contract's
   tier floors or main-only responsibilities.
 
-If no subagent is useful, continue locally. Model routing is an optimization,
-not a requirement to delegate.
+Ineligible work, applicable opt-out scopes, and spawn-unavailable fallback run
+locally when safe. Model routing chooses the child route; it does not make
+eligible default delegation optional.

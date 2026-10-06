@@ -5,7 +5,7 @@ description: Orchestrate code-changing requests through requirements grilling, d
 
 # Spec Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages. Route optional subagent work through the [subagent routing contract](../../references/subagent-routing-contract.md).
+Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages. Route subagent work through the [subagent routing contract](../../references/subagent-routing-contract.md).
 
 All initial and reopened approval gates use bundled `show-me` under the shared
 approval review contract. The stage that owns the gate supplies grounded facts,
@@ -30,7 +30,13 @@ evidence, and a final delivery report produced through `delivery-coder`.
    strong, or main-only; apply trusted user mappings and any repository minimum;
    inspect the live Host catalog/tool interface; and inherit the main model when
    no safe compatible override exists. A configured route never transfers
-   approval, attribution, commit, delivery, or completion authority.
+   approval, attribution, commit, delivery, or completion authority. Only the
+   active main agent may spawn. Every direct-child brief must include
+   `delegation_allowed = false` and prohibit indirect delegation through skills,
+   workflows, tools, or other agents. Apply a supported Host child-tool denial
+   as defense in depth; otherwise rely on the contract without claiming sandbox
+   enforcement. A child that needs delegation must return evidence and its
+   blocker to main, which alone may create a layer-2 sibling.
 3. Classify the request:
    - For a new request, complete workspace preflight under the shared contract:
      account for initial changes, select safe in-place or isolated execution,
@@ -45,9 +51,16 @@ evidence, and a final delivery report produced through `delivery-coder`.
       and baseline freshness, writes the local specification, stops for
       specification approval, decomposes it into vertical tickets, then stops
       for ticket approval and implementation authorization.
-   4. `tdd-coder` executes exactly one unblocked ticket at a time through Red-Green, affected checks, a plan-checkbox update, and an atomic commit. Repeat until all tickets are complete.
+   4. After Gate 3, form and run the dependency-aware execution wave described
+      below. `tdd-coder` executes each wave member through Red-Green or the
+      approved structural path, affected checks, a plan-checkbox update, and an
+      atomic commit. Repeat with freshly computed waves until all tickets are
+      complete.
    5. `delivery-coder` performs findings-first review, routes repairs back through TDD, runs the full applicable suite, and alone may produce the terminal completion claim.
-5. Keep the durable plan checkboxes as task-state truth and mirror them in the runtime plan with at most one active ticket.
+5. Keep the durable plan checkboxes as task-state truth and mirror them in the
+   runtime plan with one active execution wave at most. Wave membership, modes,
+   and Host handles remain conversational; checkboxes and committed Git are the
+   authoritative durable state.
 6. Reopen the affected approval gate whenever scope or architecture changes.
    Show the prior approval, changed fact, affected decision, and return path
    through `show-me` before requesting renewed approval. Return to
@@ -56,6 +69,52 @@ evidence, and a final delivery report produced through `delivery-coder`.
 7. Stop after the same blocking condition occurs three consecutive times, preserving the exact evidence and resume point.
 
 The three human gates are design approval, written-specification approval, and ticket-set approval plus implementation authorization. After the third gate, proceed autonomously within the approved scope through TDD, review, verification, and commits.
+
+## Approved Ticket Execution Waves
+
+From the approved ticket inputs, the active main agent schedules one active
+dependency-aware execution wave. Recompute dependency readiness, delegation
+eligibility, mutation ownership, isolation, and live Host capacity before each
+wave. Eligible work delegates by default, including when only one eligible
+ticket exists. Preserve approved plan order and admit at most four direct
+workers, never more than the Host's currently available direct-child slots.
+Tickets with incomplete dependencies or conflicting ownership cannot share a
+wave.
+
+Parallel mutation requires real isolation for every worker at the recorded wave
+base; disjoint paths in a shared checkout are not isolation. Without real
+isolation, keep default delegation but use serialized direct workers. Every
+child is a direct layer-2 worker whose brief includes
+`delegation_allowed = false`, prohibits direct or indirect delegation, and says
+that workers must not stage or commit. The active main agent retains gate and
+scope decisions, behavior Red or structural preservation/dependency evidence,
+diff acceptance, attribution, fresh verification, staging, atomic commits,
+delivery aggregation, and completion authority.
+
+Apply execution outcomes distinctly. An applicable opt-out means local
+execution and no spawning in that scope. A mid-run opt-out requires main to
+stop new dispatch and promotion prospectively. Account for already-dispatched
+results under the normal inspection and acceptance rules, and report accepted
+commits rather than automatically reverting them. Spawn unavailable selects a
+recorded local fallback when safe, but is a blocker when delegation was
+explicitly required. If spawn exists but temporary capacity is zero, wait
+through the Host mechanism and recompute rather than falling back locally.
+Noneligible work runs locally when safe, or is a blocker when delegation was
+explicitly required.
+An `inherit-main` route, missing optional mapping, or optional-model fallback
+still uses delegation; model routing does not convert eligible work to local
+execution.
+
+For a parallel wave, every child starts from the recorded wave base and returns
+its base identity, complete task-owned diff, and verification evidence. Main
+integrates one result at a time into the authoritative workspace. Advancement
+past the recorded base is acceptable only when every intervening change is an
+accepted sibling result with proven disjoint ownership. A base mismatch,
+transfer conflict, ownership overlap, unexplained diff, or failed fresh
+verification rejects that parallel result and leaves its ticket unchecked for
+later serialized execution from the authoritative base. Dependents do not
+unblock until the accepted ticket has passed fresh verification, updated its
+durable checkbox, and received its atomic commit.
 
 ## Stop Conditions
 

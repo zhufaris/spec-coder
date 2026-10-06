@@ -4,7 +4,7 @@ This is a spec-coder resource used directly by `plan-coder` after specification 
 
 ## Plan structure
 
-Reference the approved specification and selected workspace, record the starting revision/baseline and approval status, then list tickets and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan mirrors those checkboxes with at most one active ticket.
+Reference the approved specification and selected workspace, record the starting revision/baseline and approval status, then list tickets and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan mirrors those checkboxes with **one active execution wave** at most; wave membership and Host handles remain conversational and are reconstructed from unchecked tickets plus committed Git on resume.
 
 For each ticket, include:
 
@@ -13,9 +13,27 @@ For each ticket, include:
 | Title and completion checkbox | A concise delivered capability, e.g. `- [ ] T1: Cancel an eligible order` |
 | What to build | Observable outcome and scope; a complete path through only the necessary modules |
 | Spec references | Approved scenarios, invariants and architecture decisions this ticket implements |
+| Dependencies | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
+| Delegation eligibility | Grounded inputs, bounded/reversible scope, independently inspectable seam, and any main-only authority or credential that makes the ticket ineligible |
+| Delegation mode | Default direct worker, main-local, required delegation, or an applicable request/ticket opt-out, including the reason |
 | Ownership and implementation path | Relevant contexts/model elements, enforcing modules, interfaces, allowed boundary data and consistency/failure constraints; reference rather than copy the model |
-| Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes, approved public test seams, affected checks and separate dependency evidence |
+| Mutation ownership | Exact allowed files/modules and the result-transfer boundary |
+| Exclusions | Files, responsibilities, authority, and unrelated changes outside the ticket |
+| Isolation | Whether mutation is read-only, serial/shared, or requires real per-worker Host/task or Git isolation, including the wave base when applicable |
+| Concurrency conflicts | Known ownership overlap, semantic conflicts, and tickets that cannot share a parallel wave |
+| Verification seam | Independently inspectable focused evidence plus affected checks and separate dependency/preservation evidence |
+| Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
+| Direct-child boundary | Every child brief states `delegation_allowed = false`; children do not spawn directly or indirectly, stage, or commit |
+| Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
+
+These fields are scheduling inputs, not a production scheduler or a persisted
+workflow aggregate. A general `ExecutionWave` contains currently
+dependency-ready work and may be a one-ticket main-local wave. Delegated wave
+selection considers only delegation-eligible, ownership-safe tickets, is capped
+by live Host capacity and the suite wave limit, and requires real isolation for
+every mutating worker when parallel. Without real isolation, use serialized
+direct workers. A main-local ticket never overlaps delegated mutation.
 
 For relevant domain changes, references and acceptance preserve the approved business actions, refusal/bypass outcomes, value validity/equality, policy responsibilities and terminology compatibility. When persistence is affected, include aggregate save/load, controlled restoration, post-load behavior and applicable conflict verification. Keep these requirements within the capability slice, rather than separate tickets for model classes or a copied domain inventory.
 
@@ -30,6 +48,6 @@ For relevant domain changes, references and acceptance preserve the approved bus
 
 ## Gate 3 review
 
-Check coverage in both directions: every in-scope scenario/invariant has a responsible ticket, and every ticket traces to approved behavior and architecture. Resolve invalid blockers, excessive size and missing verification. Name unresolved load-bearing decisions and affected tickets; do not mark them implementation-ready. Independent approved slices need not wait on unrelated open decisions.
+Check coverage in both directions: every in-scope scenario/invariant has a responsible ticket, and every ticket traces to approved behavior and architecture. Resolve invalid blockers, excessive size and missing verification. Check every ticket's delegation eligibility and mode, mutation ownership and exclusions, dependencies, isolation need, concurrency conflicts, verification seam, Host-capacity requirement, real-isolation requirement, and `delegation_allowed = false` child boundary. Name unresolved load-bearing decisions and affected tickets; do not mark them implementation-ready. Independent approved slices need not wait on unrelated open decisions.
 
-Present the ticket set, deliverables and dependencies for approval and implementation authorization. Adjust granularity within the approved design when needed. Hand the first approved unblocked ticket to `tdd-coder`; update checkboxes only after its required checks pass, and retain atomic commits. Publishing tickets externally is a separate authorized action.
+Present the ticket set, deliverables, dependencies, and proposed wave shape for approval and implementation authorization. Adjust granularity within the approved design when needed. After approval, hand the dependency and wave inputs to the main orchestrator; update checkboxes only after each ticket's required checks pass, and retain atomic commits. Publishing tickets externally is a separate authorized action.
