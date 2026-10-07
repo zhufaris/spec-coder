@@ -291,8 +291,13 @@ class AutonomousModeContractTests(unittest.TestCase):
         workflow = read("references/workflow-contract.md")
         delivery = read("skills/delivery-coder/SKILL.md")
         compatibility = read("references/upstream-compatibility.md")
+        worktree = read("skills/using-git-worktrees/SKILL.md")
 
-        self.assertIn("approved or autonomously selected design", design)
+        design_frontmatter = design.split("---", 2)[1]
+        planner_frontmatter = planner.split("---", 2)[1]
+        delivery_frontmatter = delivery.split("---", 2)[1]
+
+        self.assertIn("approved or autonomously selected design", design_frontmatter)
         self.assertIn("return the selected design content", design)
         self.assertNotIn("return the approved design content", design)
 
@@ -304,6 +309,10 @@ class AutonomousModeContractTests(unittest.TestCase):
         ):
             with self.subTest(planner_phrase=phrase):
                 self.assertIn(phrase, planner)
+        self.assertIn(
+            "approved or autonomously selected coding design",
+            planner_frontmatter,
+        )
         self.assertNotIn("the approved design is missing", planner)
         self.assertIn("approved or autonomously selected design", planner_metadata)
 
@@ -315,13 +324,22 @@ class AutonomousModeContractTests(unittest.TestCase):
         self.assertIn("authorized in-place work", workflow)
         self.assertNotIn("approved in-place work", workflow)
 
-        self.assertIn("approved or autonomously selected specification", delivery)
+        self.assertIn(
+            "approved or autonomously selected specification",
+            delivery_frontmatter,
+        )
         self.assertIn("approved or autonomously selected specification and plan", delivery)
         self.assertNotIn("receives the approved specification and plan", delivery)
 
         self.assertIn("suite-owned human approvals", compatibility)
         self.assertIn("autonomous selection does not invoke `show-me`", compatibility)
         self.assertNotIn("all suite-owned approvals and mutation reviews", compatibility)
+
+        self.assertIn("selected post-gate-3 per-worker isolation", worktree)
+        self.assertIn("selected parallel execution wave", worktree)
+        self.assertIn("selected parallel-wave isolation request", worktree)
+        self.assertNotIn("approved post-gate-3 per-worker isolation", worktree)
+        self.assertNotIn("approved parallel execution wave", worktree)
 
 
 if __name__ == "__main__":
