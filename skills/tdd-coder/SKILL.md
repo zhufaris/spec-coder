@@ -23,11 +23,12 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 
 ## Process
 
-1. Confirm the handed-off ticket belongs to the sole active execution wave and
-   all of its blockers are complete. Verify the selected workspace, recorded
-   wave base, and initial changes; preserve unrelated work in either mode. The
+1. Confirm the handed-off ticket belongs to the Gate-3-approved durable planned
+   wave and the current planned wave is the earliest incomplete one. Confirm all
+   of its blockers are complete. Verify the selected workspace, recorded wave
+   base, and initial changes; preserve unrelated work in either mode. The
    runtime wave may contain other ownership-safe tickets, but this invocation
-   owns only its one approved ticket.
+   owns only its one approved ticket and must not pull later-wave work forward.
 2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
 3. Write one behavior-focused test through an approved public seam for an applicable scenario or invariant.
 4. Run that focused test and have main observe the expected failure as behavior

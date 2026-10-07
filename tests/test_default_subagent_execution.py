@@ -24,6 +24,19 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, orchestrator)
+
+        tdd = read("skills/tdd-coder/SKILL.md")
+        self.assertIn("current planned wave", tdd)
+        self.assertIn("gate-3-approved", tdd)
+
+        for phrase in (
+            "approved planned wave order",
+            "current planned wave",
+            "live dispatch batch",
+            "must not pull",
+        ):
+            with self.subTest(durable_wave_phrase=phrase):
+                self.assertIn(phrase, orchestrator)
         self.assertNotIn("executes exactly one unblocked ticket at a time", orchestrator)
         self.assertNotIn("at most one active ticket", orchestrator)
 

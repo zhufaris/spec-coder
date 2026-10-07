@@ -125,26 +125,28 @@ unavailable explicitly required model remains a concrete routing conflict.
 
 ## Execution Waves
 
-After Gate 3, form an immutable conceptual `ExecutionWave` from currently
-dependency-ready tickets in approved plan order. If the next ready ticket is
-main-local, it forms a one-ticket wave and never overlaps delegated mutation.
-For a delegated wave, consider only delegation-eligible tickets and greedily
-preserve approved plan order while excluding any candidate that declares a
-mutation conflict with a selected ticket, or that a selected ticket declares a
-conflict with. A delegated wave contains at most `min(4, live Host available
-direct-child slots)` tickets.
+Before Gate 3, `plan-coder` writes the durable planned wave membership and
+order into the approved ticket plan. Every ticket exactly once is required; a wave
+has at most four members, dependencies point only to earlier waves, conflicts
+do not share a wave, and a main-local ticket is a singleton. Gate 3 approves
+both the ticket set and its durable planned wave layout; scheduling order is
+not a functional dependency.
+
+After Gate 3, form the current execution wave only from the earliest durable
+planned wave with an unchecked ticket. A live dispatch batch considers its
+eligible members in approved order and may shrink for live Host capacity. It
+must not pull a ticket from a later planned wave or regroup membership.
 
 Parallel mutation additionally requires real Host/task workspace isolation.
-When isolation is unavailable, a delegated wave contains at most one ticket;
-continue default delegation through serialized direct workers. Apparent path
-disjointness in one shared workspace is not sufficient isolation. Recompute
-dependencies, ownership conflicts, isolation, and capacity only after the main
+When isolation is unavailable, serialize the current planned wave through one
+direct worker at a time. Apparent path disjointness in one shared workspace is
+not sufficient isolation. Recompute isolation and capacity only after the main
 agent has accounted for returned results and advanced accepted plan state.
 
-There is at most one active execution wave. Wave membership and transient Host
-handles remain conversational evidence; the approved plan checkboxes and
-committed Git state remain durable. Do not create a scheduler database, private
-state file, or persistent opt-out record.
+There is at most one active execution wave. Durable planned wave membership,
+approved plan checkboxes, and committed Git state govern recovery; transient
+Host handles and execution modes remain conversational evidence. Do not create
+a scheduler database, private state file, or persistent opt-out record.
 
 Only tickets whose computed mode is `local` or `delegate` form an execution
 wave. A `wait`, `block`, `pending`, or unknown outcome forms no wave and grants

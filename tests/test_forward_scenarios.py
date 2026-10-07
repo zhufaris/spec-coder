@@ -29,6 +29,8 @@ from forward_contracts import (
     render_review_snapshot,
     select_delegated_wave,
     select_execution_wave,
+    select_planned_wave_batch,
+    validate_planned_waves,
 )
 
 
@@ -540,6 +542,91 @@ model = "Custom-Sol"
         self.assertEqual(
             select_delegated_wave(tickets, host_available_slots=4, isolated=False),
             ("T1",),
+        )
+
+    def test_planned_waves_are_a_complete_safe_ordered_partition(self) -> None:
+        tickets = [
+            {"id": "T1", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+            {"id": "T2", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+            {"id": "T3", "dependencies": {"T1"}, "conflicts": set(), "mode": "delegate"},
+            {"id": "T4", "dependencies": set(), "conflicts": {"T2"}, "mode": "delegate"},
+            {"id": "T5", "dependencies": {"T3"}, "conflicts": set(), "mode": "local"},
+        ]
+
+        self.assertEqual(
+            validate_planned_waves(
+                tickets,
+                (("T1", "T2"), ("T3", "T4"), ("T5",)),
+            ),
+            (("T1", "T2"), ("T3", "T4"), ("T5",)),
+        )
+
+    def test_planned_waves_reject_missing_duplicate_unsafe_or_oversized_members(self) -> None:
+        tickets = [
+            {"id": "T1", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+            {"id": "T2", "dependencies": {"T1"}, "conflicts": set(), "mode": "delegate"},
+            {"id": "T3", "dependencies": set(), "conflicts": {"T1"}, "mode": "delegate"},
+            {"id": "T4", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+            {"id": "T5", "dependencies": set(), "conflicts": set(), "mode": "local"},
+        ]
+        invalid_partitions = (
+            (("T1",), ("T2",), ("T3",), ("T4",)),
+            (("T1", "T1"), ("T2",), ("T3",), ("T4",), ("T5",)),
+            (("T1", "T2"), ("T3",), ("T4",), ("T5",)),
+            (("T1", "T3"), ("T2",), ("T4",), ("T5",)),
+            (("T2",), ("T1",), ("T3",), ("T4",), ("T5",)),
+            (("T1", "T3", "T4", "T5"), ("T2",)),
+            (("T1", "T3", "T4", "T2", "T5"),),
+        )
+
+        for waves in invalid_partitions:
+            with self.subTest(waves=waves):
+                with self.assertRaises(ValueError):
+                    validate_planned_waves(tickets, waves)
+
+        invalid_mode_tickets = [
+            {"id": "T1", "dependencies": set(), "conflicts": set(), "mode": "wait"},
+        ]
+        with self.assertRaises(ValueError):
+            validate_planned_waves(invalid_mode_tickets, (("T1",),))
+
+    def test_runtime_batch_never_pulls_from_a_later_planned_wave(self) -> None:
+        tickets = [
+            {"id": "T1", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+            {"id": "T2", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+            {"id": "T3", "dependencies": set(), "conflicts": set(), "mode": "delegate"},
+        ]
+        waves = (("T1", "T2"), ("T3",))
+
+        self.assertEqual(
+            select_planned_wave_batch(
+                tickets,
+                waves,
+                completed_ids=set(),
+                host_available_slots=1,
+                isolated=True,
+            ),
+            (("T1", "delegate"),),
+        )
+        self.assertEqual(
+            select_planned_wave_batch(
+                tickets,
+                waves,
+                completed_ids={"T1"},
+                host_available_slots=4,
+                isolated=True,
+            ),
+            (("T2", "delegate"),),
+        )
+        self.assertEqual(
+            select_planned_wave_batch(
+                tickets,
+                waves,
+                completed_ids={"T1", "T2"},
+                host_available_slots=4,
+                isolated=True,
+            ),
+            (("T3", "delegate"),),
         )
 
     def test_execution_wave_keeps_local_work_serial_and_skips_pending(self) -> None:

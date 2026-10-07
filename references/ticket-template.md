@@ -4,7 +4,18 @@ This is a spec-coder resource used directly by `plan-coder` after specification 
 
 ## Plan structure
 
-Reference the approved specification and selected workspace, record the starting revision/baseline and approval status, then list tickets and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan mirrors those checkboxes with **one active execution wave** at most; wave membership and Host handles remain conversational and are reconstructed from unchecked tickets plus committed Git on resume.
+Reference the approved specification and selected workspace, record the starting revision/baseline and approval status, then list tickets, explicit durable planned waves, and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan has **one active execution wave** at most, selected from the approved planned wave order; Host and recovery handles remain conversational.
+
+## Wave W1: `T1`, `T2`
+
+Write one such explicit section for every planned wave before Gate 3, in execution
+order, with its member ticket IDs and any recorded execution/isolation notes.
+Every ticket exactly once is required across the durable planned waves; each wave has
+at most four tickets. Dependencies must point only to earlier waves. Tickets in
+the same wave have no ownership or semantic concurrency conflict, and a
+main-local ticket is a singleton wave. Scheduling order is not a functional dependency:
+record a dependency only when a ticket supplies a genuinely required
+capability or contract.
 
 For each ticket, include:
 
@@ -27,13 +38,15 @@ For each ticket, include:
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
 
-These fields are scheduling inputs, not a production scheduler or a persisted
-workflow aggregate. A general `ExecutionWave` contains currently
-dependency-ready work and may be a one-ticket main-local wave. Delegated wave
-selection considers only delegation-eligible, ownership-safe tickets, is capped
-by live Host capacity and the suite wave limit, and requires real isolation for
-every mutating worker when parallel. Without real isolation, use serialized
-direct workers. A main-local ticket never overlaps delegated mutation.
+These fields and the planned-wave sections are scheduling inputs, not a
+production scheduler or a persisted workflow aggregate. The durable plan fixes
+membership and order; runtime forms a live dispatch batch only from the current
+earliest incomplete planned wave. Delegated dispatch is capped by live Host
+capacity and the suite wave limit, and requires real isolation for every
+mutating worker when parallel. Without real isolation, serialize the current
+planned wave. Runtime may shrink or serialize that wave but must not regroup it
+or pull tickets from a later planned wave. Resume reads durable wave membership,
+checkboxes, and committed Git state; it does not invent new waves.
 
 For relevant domain changes, references and acceptance preserve the approved business actions, refusal/bypass outcomes, value validity/equality, policy responsibilities and terminology compatibility. When persistence is affected, include aggregate save/load, controlled restoration, post-load behavior and applicable conflict verification. Keep these requirements within the capability slice, rather than separate tickets for model classes or a copied domain inventory.
 
@@ -57,4 +70,10 @@ available; it does not promise a Host implementation. Heartbeat snapshots are
 transient observation evidence, so their absence cannot update durable plan
 state or transfer any main-only completion, diff, or verification authority.
 
-Present the ticket set, deliverables, dependencies, and proposed wave shape for approval and implementation authorization. Adjust granularity within the approved design when needed. After approval, hand the dependency and wave inputs to the main orchestrator; update checkboxes only after each ticket's required checks pass, and retain atomic commits. Publishing tickets externally is a separate authorized action.
+Present the ticket set, deliverables, dependencies, and durable planned-wave
+membership/order for Gate 3 approval and implementation authorization. Gate 3
+approves both the ticket set and wave layout. Adjust granularity within the
+approved design when needed. After approval, hand the planned waves to the main
+orchestrator; update checkboxes only after each ticket's required checks pass,
+and retain atomic commits. Publishing tickets externally is a separate
+authorized action.

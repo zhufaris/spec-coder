@@ -61,15 +61,15 @@ evidence, and a final delivery report produced through `delivery-coder`.
       specification approval, decomposes it into vertical tickets, then stops
       for ticket approval and implementation authorization.
    4. After Gate 3, form and run the dependency-aware execution wave described
-      below. `tdd-coder` executes each wave member through Red-Green or the
-      approved structural path, affected checks, a plan-checkbox update, and an
-      atomic commit. Repeat with freshly computed waves until all tickets are
-      complete.
+      below from the approved durable planned wave order. `tdd-coder` executes
+      each wave member through Red-Green or the approved structural path,
+      affected checks, a plan-checkbox update, and an atomic commit. Repeat
+      with the next planned wave until all tickets are complete.
    5. `delivery-coder` performs findings-first review, routes repairs back through TDD, runs the full applicable suite, and alone may produce the terminal completion claim.
-5. Keep the durable plan checkboxes as task-state truth and mirror them in the
-   runtime plan with one active execution wave at most. Wave membership, modes,
-   and Host handles remain conversational; checkboxes and committed Git are the
-   authoritative durable state.
+5. Keep the durable plan checkboxes and Gate-3-approved planned-wave membership
+   as task-state truth. Runtime has one active execution wave at most; execution
+   modes and Host handles remain conversational. On resume, use durable wave
+   membership with checkboxes and committed Git rather than regrouping work.
 6. Reopen the affected approval gate whenever scope or architecture changes.
    Show the prior approval, changed fact, affected decision, and return path
    through `show-me` before requesting renewed approval. Return to
@@ -81,14 +81,14 @@ The three human gates are design approval, written-specification approval, and t
 
 ## Approved Ticket Execution Waves
 
-From the approved ticket inputs, the active main agent schedules one active
-dependency-aware execution wave. Recompute dependency readiness, delegation
-eligibility, mutation ownership, isolation, and live Host capacity before each
-wave. Eligible work delegates by default, including when only one eligible
-ticket exists. Preserve approved plan order and admit at most four direct
-workers, never more than the Host's currently available direct-child slots.
-Tickets with incomplete dependencies or conflicting ownership cannot share a
-wave.
+From the Gate-3-approved planned wave order, the active main agent schedules
+one active dependency-aware execution wave. Select the current planned wave:
+the earliest wave with an unchecked ticket. Recompute delegation eligibility,
+isolation, and live Host capacity before dispatch, but retain approved planned
+wave membership and order. Eligible work delegates by default, including when
+only one eligible ticket exists. A live dispatch batch may shrink to at most four
+direct workers and never more than the Host's currently available
+direct-child slots. It must not pull tickets from a later planned wave.
 
 Parallel mutation requires real isolation for every worker at the recorded wave
 base; disjoint paths in a shared checkout are not isolation. Without real

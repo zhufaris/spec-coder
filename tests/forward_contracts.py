@@ -537,6 +537,107 @@ def select_execution_wave(
     return tuple((ticket_id, "delegate") for ticket_id in selected)
 
 
+def validate_planned_waves(
+    tickets: Iterable[Dict[str, object]], waves: Iterable[Iterable[str]]
+) -> Tuple[Tuple[str, ...], ...]:
+    """Validate the durable, Gate-3-approved partition of implementation tickets."""
+    ticket_list = tuple(tickets)
+    tickets_by_id: Dict[str, Dict[str, object]] = {}
+    for ticket in ticket_list:
+        ticket_id = ticket.get("id")
+        if not isinstance(ticket_id, str) or not ticket_id:
+            raise ValueError("ticket IDs must be nonempty strings")
+        if ticket_id in tickets_by_id:
+            raise ValueError("ticket IDs must be unique")
+        if ticket.get("mode") not in {"delegate", "local", "main-local"}:
+            raise ValueError("ticket execution mode must be delegate, local, or main-local")
+        tickets_by_id[ticket_id] = ticket
+
+    normalized_waves = tuple(tuple(wave) for wave in waves)
+    membership: Dict[str, int] = {}
+    for wave_index, wave in enumerate(normalized_waves):
+        if not wave:
+            raise ValueError("planned waves cannot be empty")
+        if len(wave) > 4:
+            raise ValueError("planned waves contain at most four tickets")
+        for ticket_id in wave:
+            if not isinstance(ticket_id, str) or ticket_id not in tickets_by_id:
+                raise ValueError("planned waves cannot contain unknown tickets")
+            if ticket_id in membership:
+                raise ValueError("every ticket must appear exactly once")
+            membership[ticket_id] = wave_index
+
+        main_local_ids = [
+            ticket_id
+            for ticket_id in wave
+            if tickets_by_id[ticket_id].get("mode") in {"local", "main-local"}
+        ]
+        if main_local_ids and len(wave) != 1:
+            raise ValueError("a main-local ticket must be a singleton planned wave")
+
+    if set(membership) != set(tickets_by_id):
+        raise ValueError("every ticket must appear exactly once")
+
+    for ticket_id, ticket in tickets_by_id.items():
+        wave_index = membership[ticket_id]
+        dependencies = ticket.get("dependencies", set())
+        conflicts = ticket.get("conflicts", set())
+        if not isinstance(dependencies, (set, frozenset, tuple, list)):
+            raise ValueError("ticket dependencies must be an iterable of IDs")
+        if not isinstance(conflicts, (set, frozenset, tuple, list)):
+            raise ValueError("ticket conflicts must be an iterable of IDs")
+        for dependency_id in dependencies:
+            if dependency_id not in tickets_by_id:
+                raise ValueError("ticket dependency is unknown")
+            if membership[dependency_id] >= wave_index:
+                raise ValueError("dependencies must be in earlier planned waves")
+        for conflict_id in conflicts:
+            if conflict_id not in tickets_by_id:
+                raise ValueError("ticket conflict is unknown")
+            if membership[conflict_id] == wave_index:
+                raise ValueError("conflicting tickets cannot share a planned wave")
+
+    return normalized_waves
+
+
+def select_planned_wave_batch(
+    tickets: Iterable[Dict[str, object]],
+    waves: Iterable[Iterable[str]],
+    *,
+    completed_ids: set[str],
+    host_available_slots: int,
+    isolated: bool,
+) -> Tuple[Tuple[str, str], ...]:
+    """Select only the live dispatch batch from the earliest incomplete planned wave."""
+    ticket_list = tuple(tickets)
+    planned_waves = validate_planned_waves(ticket_list, waves)
+    tickets_by_id = {str(ticket["id"]): ticket for ticket in ticket_list}
+    if not completed_ids.issubset(tickets_by_id):
+        raise ValueError("completed IDs must belong to the planned ticket set")
+
+    current_wave = next(
+        (wave for wave in planned_waves if any(ticket_id not in completed_ids for ticket_id in wave)),
+        (),
+    )
+    remaining = tuple(
+        ticket_id for ticket_id in current_wave if ticket_id not in completed_ids
+    )
+    if not remaining:
+        return ()
+
+    first_ticket = tickets_by_id[remaining[0]]
+    first_mode = str(first_ticket.get("mode", "local"))
+    if first_mode in {"local", "main-local"}:
+        return ((remaining[0], "local"),)
+    if first_mode != "delegate":
+        return ()
+
+    limit = min(4, max(0, host_available_slots))
+    if not isolated:
+        limit = min(limit, 1)
+    return tuple((ticket_id, "delegate") for ticket_id in remaining[:limit])
+
+
 def git_worktree_add_args(
     *, absolute_path: str, branch_name: str, wave_base: str
 ) -> Tuple[str, ...]:

@@ -53,14 +53,19 @@ scope and prohibits direct and indirect spawning there. Delegation eligibility
 requires dependency readiness, grounded inputs, bounded reversible scope, an
 independently inspectable seam, and no main-only authority or credentials.
 
-One dependency-aware execution wave is active at a time. A parallel wave has
-at most four ownership-safe tickets, never exceeds live Host direct-child
-capacity, and requires real Host/task workspace isolation. When isolation is
-not available, delegation continues through serialized direct workers; path
-disjointness inside one shared workspace is not isolation. When spawn
-unavailable, main records the reason and runs the same workflow locally unless
-delegation was explicitly required, in which case the missing capability is a
-blocker.
+Before Gate 3, `plan-coder` persists a durable planned wave membership/order;
+Gate 3 approves that layout with the ticket set. One dependency-aware current
+planned wave is active at a time: the earliest wave with an unchecked ticket.
+Its live dispatch batch has at most four ownership-safe tickets, never exceeds
+live Host direct-child capacity, and may shrink without changing membership.
+It must not pull tickets from a later planned wave. Real Host/task workspace
+isolation is required for parallel mutation; without it, delegation continues
+through serialized direct workers. Path disjointness inside one shared
+workspace is not isolation. Host handles remain conversational while durable
+membership, plan checkboxes, and committed Git state support recovery. When
+spawn unavailable, main records the reason and runs the same workflow locally
+unless delegation was explicitly required, in which case the missing capability
+is a blocker.
 
 Delivery uses exactly two independent direct reviewers by default. One gathers
 evidence for the Standards axis and one for the Spec axis; main owns the final

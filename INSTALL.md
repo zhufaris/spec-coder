@@ -111,9 +111,9 @@ codex plugin list --json
 
 ### 默认委派与执行边界
 
-Gate 3 后，default delegation 会把每个 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。main 每次只运行一个 dependency-aware wave，parallel wave 为 at most four 个 tickets 且受 live Host capacity 限制。
+Gate 3 前，`plan-coder` 将 ticket 写入 explicit durable planned wave sections；Gate 3 同时审批 ticket set 与 wave membership/order。Gate 3 后，default delegation 会把当前最早未完成 planned wave 中 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。live dispatch batch 可在当前 durable planned wave 内因 Host capacity 缩小，最多 four tickets。
 
-Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；不要以共享 workspace 中的文件不相交代替隔离。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
+Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；不要以共享 workspace 中的文件不相交代替隔离。runtime must not pull tickets from a later planned wave，亦不得重组已审批 membership；Host handles 保持 conversational，checkbox 与 commits 支持恢复。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
 
 Agent tree 为 at most two layers，only the active main agent 可以 spawn。每个 child brief 都必须包含 `delegation_allowed = false`；child 需要更多协作时返回证据与 blocker，不能自行再委派。
 

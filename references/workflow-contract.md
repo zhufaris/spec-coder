@@ -68,12 +68,22 @@ green baseline. The workspace can be the current checkout or a linked worktree:
 - domain terminology: root `GLOSSARY.md`, only when terms change;
 - architecture decisions: `docs/adr/`, only for decisions that are hard to reverse, surprising without context, and based on a real trade-off.
 
-The plan checkboxes are the task-status source of truth. Mirror them in the
-runtime plan with at most **one active execution wave**, not one active ticket.
-Keep that wave's member ticket IDs, execution modes, and Host/recovery handles
-in conversation only. Do not create a private workflow-state file. On resume,
-infer remaining work from unchecked tickets and committed Git state, then form
-a fresh wave; do not treat a previously discussed wave as durable state.
+The plan checkboxes are the task-status source of truth. Before Gate 3, the
+plan must persist explicit durable planned-wave sections in order. Every ticket exactly once
+is required, each planned wave contains at most four tickets,
+dependencies point only to earlier waves, no intra-wave conflict exists, and a
+main-local ticket is a singleton wave. Gate 3 approves both the ticket set and
+the planned wave membership/order. Scheduling order is not a functional
+dependency.
+
+Runtime has at most **one active execution wave**, not one active ticket. It
+forms a live dispatch batch only from the current earliest incomplete planned
+wave: live capacity may shrink the batch and missing isolation serializes it,
+but runtime must not regroup membership or pull a ticket from a later planned
+wave. Keep execution modes and Host/recovery handles in conversation only. Do
+not create a private workflow-state file. On resume, use durable wave
+membership with unchecked tickets and committed Git state; do not invent a new
+wave from stale conversational handles.
 
 ## Default Routing
 
@@ -167,10 +177,11 @@ workspace preflight; planning does not silently choose a second workspace.
 Inspect the current workspace/mode and branch, recorded initial changes,
 approved specification, plan checkboxes, Git log, and fresh verification
 output. Select the earliest incomplete phase supported by that evidence;
-approved in-place work does not need a worktree on resume. Reconstruct wave
-readiness from unchecked tickets and committed Git rather than a private state
-file or stale conversational handles. Re-run verification at the inferred
-boundary and never trust an old success claim.
+approved in-place work does not need a worktree on resume. Reconstruct the
+current planned wave from durable wave membership, unchecked tickets, and
+committed Git rather than a private state file or stale conversational handles.
+Re-run verification at the inferred boundary and never trust an old success
+claim.
 
 ## Verification Layers
 

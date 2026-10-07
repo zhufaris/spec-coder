@@ -823,6 +823,9 @@ class PluginContractTests(unittest.TestCase):
             "no initial configuration",
             "exact diff",
             "two to four",
+            "durable planned wave",
+            "gate 3",
+            "must not pull",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, published)
