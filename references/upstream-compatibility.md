@@ -59,15 +59,16 @@ model-callable `grilling` and `domain-modeling` primitives directly.
 
 ## Default Delegation and Review Compatibility
 
-Every eligible approved ticket uses default delegation to one direct worker,
-including a wave with only one ticket. A request-wide opt-out, ticket-specific
+Every eligible approved or autonomously selected ticket uses default delegation
+to one direct worker, including a wave with only one ticket. A request-wide opt-out, ticket-specific
 opt-out, or review-specific opt-out selects main-local execution only for that
 scope and prohibits direct and indirect spawning there. Delegation eligibility
 requires dependency readiness, grounded inputs, bounded reversible scope, an
 independently inspectable seam, and no main-only authority or credentials.
 
-Before Gate 3, `plan-coder` persists a durable planned wave membership/order;
-Gate 3 approves that layout with the ticket set. One dependency-aware current
+Before Gate 3, `plan-coder` persists a durable planned wave membership/order.
+Interactive Gate 3 approves that layout with the ticket set; autonomous Gate 3 selects
+their unique grounded recommendation and records the transition. One dependency-aware current
 planned wave is active at a time: the earliest wave with an unchecked ticket.
 Its live dispatch batch has at most four ownership-safe tickets, never exceeds
 live Host direct-child capacity, and may shrink without changing membership.

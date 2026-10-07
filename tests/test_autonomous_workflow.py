@@ -202,6 +202,8 @@ class AutonomousModeContractTests(unittest.TestCase):
         tdd = read("skills/tdd-coder/SKILL.md")
         ticket_template = read("references/ticket-template.md")
         routing = read("references/subagent-routing-contract.md")
+        compatibility = read("references/upstream-compatibility.md")
+        tdd_metadata = read("skills/tdd-coder/agents/openai.yaml")
 
         self.assertIn("approved or autonomously selected specification", orchestrator)
         self.assertIn(
@@ -252,6 +254,22 @@ class AutonomousModeContractTests(unittest.TestCase):
                 self.assertIn(phrase, routing)
         self.assertNotIn("approved ticket is delegation-eligible", routing)
         self.assertNotIn("only within an approved ticket", routing)
+        self.assertIn(
+            "every eligible approved or autonomously selected ticket",
+            compatibility,
+        )
+        self.assertIn("interactive gate 3 approves", compatibility)
+        self.assertIn("autonomous gate 3 selects", compatibility)
+        self.assertNotIn("every eligible approved ticket", compatibility)
+        self.assertIn(
+            "implement one approved or autonomously selected ticket",
+            tdd_metadata,
+        )
+        self.assertNotIn("implement one approved ticket", tdd_metadata)
+        self.assertNotIn(
+            "approved specification, approved vertical-ticket plan",
+            orchestrator,
+        )
 
     def test_scenario_fixture_keeps_autonomy_explicit_and_narrow(self) -> None:
         scenarios = read("tests/fixtures/scenarios.md")
