@@ -91,10 +91,15 @@ completion. A short attempt reports start and terminal state without inventing
 a periodic update. The brief preserves the literal `delegation_allowed = false`
 and the child must not stage or commit; a reviewer also remains read-only.
 
+Main records proactive heartbeat capability **before or at dispatch**. A
+capability-unavailable record is non-blocking and preserves delegation; it is
+not valid to record capability only after dispatch.
+
 `heartbeat-capability-unavailable` records that proactive messaging is absent
 but preserves the existing delegation decision and final-return behavior.
-`heartbeat-overdue` or a Host wait timeout means only that no message was
-observed in that window. Neither outcome creates a failure or blocker and
+`heartbeat-overdue` means a Host wait timed out or a reporting interval was
+missed; `awaiting-heartbeat` is an ordinary observation without either
+condition. Neither outcome creates a failure or blocker and
 neither grants interruption, takeover, promotion, local fallback, or other
 authority. Snapshots are conversational evidence only: main-only completion
 authority, diff acceptance, and fresh verification remain unchanged.

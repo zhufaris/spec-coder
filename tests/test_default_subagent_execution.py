@@ -95,6 +95,7 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
             self.assertIn("promotion sibling", document)
             self.assertIn("delegation_allowed = false", document)
             self.assertIn("must not stage or commit", document)
+            self.assertIn("before or at dispatch", document)
 
         for document in (workflow, ticket_template):
             for phrase in (

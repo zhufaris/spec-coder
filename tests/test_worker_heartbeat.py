@@ -3,6 +3,7 @@ import unittest
 from forward_contracts import (
     heartbeat_report_due,
     observe_worker_progress,
+    prepare_heartbeat_dispatch,
     validate_progress_snapshot,
 )
 
@@ -28,6 +29,8 @@ class ProgressSnapshotValidationTests(unittest.TestCase):
         self.assertEqual(validated, VALID_SNAPSHOT)
         self.assertIsNot(validated, original)
         self.assertEqual(original, VALID_SNAPSHOT)
+        with self.assertRaises(TypeError):
+            validated["phase"] = "blocked"
 
     def test_rejects_missing_extra_or_empty_fields(self) -> None:
         missing = dict(VALID_SNAPSHOT)
@@ -88,6 +91,8 @@ class WorkerProgressObservationTests(unittest.TestCase):
         self.assertEqual(observation["snapshot"], VALID_SNAPSHOT)
         self.assertEqual(observation["execution_effect"], "none")
         self.assertEqual(observation["completion_authority"], "main-only")
+        with self.assertRaises(TypeError):
+            observation["snapshot"]["phase"] = "blocked"
 
     def test_timeout_is_only_overdue_and_preserves_last_valid_snapshot(self) -> None:
         observation = observe_worker_progress(
@@ -104,6 +109,31 @@ class WorkerProgressObservationTests(unittest.TestCase):
             observation["status"],
             {"failed", "blocked", "stalled", "interrupt", "takeover"},
         )
+
+    def test_ordinary_no_message_window_is_not_overdue(self) -> None:
+        observation = observe_worker_progress(
+            previous_snapshot=VALID_SNAPSHOT,
+            incoming_snapshot=None,
+            heartbeat_capability=True,
+            wait_timed_out=False,
+        )
+
+        self.assertEqual(observation["status"], "awaiting-heartbeat")
+        self.assertEqual(observation["snapshot"], VALID_SNAPSHOT)
+        self.assertEqual(observation["execution_effect"], "none")
+
+    def test_missed_interval_is_overdue_without_execution_authority(self) -> None:
+        observation = observe_worker_progress(
+            previous_snapshot=VALID_SNAPSHOT,
+            incoming_snapshot=None,
+            heartbeat_capability=True,
+            wait_timed_out=False,
+            interval_missed=True,
+        )
+
+        self.assertEqual(observation["status"], "heartbeat-overdue")
+        self.assertEqual(observation["snapshot"], VALID_SNAPSHOT)
+        self.assertEqual(observation["execution_effect"], "none")
 
     def test_missing_capability_is_explicit_and_preserves_delegation(self) -> None:
         observation = observe_worker_progress(
@@ -130,6 +160,33 @@ class WorkerProgressObservationTests(unittest.TestCase):
             )
 
         self.assertEqual(previous, VALID_SNAPSHOT)
+
+
+class HeartbeatDispatchTests(unittest.TestCase):
+    def test_capability_is_recorded_before_or_at_dispatch(self) -> None:
+        for dispatch_timing in ("before-dispatch", "at-dispatch"):
+            with self.subTest(dispatch_timing=dispatch_timing):
+                self.assertEqual(
+                    prepare_heartbeat_dispatch(
+                        heartbeat_capability=True,
+                        dispatch_timing=dispatch_timing,
+                    ),
+                    "heartbeat-ready",
+                )
+                self.assertEqual(
+                    prepare_heartbeat_dispatch(
+                        heartbeat_capability=False,
+                        dispatch_timing=dispatch_timing,
+                    ),
+                    "heartbeat-capability-unavailable",
+                )
+
+    def test_capability_cannot_be_recorded_only_after_dispatch(self) -> None:
+        with self.assertRaises(ValueError):
+            prepare_heartbeat_dispatch(
+                heartbeat_capability=False,
+                dispatch_timing="after-dispatch",
+            )
 
 
 if __name__ == "__main__":

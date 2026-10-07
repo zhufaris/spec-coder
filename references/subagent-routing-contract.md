@@ -17,6 +17,13 @@ timezone-aware ISO `observed_at`. Valid phases are `starting`, `working`,
 `not-started`, `running`, `passed`, and `failed`. `active_command` and
 `blocker` use the explicit string `none` when not applicable.
 
+Before a direct child is dispatched, or at dispatch, main records whether
+proactive heartbeat capability is available. A ready capability records
+`heartbeat-ready`; an unavailable capability records
+`heartbeat-capability-unavailable`. Capability-unavailable is non-blocking and
+preserves the existing delegation decision. Recording capability only after
+dispatch is invalid.
+
 Workers send a starting snapshot, another every 45-60 seconds while active,
 and an immediate snapshot on phase change, before and after a long command, and
 on blocker, failure, or completion. A short attempt need only send its start
@@ -24,9 +31,10 @@ and terminal snapshots. The Host adapter may provide the child-to-main
 message path; the shared contract does not name a tool or process API.
 
 The main agent records only the latest valid snapshot in conversation. Invalid
-snapshots are rejected and cannot replace a prior valid observation. A wait
-timeout or missing interval is reported as `heartbeat-overdue` only. If the
-Host cannot provide proactive child-to-main messaging, report
+snapshots are rejected and cannot replace a prior valid observation. A Host
+wait timeout or missed interval is reported as `heartbeat-overdue`; an ordinary
+no-message observation without either condition is `awaiting-heartbeat`. If the Host cannot provide
+proactive child-to-main messaging, report
 `heartbeat-capability-unavailable` and preserve the existing delegation
 decision. Both outcomes have execution effect `none`; a terminal snapshot is
 provisional, and completion authority remains `main-only` after artifact

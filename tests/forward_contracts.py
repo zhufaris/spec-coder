@@ -9,6 +9,7 @@ import re
 import tomllib
 from collections.abc import Mapping
 from datetime import datetime
+from types import MappingProxyType
 from typing import Dict, Iterable, Optional, Tuple
 
 
@@ -64,7 +65,7 @@ PROGRESS_PHASES = {"starting", "working", "verifying", "blocked", "completed"}
 VERIFICATION_STATES = {"not-started", "running", "passed", "failed"}
 
 
-def validate_progress_snapshot(snapshot: Mapping[str, object]) -> Dict[str, object]:
+def validate_progress_snapshot(snapshot: Mapping[str, object]) -> Mapping[str, object]:
     """Validate and copy one immutable worker observation fact."""
     if not isinstance(snapshot, Mapping):
         raise ValueError("snapshot must be a mapping")
@@ -93,7 +94,20 @@ def validate_progress_snapshot(snapshot: Mapping[str, object]) -> Dict[str, obje
         raise ValueError("observed_at must be ISO-8601") from exc
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("observed_at must include a timezone")
-    return dict(snapshot)
+    return MappingProxyType(dict(snapshot))
+
+
+def prepare_heartbeat_dispatch(
+    *, heartbeat_capability: bool, dispatch_timing: str
+) -> str:
+    """Record heartbeat readiness before or at a direct-child dispatch."""
+    if dispatch_timing not in {"before-dispatch", "at-dispatch"}:
+        raise ValueError("heartbeat capability must be recorded before or at dispatch")
+    return (
+        "heartbeat-ready"
+        if heartbeat_capability
+        else "heartbeat-capability-unavailable"
+    )
 
 
 def heartbeat_report_due(
@@ -122,6 +136,7 @@ def observe_worker_progress(
     incoming_snapshot: Mapping[str, object] | None,
     heartbeat_capability: bool,
     wait_timed_out: bool,
+    interval_missed: bool = False,
 ) -> Dict[str, object]:
     """Record transient observation evidence without execution side effects."""
     previous = (
@@ -141,15 +156,15 @@ def observe_worker_progress(
     elif not heartbeat_capability:
         status = "heartbeat-capability-unavailable"
         snapshot = previous
-    elif wait_timed_out:
+    elif wait_timed_out or interval_missed:
         status = "heartbeat-overdue"
         snapshot = previous
     else:
-        status = "heartbeat-overdue"
+        status = "awaiting-heartbeat"
         snapshot = previous
     result: Dict[str, object] = {
         "status": status,
-        "snapshot": dict(snapshot) if snapshot is not None else None,
+        "snapshot": snapshot,
         "execution_effect": "none",
         "completion_authority": "main-only",
     }

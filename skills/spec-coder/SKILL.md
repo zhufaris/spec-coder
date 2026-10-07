@@ -39,11 +39,11 @@ evidence, and a final delivery report produced through `delivery-coder`.
    blocker to main, which alone may create a layer-2 sibling. Every direct-child
    brief also requires the shared **Worker Progress Heartbeat** /
    `ProgressSnapshot` policy when proactive child-to-main messaging is
-   available: report at start, every 45-60 seconds while active, on phase
+   available. Record its capability **before or at dispatch**: report at start, every 45-60 seconds while active, on phase
    change, before and after a long command, and immediately on blocker,
    failure, or completion. `heartbeat-capability-unavailable` preserves the
-   delegation decision; `heartbeat-overdue` or a Host wait timeout means no
-   message only, never a failure, blocker, interrupt, takeover, promotion, or
+   delegation decision; a Host wait timeout or missed reporting interval is `heartbeat-overdue`, while an
+   ordinary observation is `awaiting-heartbeat`; neither grants failure, blocker, interrupt, takeover, promotion, or
    local fallback authority. A snapshot never changes main-only diff
    acceptance, fresh verification, or completion authority.
 3. Classify the request:
@@ -103,9 +103,11 @@ delivery aggregation, and completion authority.
 Each worker brief requires the shared Worker Progress Heartbeat /
 `ProgressSnapshot` reporting schedule: starting, 45-60 seconds while active,
 phase change, pre/post long command, and blocker/failure/completion whenever
-proactive messaging is available. The same requirement applies to a
+proactive messaging is available. Record that capability **before or at dispatch**.
+The same requirement applies to a
 main-created promotion sibling. A capability-unavailable observation preserves
-delegation and an overdue heartbeat or wait timeout records no message only;
+delegation, while a wait timeout or missed interval is overdue and an ordinary observation is
+`awaiting-heartbeat` only;
 neither authorizes failure classification, interruption, takeover, promotion,
 or local execution.
 

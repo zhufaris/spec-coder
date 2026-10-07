@@ -44,12 +44,13 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    or delegate directly or indirectly, and workers must not stage or commit. If
    it needs decomposition or another agent, it returns its evidence and blocker
    to main. The brief requires the shared **Worker Progress Heartbeat** /
-   `ProgressSnapshot` when proactive child-to-main messaging is available:
+   `ProgressSnapshot` when proactive child-to-main messaging is available; main
+   records that capability **before or at dispatch**:
    starting, every 45-60 seconds while active, on phase change, before and
    after a long command, and immediately on blocker, failure, or completion.
    `heartbeat-capability-unavailable` preserves delegation. A
-   `heartbeat-overdue` observation or wait timeout means no message only and
-   does not grant failure, blocker, interrupt, takeover, promotion, or local
+   `heartbeat-overdue` means a wait timeout or missed interval; an ordinary observation is
+   `awaiting-heartbeat` and neither grants failure, blocker, interrupt, takeover, promotion, or local
    fallback authority; main-only diff acceptance, fresh verification, and
    completion authority remain unchanged. Main-local behavior remains the path
    for ineligible work, an applicable opt-out, or recorded spawn-unavailable
@@ -70,7 +71,7 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior.
 10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
 
-A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not retried across configured tiers. Preserve its route, output and verification state and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 promotion sibling whose brief includes `delegation_allowed = false`, must not stage or commit, and the same Worker Progress Heartbeat / `ProgressSnapshot` reporting requirements; the failed child never creates its replacement. Heartbeat capability unavailable preserves delegation, while heartbeat overdue or a wait timeout is no message only and cannot itself trigger promotion, repair, or local fallback. A second failure follows this skill's normal repair or stop conditions.
+A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not retried across configured tiers. Preserve its route, output and verification state and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 promotion sibling whose brief includes `delegation_allowed = false`, must not stage or commit, and the same Worker Progress Heartbeat / `ProgressSnapshot` reporting requirements with capability recorded **before or at dispatch**; the failed child never creates its replacement. Heartbeat capability unavailable preserves delegation; heartbeat overdue is a wait timeout or missed interval, and an ordinary awaiting-heartbeat observation cannot itself trigger promotion, repair, or local fallback. A second failure follows this skill's normal repair or stop conditions.
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 
