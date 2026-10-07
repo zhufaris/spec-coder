@@ -8,6 +8,7 @@ only the presence of prose headings.
 import re
 import tomllib
 from collections.abc import Mapping
+from datetime import datetime
 from typing import Dict, Iterable, Optional, Tuple
 
 
@@ -44,6 +45,117 @@ AUTHORIZATION_INTENT_TOKENS = {
     },
     "reject": {"reject", "rejects", "rejected", "rejecting"},
 }
+
+
+# Host-neutral worker progress heartbeat contract.  These helpers intentionally
+# return ordinary copies and observational outcomes only; they do not grant
+# dispatch, interruption, promotion, or completion authority.
+PROGRESS_SNAPSHOT_FIELDS = (
+    "ticket_or_axis",
+    "worker_handle",
+    "phase",
+    "active_command",
+    "progress_evidence",
+    "verification_state",
+    "blocker",
+    "observed_at",
+)
+PROGRESS_PHASES = {"starting", "working", "verifying", "blocked", "completed"}
+VERIFICATION_STATES = {"not-started", "running", "passed", "failed"}
+
+
+def validate_progress_snapshot(snapshot: Mapping[str, object]) -> Dict[str, object]:
+    """Validate and copy one immutable worker observation fact."""
+    if not isinstance(snapshot, Mapping):
+        raise ValueError("snapshot must be a mapping")
+    keys = set(snapshot)
+    required = set(PROGRESS_SNAPSHOT_FIELDS)
+    missing = required - keys
+    extra = keys - required
+    if missing:
+        raise ValueError("missing ProgressSnapshot fields: " + ", ".join(sorted(missing)))
+    if extra:
+        raise ValueError("unknown ProgressSnapshot fields: " + ", ".join(sorted(extra)))
+
+    for field in PROGRESS_SNAPSHOT_FIELDS:
+        value = snapshot[field]
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field} must be a nonempty string")
+    if snapshot["phase"] not in PROGRESS_PHASES:
+        raise ValueError("unsupported progress phase")
+    if snapshot["verification_state"] not in VERIFICATION_STATES:
+        raise ValueError("unsupported verification state")
+
+    observed_at = snapshot["observed_at"]
+    try:
+        parsed = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("observed_at must be ISO-8601") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("observed_at must include a timezone")
+    return dict(snapshot)
+
+
+def heartbeat_report_due(
+    seconds_since_report: float,
+    *,
+    starting: bool = False,
+    phase_changed: bool = False,
+    command_boundary: bool = False,
+    terminal: bool = False,
+) -> bool:
+    """Return whether a worker heartbeat is due at an event or 45 seconds."""
+    if seconds_since_report < 0:
+        raise ValueError("seconds_since_report cannot be negative")
+    return bool(
+        starting
+        or phase_changed
+        or command_boundary
+        or terminal
+        or seconds_since_report >= 45
+    )
+
+
+def observe_worker_progress(
+    *,
+    previous_snapshot: Mapping[str, object] | None,
+    incoming_snapshot: Mapping[str, object] | None,
+    heartbeat_capability: bool,
+    wait_timed_out: bool,
+) -> Dict[str, object]:
+    """Record transient observation evidence without execution side effects."""
+    previous = (
+        validate_progress_snapshot(previous_snapshot)
+        if previous_snapshot is not None
+        else None
+    )
+    # Validate first, so invalid evidence can never replace a valid observation.
+    incoming = (
+        validate_progress_snapshot(incoming_snapshot)
+        if incoming_snapshot is not None
+        else None
+    )
+    if incoming is not None:
+        status = "observed"
+        snapshot = incoming
+    elif not heartbeat_capability:
+        status = "heartbeat-capability-unavailable"
+        snapshot = previous
+    elif wait_timed_out:
+        status = "heartbeat-overdue"
+        snapshot = previous
+    else:
+        status = "heartbeat-overdue"
+        snapshot = previous
+    result: Dict[str, object] = {
+        "status": status,
+        "snapshot": dict(snapshot) if snapshot is not None else None,
+        "execution_effect": "none",
+        "completion_authority": "main-only",
+    }
+    if status == "heartbeat-capability-unavailable":
+        result["delegation_effect"] = "preserve"
+    return result
 
 
 def _markers(canonical: bytes):

@@ -5,6 +5,38 @@ selection, and model selection for direct subagents. It is normative for every
 spec-coder stage that delegates work. It does not create a workflow stage,
 bundled skill, persisted routing state, or permission boundary.
 
+## Worker Progress Heartbeat
+
+Every suite-owned direct child must report a Host-neutral `ProgressSnapshot` as
+conversational observation evidence when proactive child-to-main messaging is
+available. The snapshot has exactly these required
+nonempty string fields: `ticket_or_axis`, `worker_handle`, `phase`,
+`active_command`, `progress_evidence`, `verification_state`, `blocker`, and
+timezone-aware ISO `observed_at`. Valid phases are `starting`, `working`,
+`verifying`, `blocked`, and `completed`; valid verification states are
+`not-started`, `running`, `passed`, and `failed`. `active_command` and
+`blocker` use the explicit string `none` when not applicable.
+
+Workers send a starting snapshot, another every 45-60 seconds while active,
+and an immediate snapshot on phase change, before and after a long command, and
+on blocker, failure, or completion. A short attempt need only send its start
+and terminal snapshots. The Host adapter may provide the child-to-main
+message path; the shared contract does not name a tool or process API.
+
+The main agent records only the latest valid snapshot in conversation. Invalid
+snapshots are rejected and cannot replace a prior valid observation. A wait
+timeout or missing interval is reported as `heartbeat-overdue` only. If the
+Host cannot provide proactive child-to-main messaging, report
+`heartbeat-capability-unavailable` and preserve the existing delegation
+decision. Both outcomes have execution effect `none`; a terminal snapshot is
+provisional, and completion authority remains `main-only` after artifact
+inspection and fresh verification.
+
+Heartbeat evidence never creates a wave, promotion, local fallback,
+interruption, reassignment, takeover, failure, blocker, or automatic stall
+classification. It is observability only and does not alter the authority and
+recovery rules below.
+
 ## Authority
 
 Workflow Orchestration owns task classification, delegation safety, promotion,
