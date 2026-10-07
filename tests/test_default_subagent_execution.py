@@ -75,10 +75,12 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
                 self.assertIn(phrase, orchestrator)
 
     def test_orchestrator_and_tdd_briefs_require_worker_push_heartbeat(self) -> None:
-        orchestrator = read("skills/spec-coder/SKILL.md")
-        tdd = read("skills/tdd-coder/SKILL.md")
-        workflow = read("references/workflow-contract.md")
-        ticket_template = read("references/ticket-template.md")
+        orchestrator = " ".join(read("skills/spec-coder/SKILL.md").split())
+        tdd = " ".join(read("skills/tdd-coder/SKILL.md").split())
+        workflow = " ".join(read("references/workflow-contract.md").split())
+        ticket_template = " ".join(
+            read("references/ticket-template.md").split()
+        )
 
         for document in (orchestrator, tdd):
             for phrase in (
