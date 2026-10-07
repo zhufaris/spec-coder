@@ -1,6 +1,6 @@
 ---
 name: delivery-coder
-description: Review and verify a completed spec-coder plan before declaring delivery. Use after all planned tickets are committed, or to resume final review, repair, and full-suite verification of an approved specification.
+description: Review and verify a completed spec-coder plan before declaring delivery. Use after all planned tickets are committed, or to resume final review, repair, and full-suite verification of an approved or autonomously selected specification.
 ---
 
 # Delivery Coder
@@ -30,7 +30,7 @@ Findings ordered by severity, TDD-backed repair commits when needed, fresh evide
 
 Choose the review mode before starting either axis:
 
-- With eligible spawn capability and no applicable opt-out, directly brief the two reviewers. The **Standards reviewer** receives the repository instructions, current status, cumulative task diff, relevant history and verification conventions; it checks correctness, security, performance, error handling, test quality, repository standards and unintended scope. The **Spec reviewer** receives the approved specification and plan, completed ticket commits, cumulative task diff, domain and architecture decisions and test evidence; it checks acceptance criteria, public contracts, scenario/invariant coverage, dependency direction, architecture evidence and scope fidelity. Keep the axes independent and require findings ordered by severity with concrete file/line evidence and any uncertainty.
+- With eligible spawn capability and no applicable opt-out, directly brief the two reviewers. The **Standards reviewer** receives the repository instructions, current status, cumulative task diff, relevant history and verification conventions; it checks correctness, security, performance, error handling, test quality, repository standards and unintended scope. The **Spec reviewer** receives the approved or autonomously selected specification and plan, completed ticket commits, cumulative task diff, domain and architecture decisions and test evidence; it checks acceptance criteria, public contracts, scenario/invariant coverage, dependency direction, architecture evidence and scope fidelity. Keep the axes independent and require findings ordered by severity with concrete file/line evidence and any uncertainty.
 - A **review-specific opt-out** or **request-wide opt-out** selects main-local review for both the Standards axis and Spec axis and forbids direct or indirect spawning for the affected scope. Main performs the same two independent passes with the same inputs, checks and findings-first output described above.
 - When spawn unavailable and delegated review was not explicitly required, record the unavailable capability and use that same main-local two-axis review.
 - When spawn unavailable and delegated review was explicitly required, stop with a concrete Host-capability blocker; do not silently substitute local review.

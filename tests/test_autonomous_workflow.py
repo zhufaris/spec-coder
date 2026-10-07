@@ -283,6 +283,46 @@ class AutonomousModeContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, scenarios)
 
+    def test_stage_entry_resume_and_delivery_surfaces_accept_autonomous_artifacts(self) -> None:
+        design = read("skills/design-coder/SKILL.md")
+        planner = read("skills/plan-coder/SKILL.md")
+        planner_metadata = read("skills/plan-coder/agents/openai.yaml")
+        specification = read("references/specification-template.md")
+        workflow = read("references/workflow-contract.md")
+        delivery = read("skills/delivery-coder/SKILL.md")
+        compatibility = read("references/upstream-compatibility.md")
+
+        self.assertIn("approved or autonomously selected design", design)
+        self.assertIn("return the selected design content", design)
+        self.assertNotIn("return the approved design content", design)
+
+        for phrase in (
+            "approved or autonomously selected coding design",
+            "gate 1 approval or autonomous selection",
+            "selected design is missing",
+            "inconsistent with the selected design",
+        ):
+            with self.subTest(planner_phrase=phrase):
+                self.assertIn(phrase, planner)
+        self.assertNotIn("the approved design is missing", planner)
+        self.assertIn("approved or autonomously selected design", planner_metadata)
+
+        self.assertIn("existing approved or autonomously selected specification", specification)
+        self.assertIn("reconcile the selected design", specification)
+        self.assertNotIn("reconcile the approved design", specification)
+
+        self.assertIn("approved or autonomously selected specification", workflow)
+        self.assertIn("authorized in-place work", workflow)
+        self.assertNotIn("approved in-place work", workflow)
+
+        self.assertIn("approved or autonomously selected specification", delivery)
+        self.assertIn("approved or autonomously selected specification and plan", delivery)
+        self.assertNotIn("receives the approved specification and plan", delivery)
+
+        self.assertIn("suite-owned human approvals", compatibility)
+        self.assertIn("autonomous selection does not invoke `show-me`", compatibility)
+        self.assertNotIn("all suite-owned approvals and mutation reviews", compatibility)
+
 
 if __name__ == "__main__":
     unittest.main()

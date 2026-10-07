@@ -22,7 +22,7 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
   approval request. It is model-callable with the plugin and does not require
   an external show-me package, tmux, editor, browser, or executable.
 - `using-git-worktrees` is a local optional isolation adapter invoked after an
-  isolation path is selected during workspace preflight or for approved
+  isolation path is selected during workspace preflight or for selected
   post-Gate-3 per-worker isolation. It prefers native Host worktree tools and
   needs no external skill package.
 - `setup-coder` is a local manually invoked repository-onboarding adapter. It
@@ -92,8 +92,9 @@ would spawn children or otherwise violate the local mode. When spawn is
 unavailable and delegated review was explicitly required, delivery stops with
 a concrete Host-capability blocker.
 
-All suite-owned approvals and mutation reviews use bundled `show-me` to present
-two to four grounded, materially distinct choices and their consequences.
+All suite-owned human approvals and mutation reviews that require separate
+human authority use bundled `show-me` to present two to four grounded,
+materially distinct choices and their consequences. Autonomous selection does not invoke `show-me`.
 Presentation does not grant approval or expand authority.
 
 ## Optional Host Model Routing

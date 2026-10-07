@@ -1,4 +1,4 @@
 interface:
   display_name: "Plan Coder"
   short_description: "Prepare a safe workspace, specs, and implementation tickets"
-  default_prompt: "Use $plan-coder to prepare this approved design for implementation."
+  default_prompt: "Use $plan-coder to prepare this approved or autonomously selected design for implementation."

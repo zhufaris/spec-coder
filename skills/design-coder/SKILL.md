@@ -1,6 +1,6 @@
 ---
 name: design-coder
-description: Turn confirmed coding requirements into a user-approved design by comparing alternatives and applying adaptive domain modeling, deep-module design, Clean Architecture, and explicit testing seams. Use after grill-coder or whenever a coding change needs architecture decisions before planning.
+description: Turn confirmed coding requirements into an approved or autonomously selected design by comparing alternatives and applying adaptive domain modeling, deep-module design, Clean Architecture, and explicit testing seams. Use after grill-coder or whenever a coding change needs architecture decisions before planning.
 ---
 
 # Design Coder
@@ -74,9 +74,9 @@ required. The interactive path remains unchanged.
    unique grounded recommendation without `show-me` or waiting. Gate 1 remains
    separate from approach selection.
 
-When the modeling triggers apply, include the decisions required by the contract's [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) sections in the design handed to planning. Keep the stage's output focused on approved decisions and unresolved readiness, not a repeated contract checklist.
+When the modeling triggers apply, include the decisions required by the contract's [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) sections in the design handed to planning. Keep the stage's output focused on selected decisions and unresolved readiness, not a repeated contract checklist.
 
-Do not write implementation code. During an orchestrated run, use the safe workspace and green baseline prepared before discovery; keep non-domain project artifacts in conversation until `plan-coder` revalidates that evidence. In-place and isolated workspaces are both supported. Return the approved design content for specification synthesis.
+Do not write implementation code. During an orchestrated run, use the safe workspace and green baseline prepared before discovery; keep non-domain project artifacts in conversation until `plan-coder` revalidates that evidence. In-place and isolated workspaces are both supported. Return the selected design content for specification synthesis.
 
 ## Stop Conditions
 

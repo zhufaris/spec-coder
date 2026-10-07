@@ -199,9 +199,9 @@ workspace preflight; planning does not silently choose a second workspace.
 ## Recovery
 
 Inspect the current workspace/mode and branch, recorded initial changes,
-approved specification, plan checkboxes, Git log, and fresh verification
+approved or autonomously selected specification, plan checkboxes, Git log, and fresh verification
 output. Select the earliest incomplete phase supported by that evidence;
-approved in-place work does not need a worktree on resume. Reconstruct the
+authorized in-place work does not need a worktree on resume. Reconstruct the
 current planned wave from durable wave membership, unchecked tickets, and
 committed Git rather than a private state file or stale conversational handles.
 Re-run verification at the inferred boundary and never trust an old success

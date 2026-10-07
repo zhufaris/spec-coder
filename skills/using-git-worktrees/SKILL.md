@@ -1,6 +1,6 @@
 ---
 name: using-git-worktrees
-description: Prepare an optional isolated Git workspace after workspace preflight selects isolation or for approved post-Gate-3 per-worker isolation. Use to reuse existing linked worktrees, prefer native Host worktree tools, or safely fall back to git worktree without owning dependency setup, baseline verification, or workspace policy.
+description: Prepare an optional isolated Git workspace after workspace preflight selects isolation or for selected post-Gate-3 per-worker isolation. Use to reuse existing linked worktrees, prefer native Host worktree tools, or safely fall back to git worktree without owning dependency setup, baseline verification, or workspace policy.
 ---
 
 # Using Git Worktrees
@@ -17,12 +17,12 @@ This skill adapts the official
 ## Input
 
 An explicit isolation selection from workspace preflight, or a main-orchestrator
-request for per-worker isolation in an approved parallel execution wave; the
+request for per-worker isolation in a selected parallel execution wave; the
 target Git repository; the intended branch/feature slug; current Git state;
 user workspace preferences; and the available native Host worktree tools. This
 capability is optional in general and must not be invoked merely because the
 primary workspace is in place or because serial delegation is selected. An
-approved parallel-wave isolation request is the explicit exception; worktrees
+selected parallel-wave isolation request is the explicit exception; worktrees
 must never be claimed as mandatory for serial delegation.
 
 ## Output

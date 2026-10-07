@@ -11,7 +11,7 @@ Route implementation work through the [subagent routing contract](../../referenc
 
 Read and apply the [domain design contract](../../references/domain-design-contract.md) to resolve ticket constraints and distinguish behavior verification from dependency verification.
 
-Read the [worked examples](../../references/domain-design-examples.md) when implementing rules, concurrency mechanisms or cross-context failures at the approved testing seams.
+Read the [worked examples](../../references/domain-design-examples.md) when implementing rules, concurrency mechanisms or cross-context failures at the selected testing seams.
 
 ## Input
 
@@ -34,17 +34,17 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    runtime wave may contain other ownership-safe tickets, but this invocation
    owns only its one selected ticket and must not pull later-wave work forward.
 2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
-3. Write one behavior-focused test through an approved public seam for an applicable scenario or invariant.
+3. Write one behavior-focused test through a selected public seam for an applicable scenario or invariant.
 4. Run that focused test and have main observe the expected failure as behavior
    Red. If it passes unexpectedly or fails for an unrelated reason, correct the
    test setup before implementation. For structural-only work, main instead
    establishes the structural preservation and dependency evidence required by
    the path below; do not manufacture a behavior Red.
 5. After main owns that evidence, delegate eligible implementation work by
-   default. Main supplies the complete approved boundary, exclusions, recorded
+   default. Main supplies the complete selected boundary, exclusions, recorded
    wave base, mutation ownership, verification seam, and
    `delegation_allowed = false`. The direct child writes the minimum implementation
-   needed for Green. Place rules in the approved domain modules, coordination in
+   needed for Green. Place rules in the selected domain modules, coordination in
    application modules, and external conversion in adapters. It must not spawn
    or delegate directly or indirectly, and workers must not stage or commit. If
    it needs decomposition or another agent, it returns its evidence and blocker
@@ -62,7 +62,7 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    fallback; explicitly
    required delegation follows the routing contract's blocker outcome. Do not
    anticipate later tickets.
-6. Run the focused test. Repeat steps 3-6 one behavior at a time until all applicable ticket scenarios and invariants have test evidence, including existing tests where sufficient. Include approved concurrent interleavings, duplicates and partial failures when relevant; a sequential fake alone does not prove a persistence concurrency guarantee. Then run the affected checks: relevant test modules, lint, type checks, and build steps defined by the repository.
+6. Run the focused test. Repeat steps 3-6 one behavior at a time until all applicable ticket scenarios and invariants have test evidence, including existing tests where sufficient. Include selected concurrent interleavings, duplicates and partial failures when relevant; a sequential fake alone does not prove a persistence concurrency guarantee. Then run the affected checks: relevant test modules, lint, type checks, and build steps defined by the repository.
 7. Main inspects the complete task-owned diff, attributes every change, and
    freshly verifies the focused behavior or structural evidence plus all
    affected checks in the authoritative integrated state. Then perform a
@@ -80,7 +80,7 @@ A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 
-Apply the contract's [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery) requirements for relevant domain and persistence changes. Test approved behavior through its public seams, name tests after domain outcomes, and collect the separate mapping/dependency evidence required there; do not substitute class or method-name assertions.
+Apply the contract's [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery) requirements for relevant domain and persistence changes. Test selected behavior through its public seams, name tests after domain outcomes, and collect the separate mapping/dependency evidence required there; do not substitute class or method-name assertions.
 
 ## Structural verification path
 
@@ -93,7 +93,7 @@ Stop and preserve evidence when:
 - no approved or autonomously selected unblocked ticket exists;
 - the selected workspace is unsafe or changes cannot be attributed/separated from user-owned work;
 - a behavior change cannot demonstrate Red for the intended reason, or structural work lacks preservation/dependency evidence;
-- implementation evidence invalidates the approved design;
+- implementation evidence invalidates the selected design;
 - an affected verification command fails after diagnosis;
 - the same blocking condition occurs three consecutive times.
 

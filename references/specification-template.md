@@ -2,7 +2,7 @@
 
 This is a spec-coder resource used directly by `plan-coder`. Synthesize confirmed design decisions; do not require an external skill, tracker configuration, or publication to create this document. Apply the [domain design contract](./domain-design-contract.md).
 
-Write to `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` after safe workspace selection and a passing baseline. For resumed work, reconcile the existing approved specification instead of replacing it. Preserve stable references. Scale content to the task; short paragraphs can cover small changes.
+Write to `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` after safe workspace selection and a passing baseline. For resumed work, reconcile the existing approved or autonomously selected specification instead of replacing it. Preserve stable references. Scale content to the task; short paragraphs can cover small changes.
 
 ## Document outline
 
@@ -47,7 +47,7 @@ Record workspace mode, rationale, branch, starting revision, relevant initial ch
 
 ## Gate 2 review
 
-Reconcile the approved design against the document: scenarios, context/model responsibilities, invariants, consistency/interaction decisions, interfaces, dependencies and verification. Correct omissions and dangling references. Return genuinely new or invalidated design decisions to design; ordinary wording corrections remain synthesis.
+Reconcile the selected design against the document: scenarios, context/model responsibilities, invariants, consistency/interaction decisions, interfaces, dependencies and verification. Correct omissions and dangling references. Return genuinely new or invalidated design decisions to design; ordinary wording corrections remain synthesis.
 
 In the interactive path, present the written specification for approval before
 writing its ticket set. For autonomous Gate 2, require one unique grounded
