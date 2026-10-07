@@ -43,8 +43,17 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    application modules, and external conversion in adapters. It must not spawn
    or delegate directly or indirectly, and workers must not stage or commit. If
    it needs decomposition or another agent, it returns its evidence and blocker
-   to main. Main-local behavior remains the path for ineligible work, an
-   applicable opt-out, or recorded spawn-unavailable fallback; explicitly
+   to main. The brief requires the shared **Worker Progress Heartbeat** /
+   `ProgressSnapshot` when proactive child-to-main messaging is available:
+   starting, every 45-60 seconds while active, on phase change, before and
+   after a long command, and immediately on blocker, failure, or completion.
+   `heartbeat-capability-unavailable` preserves delegation. A
+   `heartbeat-overdue` observation or wait timeout means no message only and
+   does not grant failure, blocker, interrupt, takeover, promotion, or local
+   fallback authority; main-only diff acceptance, fresh verification, and
+   completion authority remain unchanged. Main-local behavior remains the path
+   for ineligible work, an applicable opt-out, or recorded spawn-unavailable
+   fallback; explicitly
    required delegation follows the routing contract's blocker outcome. Do not
    anticipate later tickets.
 6. Run the focused test. Repeat steps 3-6 one behavior at a time until all applicable ticket scenarios and invariants have test evidence, including existing tests where sufficient. Include approved concurrent interleavings, duplicates and partial failures when relevant; a sequential fake alone does not prove a persistence concurrency guarantee. Then run the affected checks: relevant test modules, lint, type checks, and build steps defined by the repository.
@@ -61,7 +70,7 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior.
 10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
 
-A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not retried across configured tiers. Preserve its route, output and verification state and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 sibling whose brief includes `delegation_allowed = false`; the failed child never creates its replacement. A second failure follows this skill's normal repair or stop conditions.
+A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not retried across configured tiers. Preserve its route, output and verification state and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 promotion sibling whose brief includes `delegation_allowed = false`, must not stage or commit, and the same Worker Progress Heartbeat / `ProgressSnapshot` reporting requirements; the failed child never creates its replacement. Heartbeat capability unavailable preserves delegation, while heartbeat overdue or a wait timeout is no message only and cannot itself trigger promotion, repair, or local fallback. A second failure follows this skill's normal repair or stop conditions.
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 

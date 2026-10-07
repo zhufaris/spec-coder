@@ -36,7 +36,16 @@ evidence, and a final delivery report produced through `delivery-coder`.
    workflows, tools, or other agents. Apply a supported Host child-tool denial
    as defense in depth; otherwise rely on the contract without claiming sandbox
    enforcement. A child that needs delegation must return evidence and its
-   blocker to main, which alone may create a layer-2 sibling.
+   blocker to main, which alone may create a layer-2 sibling. Every direct-child
+   brief also requires the shared **Worker Progress Heartbeat** /
+   `ProgressSnapshot` policy when proactive child-to-main messaging is
+   available: report at start, every 45-60 seconds while active, on phase
+   change, before and after a long command, and immediately on blocker,
+   failure, or completion. `heartbeat-capability-unavailable` preserves the
+   delegation decision; `heartbeat-overdue` or a Host wait timeout means no
+   message only, never a failure, blocker, interrupt, takeover, promotion, or
+   local fallback authority. A snapshot never changes main-only diff
+   acceptance, fresh verification, or completion authority.
 3. Classify the request:
    - For a new request, complete workspace preflight under the shared contract:
      account for initial changes, select safe in-place or isolated execution,
@@ -90,6 +99,15 @@ that workers must not stage or commit. The active main agent retains gate and
 scope decisions, behavior Red or structural preservation/dependency evidence,
 diff acceptance, attribution, fresh verification, staging, atomic commits,
 delivery aggregation, and completion authority.
+
+Each worker brief requires the shared Worker Progress Heartbeat /
+`ProgressSnapshot` reporting schedule: starting, 45-60 seconds while active,
+phase change, pre/post long command, and blocker/failure/completion whenever
+proactive messaging is available. The same requirement applies to a
+main-created promotion sibling. A capability-unavailable observation preserves
+delegation and an overdue heartbeat or wait timeout records no message only;
+neither authorizes failure classification, interruption, takeover, promotion,
+or local execution.
 
 Apply execution outcomes distinctly. An applicable opt-out means local
 execution and no spawning in that scope. A mid-run opt-out requires main to

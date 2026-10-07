@@ -846,6 +846,7 @@ class PluginContractTests(unittest.TestCase):
             "live Host",
         ):
             self.assertIn(phrase, published)
+
         self.assertIn("provider", readme)
         self.assertIn("model", readme)
         expected_mappings = (
@@ -873,6 +874,24 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("not Host-level sandbox isolation", published)
         self.assertIn("not a required Host model", compatibility)
         self.assertIn("nine bundled skills", compatibility)
+
+    def test_published_worker_heartbeat_contract_is_complete(self) -> None:
+        readme = read_text(ROOT / "README.md").lower()
+        install_guide = read_text(ROOT / "INSTALL.md").lower()
+
+        for document in (readme, install_guide):
+            for phrase in (
+                "progresssnapshot",
+                "45-60 seconds",
+                "phase change",
+                "long command",
+                "heartbeat-capability-unavailable",
+                "heartbeat-overdue",
+                "wait timeout",
+                "main-only",
+            ):
+                with self.subTest(document=document[:30], phrase=phrase):
+                    self.assertIn(phrase, document)
 
 
 if __name__ == "__main__":

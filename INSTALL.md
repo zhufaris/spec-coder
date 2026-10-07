@@ -119,6 +119,24 @@ Agent tree 为 at most two layers，only the active main agent 可以 spawn。�
 
 delivery 默认创建两个独立、只读 direct reviewers，分别检查 Standards axis 和 Spec axis。review-specific opt-out 或 request-wide opt-out 会改为 main-local 两轴 review；spawn unavailable 且 delegated review was explicitly required 时必须阻塞，否则 main 执行相同的本地 review。
 
+### Worker Progress Heartbeat
+
+若 live Host 有 proactive child-to-main messaging，每个 suite-owned direct
+child（implementation worker、Standards reviewer、Spec reviewer，以及由 main
+创建的 promotion sibling）都遵循共享 `ProgressSnapshot`：在开始时、active
+期间每 45-60 seconds、发生 phase change、long command 前后，以及 blocker、
+failure 或 completion 时立即报告。它只提供对话中的 observation evidence；短
+任务只发起始和终态，不伪造周期心跳。安装器不实现、配置或承诺任何 Host 消息
+适配器。
+
+`heartbeat-capability-unavailable` 仅记录 Host 没有这项能力，delegation 与
+最终 evidence return 仍按既有规则处理。`heartbeat-overdue` 或 Host wait timeout
+只表示该窗口没有 message，不是 failure 或 blocker，且不给予 interrupt、
+takeover、promotion 或 local fallback 权限。snapshot 无法改变 main-only 的
+diff acceptance、fresh verification 或 completion authority；每个 child 仍是
+`delegation_allowed = false`、不得 stage/commit，delivery reviewer 仍为
+read-only。
+
 所有 suite-owned approval 和 mutation authorization 都先通过 `show-me` 提供 two to four 个 grounded choices 及各自后果，再请求选择。
 
 ### 可选：覆盖 bundled model defaults

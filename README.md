@@ -68,6 +68,24 @@ main 每次只维护一个 dependency-aware active execution wave。并行 wave 
 
 delivery 默认使用两个相互独立的 read-only direct reviewers：一个执行 Standards axis，一个执行 Spec axis。request-wide opt-out 或 review-specific opt-out 会让 main 在本地完成同样的两条 review；spawn unavailable 且 delegated review 未被明确要求时也如此。若 delegated review was explicitly required，则缺失 spawn 是 blocker。main 检查 reviewer evidence 并对最终结论负责。
 
+### Worker Progress Heartbeat
+
+当 Host 提供 proactive child-to-main messaging 时，每个 suite-owned direct
+child（implementation worker、Standards reviewer、Spec reviewer，以及 main
+创建的 promotion sibling）都要按共享 `ProgressSnapshot` 契约主动上报：开始
+时、active 期间每 45-60 seconds、phase change、long command 前后，以及
+blocker、failure 或 completion 时立即上报。它是 conversation 中的观测证据，
+不是 Host 轮询、持久状态或授权机制；短任务只需要 starting 与 terminal
+snapshot，不能伪造周期更新。
+
+`heartbeat-capability-unavailable` 表示 Host 缺少该主动消息能力，仍保留既有
+delegation 和最终返回流程，不承诺插件会实现 Host 消息功能。`heartbeat-overdue`
+或 Host wait timeout 只表示该观察窗口没有 message：不表示 failure 或 blocker，
+也不授予 interrupt、takeover、promotion 或 local fallback 权限。所有 snapshot
+都不能越过 main-only 的 diff acceptance、fresh verification 或 completion
+authority；direct-child 的 `delegation_allowed = false`、不 stage/commit，及
+reviewer read-only 边界保持不变。
+
 每次 suite-owned human approval 或 mutation review 都先由 `show-me` 展示 authoritative artifact、关键决定、风险、授权效果和下一阶段，并提供 two to four 个 grounded、实质不同且带后果说明的选项；`show-me` 只呈现，不代替用户选择或授予权限。
 
 ## Optional subagent model routing

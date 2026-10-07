@@ -79,6 +79,26 @@ a fresh wave; do not treat a previously discussed wave as durable state.
 
 Use `spec-coder` by default for requests that create or change code. Do not automatically route read-only explanation, status, investigation, or review requests through it. Honor an explicit `skip spec-coder` or `directly modify` request while continuing to obey all other applicable instructions and skills.
 
+## Worker Progress Heartbeat
+
+Every suite-owned direct-child brief consumes the shared **Worker Progress
+Heartbeat** / `ProgressSnapshot` policy in the
+[subagent routing contract](./subagent-routing-contract.md). When proactive
+child-to-main messaging is available, require the child to report a valid
+snapshot at start, every 45-60 seconds while active, on each phase change,
+before and after a long command, and immediately on blocker, failure, or
+completion. A short attempt reports start and terminal state without inventing
+a periodic update. The brief preserves the literal `delegation_allowed = false`
+and the child must not stage or commit; a reviewer also remains read-only.
+
+`heartbeat-capability-unavailable` records that proactive messaging is absent
+but preserves the existing delegation decision and final-return behavior.
+`heartbeat-overdue` or a Host wait timeout means only that no message was
+observed in that window. Neither outcome creates a failure or blocker and
+neither grants interruption, takeover, promotion, local fallback, or other
+authority. Snapshots are conversational evidence only: main-only completion
+authority, diff acceptance, and fresh verification remain unchanged.
+
 ## Repository Setup
 
 `setup-coder` is a manually invoked, idempotent onboarding capability; it is not

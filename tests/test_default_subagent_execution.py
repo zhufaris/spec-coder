@@ -74,6 +74,36 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, orchestrator)
 
+    def test_orchestrator_and_tdd_briefs_require_worker_push_heartbeat(self) -> None:
+        orchestrator = read("skills/spec-coder/SKILL.md")
+        tdd = read("skills/tdd-coder/SKILL.md")
+        workflow = read("references/workflow-contract.md")
+        ticket_template = read("references/ticket-template.md")
+
+        for document in (orchestrator, tdd):
+            for phrase in (
+                "worker progress heartbeat",
+                "progresssnapshot",
+                "45-60 seconds",
+            ):
+                with self.subTest(document=document[:30], phrase=phrase):
+                    self.assertIn(phrase, document)
+
+        for document in (orchestrator, tdd):
+            self.assertIn("promotion sibling", document)
+            self.assertIn("delegation_allowed = false", document)
+            self.assertIn("must not stage or commit", document)
+
+        for document in (workflow, ticket_template):
+            for phrase in (
+                "worker progress heartbeat",
+                "progresssnapshot",
+                "heartbeat-overdue",
+                "completion authority",
+            ):
+                with self.subTest(document=document[:30], phrase=phrase):
+                    self.assertIn(phrase, document)
+
 
 if __name__ == "__main__":
     unittest.main()

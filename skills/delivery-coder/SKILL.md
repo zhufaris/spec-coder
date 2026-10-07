@@ -7,7 +7,7 @@ description: Review and verify a completed spec-coder plan before declaring deli
 
 Follow the shared [workflow contract](../../references/workflow-contract.md). Use the `code-review` review method only through a route compatible with the review mode below, then invoke `verification-before-completion`; route behavior repairs through `tdd-coder`.
 
-Apply the [subagent routing contract](../../references/subagent-routing-contract.md). Delivery delegates review by default to exactly two independent, read-only direct layer-2 reviewers: one Standards reviewer and one Spec reviewer. Each direct-child brief must include the literal `delegation_allowed = false`, say that the reviewer **must not spawn** or delegate directly or indirectly (including through another skill, workflow, tool or agent), prohibit edits/staging/commits, and provide complete inputs, explicit exclusions, the expected evidence, and the return format. If a reviewer needs another specialist or more decomposition, it returns its evidence and blocker to main.
+Apply the [subagent routing contract](../../references/subagent-routing-contract.md). Delivery delegates review by default to exactly two independent, read-only direct layer-2 reviewers: one Standards reviewer and one Spec reviewer. Each direct-child brief must include the literal `delegation_allowed = false`, say that the reviewer **must not spawn** or delegate directly or indirectly (including through another skill, workflow, tool or agent), prohibit edits/staging/commits, and provide complete inputs, explicit exclusions, the expected evidence, and the return format. Both briefs require the shared **Worker Progress Heartbeat** / `ProgressSnapshot` when proactive child-to-main messaging is available: report at start, every 45-60 seconds while active, on phase change, before and after a long command, and immediately on blocker, failure, or completion. If a reviewer needs another specialist or more decomposition, it returns its evidence and blocker to main.
 
 Each reviewer collects bounded evidence for its assigned axis. The active main agent remains accountable: main authors the final Standards/Spec conclusions. Reviewer output is evidence only: main retains scope and attribution decisions, repair judgment, integration review, fresh verification, delivery aggregation, commit authority, and every completion claim.
 
@@ -38,8 +38,14 @@ Choose the review mode before starting either axis:
 Delegated mode prepares exactly two distinct direct layer-2 briefs, one with
 `axis = standards` and one with `axis = spec`. Both briefs are read-only, carry
 `delegation_allowed = false`, and state `must_not_spawn = true`; neither
-reviewer may delegate directly or indirectly. Nondelegated modes prepare no
-reviewer brief.
+reviewer may delegate directly or indirectly. Each must use the shared
+`ProgressSnapshot` reporting schedule above when proactive messaging is
+available. `heartbeat-capability-unavailable` preserves the selected delegation
+decision. `heartbeat-overdue` or a Host wait timeout means no message only and
+does not create a failure or blocker or grant interruption, takeover,
+promotion, or local fallback authority. Main-only completion authority, diff
+acceptance, and fresh verification remain unchanged. Nondelegated modes prepare
+no reviewer brief.
 
 The upstream `code-review` skill is compatible only when it can preserve the selected mode and the two-layer limit. In a review/request opt-out or spawn-unavailable local fallback, main **must not invoke** `code-review` if it would itself delegate, spawn children or otherwise violate the opt-out. Instead, main performs the equivalent Standards axis and Spec axis checks spelled out above. Do not claim that the Host enforces the no-delegation instruction when it does not; the brief remains authoritative.
 
@@ -54,7 +60,7 @@ The upstream `code-review` skill is compatible only when it can preserve the sel
 7. Inspect final status and commit history against recorded initial changes. Confirm each task change is represented by an atomic commit and no unrelated change entered those commits. Preserve any user-staged work that predated the task; its presence is not itself a delivery failure.
 8. Report the delivered specification, commits, fresh evidence, resolved findings, and residual risks. Claim completion only when all required checks pass.
 
-If delegated evidence fails, is uncertain, lacks required support or crosses its boundary, preserve the chosen route and attempt evidence and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 sibling with `delegation_allowed = false`; a review child cannot create its replacement. Do not cycle through configured tiers, and never treat apparent subagent success as approval or completion authority.
+If delegated evidence fails, is uncertain, lacks required support or crosses its boundary, preserve the chosen route and attempt evidence and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 promotion sibling with `delegation_allowed = false`, read-only/no-edit/no-stage/no-commit limits, and the shared Worker Progress Heartbeat / `ProgressSnapshot` reporting requirement. A review child cannot create its replacement. Heartbeat capability unavailable preserves delegation; heartbeat overdue or a wait timeout is no message only and cannot itself trigger promotion, failure, blocker, interruption, takeover, or local fallback. Do not cycle through configured tiers, and never treat apparent subagent success as approval or completion authority.
 
 Do not push, create a pull request, publish external tickets, amend pre-existing commits, or make external changes without separate explicit authorization.
 

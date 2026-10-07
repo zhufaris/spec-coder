@@ -23,7 +23,7 @@ For each ticket, include:
 | Concurrency conflicts | Known ownership overlap, semantic conflicts, and tickets that cannot share a parallel wave |
 | Verification seam | Independently inspectable focused evidence plus affected checks and separate dependency/preservation evidence |
 | Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
-| Direct-child boundary | Every child brief states `delegation_allowed = false`; children do not spawn directly or indirectly, stage, or commit |
+| Direct-child boundary | Every child brief states `delegation_allowed = false`; children do not spawn directly or indirectly, stage, or commit. Require the shared Worker Progress Heartbeat / `ProgressSnapshot` when proactive messaging is available: start, every 45-60 seconds while active, phase change, before/after a long command, and blocker/failure/completion. `heartbeat-capability-unavailable` preserves delegation; `heartbeat-overdue` or a wait timeout means no message only and never grants failure, blocker, interrupt, takeover, promotion, or local fallback authority. Completion authority remains main-only. |
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
 
@@ -49,5 +49,12 @@ For relevant domain changes, references and acceptance preserve the approved bus
 ## Gate 3 review
 
 Check coverage in both directions: every in-scope scenario/invariant has a responsible ticket, and every ticket traces to approved behavior and architecture. Resolve invalid blockers, excessive size and missing verification. Check every ticket's delegation eligibility and mode, mutation ownership and exclusions, dependencies, isolation need, concurrency conflicts, verification seam, Host-capacity requirement, real-isolation requirement, and `delegation_allowed = false` child boundary. Name unresolved load-bearing decisions and affected tickets; do not mark them implementation-ready. Independent approved slices need not wait on unrelated open decisions.
+
+For every delegated ticket, the direct-child brief also references the shared
+Worker Progress Heartbeat / `ProgressSnapshot` contract. It requires the
+reporting schedule above only when proactive child-to-main messaging is
+available; it does not promise a Host implementation. Heartbeat snapshots are
+transient observation evidence, so their absence cannot update durable plan
+state or transfer any main-only completion, diff, or verification authority.
 
 Present the ticket set, deliverables, dependencies, and proposed wave shape for approval and implementation authorization. Adjust granularity within the approved design when needed. After approval, hand the dependency and wave inputs to the main orchestrator; update checkboxes only after each ticket's required checks pass, and retain atomic commits. Publishing tickets externally is a separate authorized action.

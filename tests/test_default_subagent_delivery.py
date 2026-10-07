@@ -54,6 +54,23 @@ class DefaultSubagentDeliveryContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, self.delivery)
 
+    def test_both_review_briefs_require_worker_push_heartbeat(self) -> None:
+        for phrase in (
+            "progresssnapshot",
+            "45-60 seconds",
+            "phase change",
+            "long command",
+            "heartbeat-capability-unavailable",
+            "heartbeat-overdue",
+            "completion authority",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, self.delivery)
+
+        self.assertIn("standards reviewer", self.delivery)
+        self.assertIn("spec reviewer", self.delivery)
+        self.assertIn("read-only", self.delivery)
+
 
 if __name__ == "__main__":
     unittest.main()
