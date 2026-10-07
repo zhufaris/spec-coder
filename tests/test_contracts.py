@@ -887,6 +887,9 @@ class PluginContractTests(unittest.TestCase):
                 "long command",
                 "heartbeat-capability-unavailable",
                 "heartbeat-overdue",
+                "awaiting-heartbeat",
+                "before or at dispatch",
+                "missed interval",
                 "wait timeout",
                 "main-only",
             ):

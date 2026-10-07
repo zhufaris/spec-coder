@@ -62,6 +62,9 @@ class DefaultSubagentDeliveryContractTests(unittest.TestCase):
             "long command",
             "heartbeat-capability-unavailable",
             "heartbeat-overdue",
+            "awaiting-heartbeat",
+            "before or at dispatch",
+            "missed interval",
             "completion authority",
         ):
             with self.subTest(phrase=phrase):

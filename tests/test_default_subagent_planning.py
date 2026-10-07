@@ -35,6 +35,14 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, template)
 
+        for phrase in (
+            "before or at dispatch",
+            "awaiting-heartbeat",
+            "missed interval",
+        ):
+            with self.subTest(heartbeat_phrase=phrase):
+                self.assertIn(phrase, template)
+
     def test_planner_checks_wave_coverage_and_safe_parallel_ownership(self) -> None:
         planner = read("skills/plan-coder/SKILL.md").lower()
 

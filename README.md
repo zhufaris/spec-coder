@@ -78,11 +78,13 @@ blocker、failure 或 completion 时立即上报。它是 conversation 中的观
 不是 Host 轮询、持久状态或授权机制；短任务只需要 starting 与 terminal
 snapshot，不能伪造周期更新。
 
-`heartbeat-capability-unavailable` 表示 Host 缺少该主动消息能力，仍保留既有
-delegation 和最终返回流程，不承诺插件会实现 Host 消息功能。`heartbeat-overdue`
-或 Host wait timeout 只表示该观察窗口没有 message：不表示 failure 或 blocker，
-也不授予 interrupt、takeover、promotion 或 local fallback 权限。所有 snapshot
-都不能越过 main-only 的 diff acceptance、fresh verification 或 completion
+main 在 before or at dispatch 记录消息能力：可用时为 `heartbeat-ready`，不可用
+时为 `heartbeat-capability-unavailable`；后者仍保留既有 delegation 和最终返回
+流程，不承诺插件会实现 Host 消息功能。普通无消息观察是
+`awaiting-heartbeat`；只有 missed interval 或 Host wait timeout 才记录为
+`heartbeat-overdue`。两者都只描述该观察窗口，不表示 failure 或 blocker，也不
+授予 interrupt、takeover、promotion 或 local fallback 权限。所有 snapshot 都
+不能越过 main-only 的 diff acceptance、fresh verification 或 completion
 authority；direct-child 的 `delegation_allowed = false`、不 stage/commit，及
 reviewer read-only 边界保持不变。
 

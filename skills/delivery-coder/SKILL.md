@@ -40,12 +40,15 @@ Delegated mode prepares exactly two distinct direct layer-2 briefs, one with
 `delegation_allowed = false`, and state `must_not_spawn = true`; neither
 reviewer may delegate directly or indirectly. Each must use the shared
 `ProgressSnapshot` reporting schedule above when proactive messaging is
-available. `heartbeat-capability-unavailable` preserves the selected delegation
-decision. `heartbeat-overdue` or a Host wait timeout means no message only and
-does not create a failure or blocker or grant interruption, takeover,
-promotion, or local fallback authority. Main-only completion authority, diff
-acceptance, and fresh verification remain unchanged. Nondelegated modes prepare
-no reviewer brief.
+available. Before or at dispatch, main records `heartbeat-ready` when proactive
+messaging is available or `heartbeat-capability-unavailable` when it is not;
+the unavailable state preserves the selected delegation decision. While
+waiting, an ordinary no-message observation is `awaiting-heartbeat`. Only a
+Host wait timeout or missed interval is `heartbeat-overdue`; it still means no
+message only and does not create a failure or blocker or grant interruption,
+takeover, promotion, or local fallback authority. Main-only completion
+authority, diff acceptance, and fresh verification remain unchanged.
+Nondelegated modes prepare no reviewer brief.
 
 The upstream `code-review` skill is compatible only when it can preserve the selected mode and the two-layer limit. In a review/request opt-out or spawn-unavailable local fallback, main **must not invoke** `code-review` if it would itself delegate, spawn children or otherwise violate the opt-out. Instead, main performs the equivalent Standards axis and Spec axis checks spelled out above. Do not claim that the Host enforces the no-delegation instruction when it does not; the brief remains authoritative.
 

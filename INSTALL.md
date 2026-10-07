@@ -129,11 +129,13 @@ failure 或 completion 时立即报告。它只提供对话中的 observation ev
 任务只发起始和终态，不伪造周期心跳。安装器不实现、配置或承诺任何 Host 消息
 适配器。
 
-`heartbeat-capability-unavailable` 仅记录 Host 没有这项能力，delegation 与
-最终 evidence return 仍按既有规则处理。`heartbeat-overdue` 或 Host wait timeout
-只表示该窗口没有 message，不是 failure 或 blocker，且不给予 interrupt、
-takeover、promotion 或 local fallback 权限。snapshot 无法改变 main-only 的
-diff acceptance、fresh verification 或 completion authority；每个 child 仍是
+main 在 before or at dispatch 记录消息能力：可用时为 `heartbeat-ready`，不可用
+时为 `heartbeat-capability-unavailable`；后者仍保留 delegation 与最终 evidence
+return。普通无消息观察是 `awaiting-heartbeat`；只有 missed interval 或 Host
+wait timeout 才记录为 `heartbeat-overdue`。两者都只表示该窗口没有 message，
+不是 failure 或 blocker，且不给予 interrupt、takeover、promotion 或 local
+fallback 权限。snapshot 无法改变 main-only 的 diff acceptance、fresh
+verification 或 completion authority；每个 child 仍是
 `delegation_allowed = false`、不得 stage/commit，delivery reviewer 仍为
 read-only。
 

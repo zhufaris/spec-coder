@@ -63,13 +63,23 @@ class HeartbeatScheduleTests(unittest.TestCase):
         self.assertTrue(heartbeat_report_due(seconds_since_report=45))
         self.assertTrue(heartbeat_report_due(seconds_since_report=60))
 
-    def test_transition_command_boundary_and_terminal_reports_are_immediate(self) -> None:
+    def test_transition_command_boundaries_and_terminal_reports_are_immediate(self) -> None:
         self.assertTrue(
             heartbeat_report_due(seconds_since_report=1, phase_changed=True)
         )
-        self.assertTrue(
-            heartbeat_report_due(seconds_since_report=1, command_boundary=True)
-        )
+        for command_boundary in ("before-command", "after-command"):
+            with self.subTest(command_boundary=command_boundary):
+                self.assertTrue(
+                    heartbeat_report_due(
+                        seconds_since_report=1,
+                        command_boundary=command_boundary,
+                    )
+                )
+        with self.assertRaises(ValueError):
+            heartbeat_report_due(
+                seconds_since_report=1,
+                command_boundary="during-command",
+            )
         self.assertTrue(heartbeat_report_due(seconds_since_report=1, terminal=True))
 
     def test_start_is_immediate_and_negative_elapsed_time_is_invalid(self) -> None:

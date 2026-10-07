@@ -49,7 +49,7 @@ AUTHORIZATION_INTENT_TOKENS = {
 
 
 # Host-neutral worker progress heartbeat contract.  These helpers intentionally
-# return ordinary copies and observational outcomes only; they do not grant
+# return immutable observation facts and observational outcomes only; they do not grant
 # dispatch, interruption, promotion, or completion authority.
 PROGRESS_SNAPSHOT_FIELDS = (
     "ticket_or_axis",
@@ -115,16 +115,18 @@ def heartbeat_report_due(
     *,
     starting: bool = False,
     phase_changed: bool = False,
-    command_boundary: bool = False,
+    command_boundary: str | None = None,
     terminal: bool = False,
 ) -> bool:
     """Return whether a worker heartbeat is due at an event or 45 seconds."""
     if seconds_since_report < 0:
         raise ValueError("seconds_since_report cannot be negative")
+    if command_boundary not in {None, "before-command", "after-command"}:
+        raise ValueError("unsupported command boundary")
     return bool(
         starting
         or phase_changed
-        or command_boundary
+        or command_boundary is not None
         or terminal
         or seconds_since_report >= 45
     )
