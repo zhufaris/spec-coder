@@ -34,7 +34,8 @@ A new coding request, or a repository containing partial spec-coder artifacts fr
 
 ## Output
 
-A prepared workspace, approved specification, approved vertical-ticket plan,
+A prepared workspace, approved or autonomously selected specification,
+approved or autonomously selected vertical-ticket plan,
 one atomic commit per completed ticket, review results, fresh verification
 evidence, and a final delivery report produced through `delivery-coder`.
 

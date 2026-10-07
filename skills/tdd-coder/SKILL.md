@@ -1,6 +1,6 @@
 ---
 name: tdd-coder
-description: Implement one approved, unblocked vertical ticket through an evidence-backed Red-Green loop, affected verification, plan-state update, and atomic commit. Use after plan-coder authorization or to resume a partially completed spec-coder ticket.
+description: Implement one approved or autonomously selected unblocked vertical ticket through an evidence-backed Red-Green loop, affected verification, plan-state update, and atomic commit. Use after plan-coder authorization or to resume a partially completed spec-coder ticket.
 ---
 
 # TDD Coder
@@ -90,7 +90,7 @@ For an approved behavior-preserving refactor or dependency-only repair, record t
 
 Stop and preserve evidence when:
 
-- no approved unblocked ticket exists;
+- no approved or autonomously selected unblocked ticket exists;
 - the selected workspace is unsafe or changes cannot be attributed/separated from user-owned work;
 - a behavior change cannot demonstrate Red for the intended reason, or structural work lacks preservation/dependency evidence;
 - implementation evidence invalidates the approved design;

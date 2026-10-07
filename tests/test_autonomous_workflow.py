@@ -201,6 +201,13 @@ class AutonomousModeContractTests(unittest.TestCase):
         orchestrator = read("skills/spec-coder/SKILL.md")
         tdd = read("skills/tdd-coder/SKILL.md")
         ticket_template = read("references/ticket-template.md")
+        routing = read("references/subagent-routing-contract.md")
+
+        self.assertIn("approved or autonomously selected specification", orchestrator)
+        self.assertIn(
+            "approved or autonomously selected vertical-ticket plan",
+            orchestrator,
+        )
 
         self.assertIn(
             "approved or autonomously selected durable planned wave order",
@@ -216,6 +223,15 @@ class AutonomousModeContractTests(unittest.TestCase):
         )
         self.assertIn("approved or autonomously selected ticket", tdd)
         self.assertIn(
+            "approved or autonomously selected unblocked vertical ticket",
+            tdd,
+        )
+        self.assertIn(
+            "no approved or autonomously selected unblocked ticket exists",
+            tdd,
+        )
+        self.assertNotIn("no approved unblocked ticket exists", tdd)
+        self.assertIn(
             "specification approval or autonomous gate 2 selection",
             ticket_template,
         )
@@ -223,6 +239,19 @@ class AutonomousModeContractTests(unittest.TestCase):
             "approved or autonomously selected planned wave order",
             ticket_template,
         )
+        for phrase in (
+            "approved or autonomously selected ticket is delegation-eligible",
+            "approved or autonomously selected ticket plan",
+            "interactive gate 3 approves",
+            "autonomous gate 3 selects",
+            "approved or autonomously selected order",
+            "selected plan checkboxes",
+            "within an approved or autonomously selected ticket",
+        ):
+            with self.subTest(routing_phrase=phrase):
+                self.assertIn(phrase, routing)
+        self.assertNotIn("approved ticket is delegation-eligible", routing)
+        self.assertNotIn("only within an approved ticket", routing)
 
     def test_scenario_fixture_keeps_autonomy_explicit_and_narrow(self) -> None:
         scenarios = read("tests/fixtures/scenarios.md")

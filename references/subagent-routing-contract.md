@@ -90,9 +90,10 @@ can independently inspect.
 ## Delegation Eligibility and Execution Mode
 
 Dependency readiness and delegation eligibility are separate decisions. An
-approved ticket is delegation-eligible when its inputs are grounded, its scope
-is bounded and reversible, the main agent has an independently inspectable
-verification seam, and it carries no main-only authority or credentials. Every
+approved or autonomously selected ticket is delegation-eligible when its inputs
+are grounded, its scope is bounded and reversible, the main agent has an
+independently inspectable verification seam, and it carries no main-only
+authority or credentials. Every
 dependency-ready eligible ticket delegates to one direct child by default,
 including a wave containing only one ticket.
 
@@ -126,16 +127,18 @@ unavailable explicitly required model remains a concrete routing conflict.
 ## Execution Waves
 
 Before Gate 3, `plan-coder` writes the durable planned wave membership and
-order into the approved ticket plan. Every ticket exactly once is required; a wave
+order into the approved or autonomously selected ticket plan. Every ticket exactly once is required; a wave
 has at most four members, dependencies point only to earlier waves, conflicts
-do not share a wave, and a main-local ticket is a singleton. Gate 3 approves
-both the ticket set and its durable planned wave layout; scheduling order is
-not a functional dependency.
+do not share a wave, and a main-local ticket is a singleton. Interactive Gate 3 approves
+both the ticket set and its durable planned wave layout; autonomous Gate 3 selects
+their unique grounded recommendation and records the autonomous
+transition. Scheduling order is not a functional dependency.
 
 After Gate 3, form the current execution wave only from the earliest durable
 planned wave with an unchecked ticket. A live dispatch batch considers its
-eligible members in approved order and may shrink for live Host capacity. It
-must not pull a ticket from a later planned wave or regroup membership.
+eligible members in approved or autonomously selected order and may shrink for
+live Host capacity. It must not pull a ticket from a later planned wave or
+regroup membership.
 
 Parallel mutation additionally requires real Host/task workspace isolation.
 When isolation is unavailable, serialize the current planned wave through one
@@ -144,7 +147,7 @@ not sufficient isolation. Recompute isolation and capacity only after the main
 agent has accounted for returned results and advanced accepted plan state.
 
 There is at most one active execution wave. Durable planned wave membership,
-approved plan checkboxes, and committed Git state govern recovery; transient
+selected plan checkboxes, and committed Git state govern recovery; transient
 Host handles and execution modes remain conversational evidence. Do not create
 a scheduler database, private state file, or persistent opt-out record.
 
@@ -276,7 +279,7 @@ approval gate.
 
 - `spec-coder` owns general classification, live Host compatibility, and
   promotion.
-- `tdd-coder` delegates eligible work only within an approved ticket and keeps
+- `tdd-coder` delegates eligible work only within an approved or autonomously selected ticket and keeps
   Red-Green, diff review, affected verification, attribution, and commit
   ownership.
 - `delivery-coder` delegates eligible bounded evidence collection by default
