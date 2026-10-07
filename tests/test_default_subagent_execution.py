@@ -30,7 +30,7 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
         self.assertIn("gate-3-approved", tdd)
 
         for phrase in (
-            "approved planned wave order",
+            "approved or autonomously selected durable planned wave order",
             "current planned wave",
             "live dispatch batch",
             "must not pull",

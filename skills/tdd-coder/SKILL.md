@@ -5,9 +5,9 @@ description: Implement one approved, unblocked vertical ticket through an eviden
 
 # TDD Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md). Compose the installed `tdd` skill at the public testing seams already approved in the specification and ticket plan.
+Follow the shared [workflow contract](../../references/workflow-contract.md). Compose the installed `tdd` skill at the public testing seams already selected in the specification and ticket plan.
 
-Route implementation work through the [subagent routing contract](../../references/subagent-routing-contract.md). This skill delegates eligible implementation work by default to one direct layer-2 child, even when the execution wave contains one ticket. A delegated implementation must remain inside the approved ticket, be bounded and reversible, and expose an explicit verification seam. Ambiguous scope, missing context, high-risk mutation, attribution, and commit ownership remain with the main agent.
+Route implementation work through the [subagent routing contract](../../references/subagent-routing-contract.md). This skill delegates eligible implementation work by default to one direct layer-2 child, even when the execution wave contains one ticket. A delegated implementation must remain inside the approved or autonomously selected ticket, be bounded and reversible, and expose an explicit verification seam. Ambiguous scope, missing context, high-risk mutation, attribution, and commit ownership remain with the main agent.
 
 Read and apply the [domain design contract](../../references/domain-design-contract.md) to resolve ticket constraints and distinguish behavior verification from dependency verification.
 
@@ -27,12 +27,12 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 
 ## Process
 
-1. Confirm the handed-off ticket belongs to the Gate-3-approved durable planned
-   wave and the current planned wave is the earliest incomplete one. Confirm all
+1. Confirm the handed-off ticket belongs to the Gate-3-approved or autonomously selected durable planned wave
+   and the current planned wave is the earliest incomplete one. Confirm all
    of its blockers are complete. Verify the selected workspace, recorded wave
    base, and initial changes; preserve unrelated work in either mode. The
    runtime wave may contain other ownership-safe tickets, but this invocation
-   owns only its one approved ticket and must not pull later-wave work forward.
+   owns only its one selected ticket and must not pull later-wave work forward.
 2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
 3. Write one behavior-focused test through an approved public seam for an applicable scenario or invariant.
 4. Run that focused test and have main observe the expected failure as behavior

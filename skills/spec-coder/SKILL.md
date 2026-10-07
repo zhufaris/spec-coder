@@ -82,12 +82,12 @@ evidence, and a final delivery report produced through `delivery-coder`.
       self-checks, decomposition, and durable planned-wave work but does not
       wait at Gate 2 or Gate 3 when one unique grounded recommendation exists.
    4. After Gate 3, form and run the dependency-aware execution wave described
-      below from the approved durable planned wave order. `tdd-coder` executes
+      below from the approved or autonomously selected durable planned wave order. `tdd-coder` executes
       each wave member through Red-Green or the approved structural path,
       affected checks, a plan-checkbox update, and an atomic commit. Repeat
       with the next planned wave until all tickets are complete.
    5. `delivery-coder` performs findings-first review, routes repairs back through TDD, runs the full applicable suite, and alone may produce the terminal completion claim.
-5. Keep the durable plan checkboxes and Gate-3-approved planned-wave membership
+5. Keep the durable plan checkboxes and approved or autonomously selected planned-wave membership
    as task-state truth. Runtime has one active execution wave at most; execution
    modes and Host handles remain conversational. On resume, use durable wave
    membership with checkboxes and committed Git rather than regrouping work.
@@ -108,10 +108,10 @@ mode skips only their human waiting steps, not their artifacts or checks.
 
 ## Approved Ticket Execution Waves
 
-From the Gate-3-approved planned wave order, the active main agent schedules
+From the approved or autonomously selected planned wave order, the active main agent schedules
 one active dependency-aware execution wave. Select the current planned wave:
 the earliest wave with an unchecked ticket. Recompute delegation eligibility,
-isolation, and live Host capacity before dispatch, but retain approved planned
+isolation, and live Host capacity before dispatch, but retain selected planned
 wave membership and order. Eligible work delegates by default, including when
 only one eligible ticket exists. A live dispatch batch may shrink to at most four
 direct workers and never more than the Host's currently available

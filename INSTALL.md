@@ -139,7 +139,9 @@ verification 或 completion authority；每个 child 仍是
 `delegation_allowed = false`、不得 stage/commit，delivery reviewer 仍为
 read-only。
 
-所有 suite-owned approval 和 mutation authorization 都先通过 `show-me` 提供 two to four 个 grounded choices 及各自后果，再请求选择。
+Interactive Gate 和其他仍需 separate human authority 的 suite-owned approval
+或 mutation authorization，先通过 `show-me` 提供 two to four 个 grounded
+choices 及各自后果，再请求选择。Autonomous selection does not invoke `show-me`。
 
 ### 可选：覆盖 bundled model defaults
 

@@ -174,6 +174,16 @@ class AutonomousModeContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, published)
 
+    def test_published_docs_limit_show_me_to_human_reviews(self) -> None:
+        readme = read("README.md")
+        install = read("INSTALL.md")
+
+        for document in (readme, install):
+            with self.subTest(document=document[:30]):
+                self.assertIn("interactive gate", document)
+                self.assertIn("autonomous selection", document)
+                self.assertIn("does not invoke `show-me`", document)
+
     def test_domain_templates_and_delivery_accept_autonomously_selected_artifacts(self) -> None:
         domain_contract = read("references/domain-design-contract.md")
         specification_template = read("references/specification-template.md")
@@ -186,6 +196,33 @@ class AutonomousModeContractTests(unittest.TestCase):
         self.assertIn("autonomous gate 3", ticket_template)
         self.assertIn("approved or autonomously selected specification and plan", delivery)
         self.assertIn("approved or autonomously selected design", tdd)
+
+    def test_execution_handoff_accepts_autonomously_selected_tickets_and_waves(self) -> None:
+        orchestrator = read("skills/spec-coder/SKILL.md")
+        tdd = read("skills/tdd-coder/SKILL.md")
+        ticket_template = read("references/ticket-template.md")
+
+        self.assertIn(
+            "approved or autonomously selected durable planned wave order",
+            orchestrator,
+        )
+        self.assertIn(
+            "approved or autonomously selected planned-wave membership",
+            orchestrator,
+        )
+        self.assertIn(
+            "approved or autonomously selected durable planned wave",
+            tdd,
+        )
+        self.assertIn("approved or autonomously selected ticket", tdd)
+        self.assertIn(
+            "specification approval or autonomous gate 2 selection",
+            ticket_template,
+        )
+        self.assertIn(
+            "approved or autonomously selected planned wave order",
+            ticket_template,
+        )
 
     def test_scenario_fixture_keeps_autonomy_explicit_and_narrow(self) -> None:
         scenarios = read("tests/fixtures/scenarios.md")

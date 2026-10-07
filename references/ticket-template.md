@@ -1,10 +1,10 @@
 # Local Vertical-Ticket Template
 
-This is a spec-coder resource used directly by `plan-coder` after specification approval. Decompose the approved specification into a local plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`. Apply the [domain design contract](./domain-design-contract.md); do not require an external planning skill or issue tracker.
+This is a spec-coder resource used directly by `plan-coder` after specification approval or autonomous Gate 2 selection. Decompose the selected specification into a local plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`. Apply the [domain design contract](./domain-design-contract.md); do not require an external planning skill or issue tracker.
 
 ## Plan structure
 
-Reference the approved specification and selected workspace, record the starting revision/baseline and approval status, then list tickets, explicit durable planned waves, and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan has **one active execution wave** at most, selected from the approved planned wave order; Host and recovery handles remain conversational.
+Reference the selected specification and workspace, record the starting revision/baseline and approval or autonomous-selection status, then list tickets, explicit durable planned waves, and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan has **one active execution wave** at most, selected from the approved or autonomously selected planned wave order; Host and recovery handles remain conversational.
 
 ## Wave W1: `T1`, `T2`
 

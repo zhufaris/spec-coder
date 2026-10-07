@@ -16,7 +16,7 @@
 | `plan-coder` | 重新验证已准备的 workspace，再生成规格和垂直 tickets |
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
-| `show-me` | 在每次 suite-owned 审批前生成紧凑的 inline ASCII review map |
+| `show-me` | 在每次 suite-owned human approval 前生成紧凑的 inline ASCII review map |
 | `using-git-worktrees` | 在选定隔离路径后复用或创建安全的可选 Git worktree |
 | `setup-coder` | 手动、幂等地检查并初始化目标仓库的 spec-coder 使用方式 |
 
@@ -160,7 +160,11 @@ Discovery 开始前先完成 workspace preflight，并取得 fresh green baselin
 
 `grill-coder` 在预检后逐问确认决策。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
 
-Gate 1、Gate 2、Gate 3、重新打开的 Gate 以及 suite-owned mutation authorization 都会先调用本地 `show-me`，在对话中显示简短 ASCII review map 和 two to four 个 grounded choices。完整 artifact 或 diff 仍是审批依据；图不会自动授予批准，也不依赖 tmux、编辑器或浏览器。
+Interactive Gate 1、Gate 2、Gate 3、重新打开的 human Gate，以及仍需
+separate human authority 的 suite-owned mutation authorization，都会先调用本地
+`show-me`，在对话中显示简短 ASCII review map 和 two to four 个 grounded
+choices。Autonomous selection does not invoke `show-me`；完整 artifact 或 diff
+仍是适用路径的决定依据，图不会自动授予批准，也不依赖 tmux、编辑器或浏览器。
 
 DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Bounded Context、各自的语言和状态所有权，以及必要的 Entity、Value Object、Aggregate 和 Domain Service；区分领域规则、应用编排与 adapter 转换。涉及并发、重试或跨上下文协作时，明确原子性、冲突结果、幂等与恢复责任。模型角色不必逐一对应类，小任务使用简短描述。
 
