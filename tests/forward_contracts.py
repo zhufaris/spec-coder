@@ -32,6 +32,13 @@ AUTHORIZATION_REVIEW_KINDS = {
     "reopened gate",
     "named mutation",
 }
+AUTONOMOUS_REVIEW_KINDS = {
+    "design-alternative-selection",
+    "gate-1",
+    "gate-2",
+    "gate-3",
+    "reopened-in-scope-gate",
+}
 AUTHORIZATION_INTENT_TOKENS = {
     "approve": {"approve", "approves", "approved", "approving"},
     "change": {
@@ -63,6 +70,54 @@ PROGRESS_SNAPSHOT_FIELDS = (
 )
 PROGRESS_PHASES = {"starting", "working", "verifying", "blocked", "completed"}
 VERIFICATION_STATES = {"not-started", "running", "passed", "failed"}
+
+
+def resolve_autonomy_mode(
+    *, explicit_user_choice: bool | None, source: str | None
+) -> str:
+    """Resolve request-scoped autonomy without inferring or persisting it."""
+    if explicit_user_choice is None:
+        return "interactive"
+    if not isinstance(explicit_user_choice, bool):
+        raise ValueError("explicit_user_choice must be a boolean or None")
+    if not explicit_user_choice:
+        return "interactive"
+    if source != "current-user-request":
+        raise ValueError("autonomous mode requires the current user request")
+    return "autonomous"
+
+
+def decide_approval_route(
+    *,
+    autonomy_mode: str,
+    review_kind: str,
+    grounded_recommendations: int,
+    unresolved_load_bearing: bool = False,
+    scope_expansion: bool = False,
+    separate_authority_required: bool = False,
+) -> str:
+    """Select the review route without widening request-scoped authority."""
+    if autonomy_mode not in {"interactive", "autonomous"}:
+        raise ValueError("unsupported autonomy mode")
+    if isinstance(grounded_recommendations, bool) or not isinstance(
+        grounded_recommendations, int
+    ):
+        raise ValueError("grounded_recommendations must be an integer")
+    if autonomy_mode == "interactive":
+        return "request-human-review"
+    if unresolved_load_bearing:
+        return "stop-unresolved-decision"
+    if (
+        scope_expansion
+        or separate_authority_required
+        or review_kind == "named-mutation"
+    ):
+        return "request-human-review"
+    if review_kind not in AUTONOMOUS_REVIEW_KINDS:
+        return "request-human-review"
+    if grounded_recommendations != 1:
+        return "stop-no-unique-recommendation"
+    return "auto-select-recommended"
 
 
 def validate_progress_snapshot(snapshot: Mapping[str, object]) -> Mapping[str, object]:

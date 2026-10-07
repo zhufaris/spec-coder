@@ -7,10 +7,26 @@ description: Orchestrate code-changing requests through requirements grilling, d
 
 Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages. Route subagent work through the [subagent routing contract](../../references/subagent-routing-contract.md).
 
-All initial and reopened approval gates use bundled `show-me` under the shared
-approval review contract. The stage that owns the gate supplies grounded facts,
-presents the complete artifact, asks the explicit question, and interprets the
-answer; visualization never owns approval.
+All initial and reopened human approval gates use bundled `show-me` under the
+shared approval review contract. The stage that owns the gate supplies grounded
+facts, presents the complete artifact, asks the explicit question, and
+interprets the answer; visualization never owns approval.
+
+The optional `autonomous=true` parameter is request-scoped. The default is false.
+Only an explicit choice in the current user request enables it; never
+infer or persist it from repository or global configuration, `AGENTS.md`,
+history, prior sessions, or a subagent. An explicit false choice or revocation
+returns the remaining workflow prospectively to interactive review.
+
+With autonomous authority, select exactly one unique grounded recommendation
+for the design alternative and Gate 1, Gate 2, and Gate 3, recording
+`auto-selected under explicit autonomous authority` rather than user-approved.
+Do the same for an in-scope reopened gate. Do not wait for a human response or
+invoke `show-me` when no human review is requested. Stop on a missing or
+ambiguous recommendation or unresolved load-bearing decision. Scope expansion,
+named mutation, setup exact-diff review, push, install, external publication,
+configuration, credentials, destructive action, or any other action requiring
+separate authorization still requires human review; autonomous mode does not widen it.
 
 ## Input
 
@@ -55,11 +71,16 @@ evidence, and a final delivery report produced through `delivery-coder`.
    - For resumed work, infer the earliest incomplete phase from durable artifacts and fresh verification at the inferred boundary. Never maintain a private workflow-state file.
 4. Run the fixed stage order:
    1. `grill-coder` consumes the prepared workspace and exposes hidden requirements, boundaries, constraints, and acceptance signals.
-   2. `design-coder` compares 2-3 approaches and stops for explicit approval of the selected design.
+   2. `design-coder` compares 2-3 approaches. The interactive path stops for
+      explicit selection and Gate 1 approval; the autonomous path selects the
+      unique grounded recommendation without waiting.
    3. `plan-coder` revalidates the prepared workspace, user-change ownership,
       and baseline freshness, writes the local specification, stops for
-      specification approval, decomposes it into vertical tickets, then stops
-      for ticket approval and implementation authorization.
+      specification approval in the interactive path, decomposes it into
+      vertical tickets, then stops for ticket approval and implementation
+      authorization. The autonomous path performs the same synthesis,
+      self-checks, decomposition, and durable planned-wave work but does not
+      wait at Gate 2 or Gate 3 when one unique grounded recommendation exists.
    4. After Gate 3, form and run the dependency-aware execution wave described
       below from the approved durable planned wave order. `tdd-coder` executes
       each wave member through Red-Green or the approved structural path,
@@ -71,13 +92,19 @@ evidence, and a final delivery report produced through `delivery-coder`.
    modes and Host handles remain conversational. On resume, use durable wave
    membership with checkboxes and committed Git rather than regrouping work.
 6. Reopen the affected approval gate whenever scope or architecture changes.
-   Show the prior approval, changed fact, affected decision, and return path
-   through `show-me` before requesting renewed approval. Return to
-   `design-coder` when implementation evidence invalidates an approved
-   assumption.
+   Scope expansion returns to human review. For an in-scope change under
+   autonomous authority, require one unique grounded recommendation and record
+   its auto-selection without `show-me`; otherwise show the prior approval,
+   changed fact, affected decision, and return path through `show-me` before
+   requesting renewed approval. Return to `design-coder` when implementation
+   evidence invalidates an approved or autonomously selected assumption.
 7. Stop after the same blocking condition occurs three consecutive times, preserving the exact evidence and resume point.
 
-The three human gates are design approval, written-specification approval, and ticket-set approval plus implementation authorization. After the third gate, proceed autonomously within the approved scope through TDD, review, verification, and commits.
+The three human gates in interactive mode are design approval,
+written-specification approval, and ticket-set approval plus implementation
+authorization. After the third gate, proceed autonomously within the approved
+scope through TDD, review, verification, and commits. Request-scoped autonomous
+mode skips only their human waiting steps, not their artifacts or checks.
 
 ## Approved Ticket Execution Waves
 
@@ -143,7 +170,8 @@ Stop and report the recoverable state when:
 - a capability required for the selected path is missing or incompatible;
 - no safe workspace can be selected under the user's constraints;
 - workspace preflight or baseline verification fails before discovery;
-- an approval gate is pending or reopened;
+- an interactive approval gate is pending, or a reopened autonomous gate lacks
+  a unique grounded recommendation;
 - changes cannot be safely attributed or separated from user-owned work in the selected workspace;
 - the same blocker occurs three consecutive times;
 - `delivery-coder` cannot obtain fresh verification evidence from all required checks.

@@ -143,6 +143,19 @@ minimum_tier = "standard"
 
 ## Workflow
 
+可选参数 `autonomous=true` 只在当前请求中生效（request-scoped），default is
+false，且只能由 current user request 明确启用；不得从仓库/全局配置、
+`AGENTS.md`、历史会话或 subagent 推断或持久化。启用后会在唯一 grounded
+recommended 选项存在时自动采用推荐方案，并跳过 Gate 1、Gate 2、Gate 3 的
+human wait/`show-me`，但仍生成 design、specification、tickets、durable waves，
+并执行 self-check、TDD、review、verification 和 commits。记录必须写成
+`auto-selected under explicit autonomous authority`，不能声称用户逐项批准。
+
+自主模式不会扩大权限：缺少唯一推荐或存在 unresolved load-bearing decision
+时停止；scope expansion、named mutation、setup exact diff、push、install、外部
+发布、配置、凭据和 destructive action 仍需 separate authorization。用户明确
+选择 false 或撤销后，后续流程恢复 interactive mode。
+
 Discovery 开始前先完成 workspace preflight，并取得 fresh green baseline。Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
 
 `grill-coder` 在预检后逐问确认决策。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。

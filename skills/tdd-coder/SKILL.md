@@ -15,7 +15,11 @@ Read the [worked examples](../../references/domain-design-examples.md) when impl
 
 ## Input
 
-One unblocked ticket whose dependencies are complete, its acceptance criteria, approved testing seams, the selected safe workspace with accounted-for initial changes, and green baseline evidence. The workspace may be in place or isolated.
+One unblocked ticket whose dependencies are complete, its acceptance criteria,
+the approved or autonomously selected design and its testing seams, the selected
+safe workspace with accounted-for initial changes, and green baseline evidence.
+The workspace may be in place or isolated; autonomous selection does not relax
+ticket readiness or verification.
 
 ## Output
 

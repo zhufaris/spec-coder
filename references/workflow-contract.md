@@ -20,6 +20,30 @@ Apply the [domain design contract](./domain-design-contract.md) from discovery t
 
 ## Approval Gates
 
+The workflow accepts a request-scoped `autonomous=true` parameter. The default is false.
+Only an explicit choice in the current user request can enable it. Never infer
+or persist autonomous authority from repository or global
+configuration, `AGENTS.md`, conversation history, a prior session, or a
+subagent. An explicit false choice or revocation returns subsequent decisions
+to the interactive path.
+
+Interactive mode retains the human reviews below. In autonomous mode, design
+alternative selection and Gate 1, Gate 2, and Gate 3 do not request human
+review or invoke `show-me`: each requires exactly one unique grounded
+recommendation, which the owning stage records as
+`auto-selected under explicit autonomous authority` rather than user-approved.
+The same rule applies to an in-scope reopened gate. Missing or ambiguous
+recommendations and unresolved
+load-bearing domain or architecture decisions stop the workflow.
+
+Autonomous mode does not widen scope or mutation authority. Scope expansion,
+a named mutation, setup's exact-diff authorization, and any action requiring
+separate authorization still request human review. This includes push,
+installation, external publication, user or repository configuration changes,
+credentials, destructive actions, and other independently protected effects.
+The mode still produces the design, specification, tickets, durable planned
+waves, self-check evidence, TDD, review, verification, and atomic commits.
+
 Every suite-owned human review follows the
 [approval review contract](./approval-review-contract.md): the owning skill
 invokes bundled `show-me` before asking and supplies 2-4 grounded, materially
@@ -36,7 +60,7 @@ Gate 1; it does not add a fourth gate. Ordinary status, clarification,
 read-only reporting or inspection, and already authorized work are not human
 review interactions and do not generate review options.
 
-Stop for explicit user approval after:
+In the interactive path, stop for explicit user approval after:
 
 1. the selected design;
 2. the written specification;
@@ -72,9 +96,9 @@ The plan checkboxes are the task-status source of truth. Before Gate 3, the
 plan must persist explicit durable planned-wave sections in order. Every ticket exactly once
 is required, each planned wave contains at most four tickets,
 dependencies point only to earlier waves, no intra-wave conflict exists, and a
-main-local ticket is a singleton wave. Gate 3 approves both the ticket set and
-the planned wave membership/order. Scheduling order is not a functional
-dependency.
+main-local ticket is a singleton wave. Interactive Gate 3 approves both the
+ticket set and the planned wave membership/order; autonomous Gate 3 records
+their unique grounded recommendation. Scheduling order is not a functional dependency.
 
 Runtime has at most **one active execution wave**, not one active ticket. It
 forms a live dispatch batch only from the current earliest incomplete planned

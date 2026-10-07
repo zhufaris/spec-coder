@@ -71,9 +71,12 @@ transient observation evidence, so their absence cannot update durable plan
 state or transfer any main-only completion, diff, or verification authority.
 
 Present the ticket set, deliverables, dependencies, and durable planned-wave
-membership/order for Gate 3 approval and implementation authorization. Gate 3
-approves both the ticket set and wave layout. Adjust granularity within the
-approved design when needed. After approval, hand the planned waves to the main
-orchestrator; update checkboxes only after each ticket's required checks pass,
-and retain atomic commits. Publishing tickets externally is a separate
+membership/order for Gate 3 review and implementation authority. Interactive
+Gate 3 approves both the ticket set and wave layout. Autonomous Gate 3 requires
+one unique grounded recommendation, records
+`auto-selected under explicit autonomous authority`, and continues without
+human waiting or `show-me`. Adjust granularity within the selected design when
+needed. After approval or autonomous selection, hand the planned waves to the
+main orchestrator; update checkboxes only after each ticket's required checks
+pass, and retain atomic commits. Publishing tickets externally is a separate
 authorized action.

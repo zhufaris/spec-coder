@@ -5,6 +5,16 @@ select a design alternative, approve an artifact, or authorize a mutation.
 The owning skill keeps approval authority and invokes bundled `show-me` only
 as a presentation adapter.
 
+This contract applies when a human review is requested. Under an explicit,
+request-scoped `autonomous=true` choice, design alternative selection and Gate
+1, Gate 2, Gate 3, or an in-scope reopened gate do not create a human review:
+the owning skill may instead select exactly one unique grounded recommendation
+and record `auto-selected under explicit autonomous authority`. Missing or
+ambiguous recommendations and unresolved load-bearing decisions stop. Scope
+expansion, named mutations, setup exact-diff approval, and every other action
+requiring separate authorization remain human reviews governed by this
+contract; autonomous mode never widens their authority.
+
 ## Review snapshot
 
 Supply these fields from the authoritative artifact or exact proposed mutation:

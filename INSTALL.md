@@ -206,6 +206,13 @@ Agent tree 固定为两层：只有 active main 可以创建第 2 层 direct sub
 
 ## 8. 最终验收
 
+运行时可由当前用户在单次请求中明确传入 `autonomous=true`。该选择是
+request-scoped，default is false，不写入安装配置，也不能从 repository/global
+config、`AGENTS.md`、历史或 subagent 推断。它只在存在唯一 recommended 选项时
+跳过 Gate 1、Gate 2、Gate 3 的人工等待；design、spec、tickets、durable waves、
+review 与 verification 仍完整执行。scope expansion、push、install、发布、配置、
+凭据、破坏性操作及其他 separate authorization 不在该授权内。
+
 在新的 Codex 会话中完成以下检查：
 
 1. `/skills` 能看到九个 `spec-coder` skills，包括本地 `show-me`、`using-git-worktrees` 和 `setup-coder`。

@@ -49,4 +49,9 @@ Record workspace mode, rationale, branch, starting revision, relevant initial ch
 
 Reconcile the approved design against the document: scenarios, context/model responsibilities, invariants, consistency/interaction decisions, interfaces, dependencies and verification. Correct omissions and dangling references. Return genuinely new or invalidated design decisions to design; ordinary wording corrections remain synthesis.
 
-Present the written specification for approval before writing its ticket set. No tracker publication or manual-only upstream invocation is part of this step.
+In the interactive path, present the written specification for approval before
+writing its ticket set. For autonomous Gate 2, require one unique grounded
+recommendation, record `auto-selected under explicit autonomous authority`, and
+continue without human waiting or `show-me`. A missing or ambiguous
+recommendation or unresolved load-bearing decision stops; no tracker
+publication or manual-only upstream invocation is part of either path.

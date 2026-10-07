@@ -17,7 +17,10 @@ Read the [worked examples](../../references/domain-design-examples.md) when revi
 
 ## Input
 
-The approved specification and plan, completed ticket commits, current diff and Git history, repository instructions, domain language, architecture decisions, and authoritative verification commands.
+The approved or autonomously selected specification and plan, completed ticket
+commits, current diff and Git history, repository instructions, domain language,
+architecture decisions, and authoritative verification commands. Autonomous
+selection does not reduce review scope or fresh-verification requirements.
 
 ## Output
 

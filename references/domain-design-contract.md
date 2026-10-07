@@ -2,7 +2,12 @@
 
 Carry one scenario-driven design through specification, tickets, implementation, and delivery. DDD clarifies meaning, rules, and ownership; Clean Architecture clarifies module interfaces and source dependency direction. Apply both while synthesizing and slicing, rather than treating architecture as a completed preliminary checklist.
 
-This reference governs spec-coder's native planning templates. Keep the workflow contract's stages, artifact locations, and three approval gates. The approved specification is the design authority; tickets reference their relevant decisions instead of maintaining another copy of the model.
+This reference governs spec-coder's native planning templates. Keep the workflow
+contract's stages, artifact locations, and three approval gates. Interactive approval or autonomous selection
+makes the specification the design authority;
+tickets reference its relevant decisions instead of maintaining another copy of
+the model. Autonomous selection changes only the review transition, not the
+domain and architecture evidence required in the artifact.
 
 ## Contents
 

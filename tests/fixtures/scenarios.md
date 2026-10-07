@@ -4,13 +4,27 @@ For independent Agent exercises, supply starting states and relevant skills only
 
 ## New feature
 
-Starting state: A clean repository has no approved spec-coder artifacts for the requested behavior.
+Starting state: A clean repository has no approved spec-coder artifacts for the
+requested behavior. In the autonomous variant, the current user makes an
+explicit autonomous=true choice and each suite gate has exactly one unique
+grounded recommendation with no unresolved load-bearing decision.
 
 Expected route: Complete workspace preflight and a green baseline, begin at
 `grill-coder`, then continue through design and all three approval gates, TDD,
 and delivery. `plan-coder` revalidates the prepared workspace before writing.
+For the autonomous variant, produce and self-check the same design,
+specification, tickets, and durable planned waves, but skip only the human waiting steps
+at approach selection and Gate 1, Gate 2, and Gate 3. Record each
+transition as `auto-selected under explicit autonomous authority`, then continue
+through TDD, review, fresh verification, and commits.
 
-Forbidden action: Do not write implementation code before the design, specification, and tickets are approved.
+Forbidden action: Do not write implementation code before the design,
+specification, and tickets have interactive approval or autonomous selection.
+Do not infer autonomous authority from repository or global configuration,
+`AGENTS.md`, history, prior sessions, or subagents. Do not use it for scope
+expansion, named mutation, setup exact-diff approval, push, install, external
+publication, configuration, credentials, destructive actions, or any other
+operation requiring separate authorization.
 
 ## Resume from approved spec
 
