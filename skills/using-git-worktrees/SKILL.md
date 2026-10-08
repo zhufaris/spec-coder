@@ -21,9 +21,14 @@ request for per-worker isolation in a selected parallel execution wave; the
 target Git repository; the intended branch/feature slug; current Git state;
 user workspace preferences; and the available native Host worktree tools. This
 capability is optional in general and must not be invoked merely because the
-primary workspace is in place or because serial delegation is selected. An
+primary workspace is in place or because serial delegation is selected. A
 selected parallel-wave isolation request is the explicit exception; worktrees
 must never be claimed as mandatory for serial delegation.
+
+Main selects that preparation under
+[Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests)
+before serial fallback for a user parallel request. An in-place main workspace
+does not prevent isolated workers; read-only workers need no mutation isolation.
 
 ## Output
 
@@ -56,10 +61,18 @@ git rev-parse --show-toplevel
 
 Resolve the Git directory and common directory to physical absolute paths. If
 they differ and `git rev-parse --show-superproject-working-tree` returns empty,
-the checkout is already a linked-worktree candidate. Create nothing and return
-it to the requesting orchestrator. Reuse it only when the supplied state establishes that its
+the checkout is already a linked-worktree candidate. For initial workspace
+selection, create nothing and return it to the requesting orchestrator.
+Reuse it only when the supplied state establishes that its
 changes, ownership, starting revision, and task overlap are safe; otherwise
 report the concrete conflict.
+
+For per-worker parallel allocation, a linked main workspace is not the completed
+allocation. Retain safe existing candidates, then continue to the preparation
+steps below for remaining workers. Each concurrent mutating worker needs a
+distinct validated workspace; never assign the same candidate to two workers or
+share the main workspace while main is mutating it. Return a candidate conflict
+without blocking preparation of other permitted workspaces.
 
 Report a named branch normally. Report detached HEAD explicitly as externally
 managed isolation; do not create another worktree merely to attach it. If the
@@ -80,8 +93,9 @@ dependency setup or tests here.
 For a main-requested parallel wave, request one native isolated workspace per
 worker from the same recorded wave base. Validate and return each worker's
 actual path, branch/detached state, mechanism, and recovery handle separately.
-If the Host cannot prove real per-worker isolation, return that fact so main can
-serialize direct workers; do not treat paths in one shared checkout as isolated.
+If the Host cannot prove real per-worker isolation, return that concrete blocker
+so main can apply the explicit parallel request policy; do not treat paths in
+one shared checkout as isolated.
 
 ### 3. Use Git fallback only without a native tool
 
@@ -136,7 +150,8 @@ successfully allocated workspace to hide a partial failure.
 Report the wave base, absolute path, branch/detached state, mechanism, and
 recovery handle. The orchestrator owns dependency preparation and baseline
 verification. It also owns the decision to continue, choose another safe
-workspace, serialize a wave, or stop.
+workspace, serialize a wave when the explicit parallel request policy permits,
+wait for capacity, or stop.
 
 Retain each recovery handle and isolated workspace until its result is
 accepted or explicitly discarded. Child loss, cancellation, or a mid-run

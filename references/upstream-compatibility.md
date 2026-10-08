@@ -73,8 +73,11 @@ planned wave is active at a time: the earliest wave with an unchecked ticket.
 Its live dispatch batch has at most four ownership-safe tickets, never exceeds
 live Host direct-child capacity, and may shrink without changing membership.
 It must not pull tickets from a later planned wave. Real Host/task workspace
-isolation is required for parallel mutation; without it, delegation continues
-through serialized direct workers. Path disjointness inside one shared
+isolation is required for parallel mutation; fallback through
+serialized direct workers follows
+[Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests),
+including permitted isolation preparation and concrete mode reporting.
+Path disjointness inside one shared
 workspace is not isolation. Host handles remain conversational while durable
 membership, plan checkboxes, and committed Git state support recovery. When
 spawn unavailable, main records the reason and runs the same workflow locally

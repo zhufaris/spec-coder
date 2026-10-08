@@ -11,6 +11,11 @@ Route implementation work through the [subagent routing contract](../../referenc
 
 Read and apply the [domain design contract](../../references/domain-design-contract.md) to resolve ticket constraints and distinguish behavior verification from dependency verification.
 
+The one-child boundary is per ticket, not per wave. Main may run sibling workers
+for eligible tickets in the current planned wave in parallel under
+[Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
+Each child owns only its ticket; main integration and commits remain serial.
+
 Read the [worked examples](../../references/domain-design-examples.md) when implementing rules, concurrency mechanisms or cross-context failures at the selected testing seams.
 
 ## Input

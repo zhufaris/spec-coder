@@ -102,7 +102,8 @@ their unique grounded recommendation. Scheduling order is not a functional depen
 
 Runtime has at most **one active execution wave**, not one active ticket. It
 forms a live dispatch batch only from the current earliest incomplete planned
-wave: live capacity may shrink the batch and missing isolation serializes it,
+wave: live capacity may shrink the batch; isolation and capacity fallback follow
+[Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests),
 but runtime must not regroup membership or pull a ticket from a later planned
 wave. Keep execution modes and Host/recovery handles in conversation only. Do
 not create a private workflow-state file. On resume, use durable wave
@@ -164,8 +165,8 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
   orchestrator requests a parallel mutation wave, however, each worker must
   receive real Host/task isolation or a separately validated Git worktree at
   the recorded wave base. File disjointness inside one shared checkout is not
-  isolation. If per-worker isolation is unavailable, serialize the direct
-  workers; do not make worktrees mandatory merely because delegation is used.
+  isolation. Apply the explicit parallel request policy before serial fallback;
+  do not make worktrees mandatory merely because delegation is used.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
 
 The prepared workspace evidence includes the absolute workspace, mode and

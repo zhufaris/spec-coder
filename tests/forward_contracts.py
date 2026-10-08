@@ -655,6 +655,39 @@ def validate_planned_waves(
     return normalized_waves
 
 
+def decide_parallel_dispatch(
+    *,
+    eligible_count: int,
+    mutation_required: bool,
+    host_available_slots: int,
+    isolated: bool,
+    parallel_request: str = "none",
+    isolation_blocker: Optional[str] = None,
+) -> Tuple[str, str]:
+    """Model request policy; a blocker records failed or prohibited preparation."""
+    if parallel_request not in {"none", "preferred", "required"}:
+        raise ValueError("parallel request must be none, preferred, or required")
+    if eligible_count == 0:
+        return "block", "no eligible members in current planned wave"
+    if parallel_request == "required" and eligible_count < 2:
+        return "block", "fewer than two eligible members in current planned wave"
+    if host_available_slots <= 0:
+        return "wait", "temporary Host capacity is zero"
+    if eligible_count < 2:
+        return "serial", "only one eligible member in current planned wave"
+    if host_available_slots < 2:
+        mode = "wait" if parallel_request == "required" else "serial"
+        return mode, "temporary Host capacity is below two slots"
+    if mutation_required and not isolated:
+        if parallel_request == "none":
+            return "serial", "real mutation isolation unavailable"
+        if not isolation_blocker:
+            return "prepare-isolation", "attempt permitted per-worker isolation before fallback"
+        mode = "block" if parallel_request == "required" else "serial"
+        return mode, isolation_blocker
+    return "parallel", "eligible current-wave members have capacity and safe workspaces"
+
+
 def select_planned_wave_batch(
     tickets: Iterable[Dict[str, object]],
     waves: Iterable[Iterable[str]],
@@ -662,8 +695,12 @@ def select_planned_wave_batch(
     completed_ids: set[str],
     host_available_slots: int,
     isolated: bool,
+    parallel_request: str = "none",
+    isolation_blocker: Optional[str] = None,
 ) -> Tuple[Tuple[str, str], ...]:
     """Select only the live dispatch batch from the earliest incomplete planned wave."""
+    if parallel_request not in {"none", "preferred", "required"}:
+        raise ValueError("parallel request must be none, preferred, or required")
     ticket_list = tuple(tickets)
     planned_waves = validate_planned_waves(ticket_list, waves)
     tickets_by_id = {str(ticket["id"]): ticket for ticket in ticket_list}
@@ -683,14 +720,30 @@ def select_planned_wave_batch(
     first_ticket = tickets_by_id[remaining[0]]
     first_mode = str(first_ticket.get("mode", "local"))
     if first_mode in {"local", "main-local"}:
+        if parallel_request == "required":
+            return ()
         return ((remaining[0], "local"),)
     if first_mode != "delegate":
         return ()
 
-    limit = min(4, max(0, host_available_slots))
-    if not isolated:
-        limit = min(limit, 1)
-    return tuple((ticket_id, "delegate") for ticket_id in remaining[:limit])
+    eligible = tuple(
+        tickets_by_id[ticket_id] for ticket_id in remaining
+        if tickets_by_id[ticket_id].get("dependency_ready", True)
+        and tickets_by_id[ticket_id].get("delegation_eligible", True)
+        and set(tickets_by_id[ticket_id].get("dependencies", ())).issubset(completed_ids)
+    )
+    mode, _ = decide_parallel_dispatch(
+        eligible_count=len(eligible),
+        mutation_required=any(not ticket.get("read_only", False) for ticket in eligible),
+        host_available_slots=host_available_slots,
+        isolated=isolated,
+        parallel_request=parallel_request,
+        isolation_blocker=isolation_blocker,
+    )
+    if mode not in {"serial", "parallel"}:
+        return ()
+    limit = 1 if mode == "serial" else min(4, host_available_slots)
+    return tuple((str(ticket["id"]), "delegate") for ticket in eligible[:limit])
 
 
 def git_worktree_add_args(
@@ -715,7 +768,10 @@ def integrate_wave_result(
     transfer_clean: bool,
     diff_explained: bool,
     verification_passes: bool,
+    parallel_request: str = "none",
 ) -> str:
+    if parallel_request not in {"none", "preferred", "required"}:
+        raise ValueError("parallel request must be none, preferred, or required")
     valid_base = base_matches or accepted_sibling_advancement
     safe_result = (
         ownership_disjoint
@@ -723,7 +779,9 @@ def integrate_wave_result(
         and diff_explained
         and verification_passes
     )
-    return "accept" if valid_base and safe_result else "requeue-serialized"
+    if valid_base and safe_result:
+        return "accept"
+    return "requeue-serialized" if parallel_request == "none" else "reassess-parallel"
 
 
 def apply_mid_run_opt_out(

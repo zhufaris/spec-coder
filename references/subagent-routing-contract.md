@@ -141,10 +141,13 @@ live Host capacity. It must not pull a ticket from a later planned wave or
 regroup membership.
 
 Parallel mutation additionally requires real Host/task workspace isolation.
-When isolation is unavailable, serialize the current planned wave through one
-direct worker at a time. Apparent path disjointness in one shared workspace is
-not sufficient isolation. Recompute isolation and capacity only after the main
-agent has accounted for returned results and advanced accepted plan state.
+When isolation is unavailable, apply
+[Explicit Parallel Requests](#explicit-parallel-requests) before selecting
+serial fallback through one direct worker at a time. Apparent path disjointness
+in one shared workspace is not sufficient isolation. Before replacing an active
+batch, account for its returned results and advance accepted plan state. A
+capacity wait before dispatch has no batch in flight and may recheck live
+capacity without waiting for ticket results or advancing plan state.
 
 There is at most one active execution wave. Durable planned wave membership,
 selected plan checkboxes, and committed Git state govern recovery; transient
@@ -160,6 +163,41 @@ Keep integrated commits attributed, inspect returned attributable results
 before disposition, and leave undispatched tickets stopped. Cancellation or
 discard still requires a separately safe disposition; after attribution, the
 remaining affected execution is main-local.
+
+## Explicit Parallel Requests
+
+When the user requests parallel work, main must inspect dependency-ready,
+delegation-eligible members of the current planned wave, ownership and semantic
+conflicts, live Host capacity, and user workspace and permission constraints
+before selecting serial fallback. During planning, use the same checks to form
+feasible durable waves; after Gate 3, preserve their membership and order.
+An in-place main workspace and optional worktrees do not justify immediate
+serialization. Read-only workers do not require mutation isolation.
+
+For eligible concurrent mutation, use validated real Host/task isolation or
+attempt to prepare permitted per-worker isolation through
+[`using-git-worktrees`](../skills/using-git-worktrees/SKILL.md) before falling
+back. Follow its native-tool preference and safe Git fallback rules, respecting
+explicit location constraints and permissions. Do not retry prohibited actions
+or claim that disjoint paths in one shared checkout provide isolation. If an
+attempt is forbidden, report that concrete constraint instead of attempting it.
+
+Run the feasible parallel batch within the current planned wave when these
+checks succeed. Otherwise report the concrete blocker, attempted preparation
+and its result (or the constraint preventing it), and the actual execution mode.
+For an ordinary parallel request, safe serial fallback with that explanation is
+allowed; retain default delegation where available. An explicit parallel-only
+or no-serial requirement must not silently serialize: wait through the Host
+mechanism when capacity is temporarily insufficient, then recompute, or report
+a blocker when the requirement cannot be met. The existing zero-slot wait and
+explicitly required delegation rules still apply. Serial repair or recovery is
+subject to the same policy; rejecting a worker result does not waive the user's
+execution requirement.
+
+This policy creates no new approval gate or dispatch authority. Keep one active
+wave, at most four direct workers, two agent layers, and no later-wave pulls or
+regrouping. Every mutating parallel worker needs real isolation at the recorded
+wave base; main integration and commits remain serial.
 
 ## Configuration
 

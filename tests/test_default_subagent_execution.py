@@ -10,6 +10,51 @@ def read(relative: str) -> str:
 
 
 class DefaultSubagentExecutionContractTests(unittest.TestCase):
+    def test_explicit_parallel_request_prepares_isolation_before_fallback(self) -> None:
+        routing = " ".join(read("references/subagent-routing-contract.md").split())
+        self.assertIn("## explicit parallel requests", routing)
+        section = routing.split("## explicit parallel requests", 1)[1].split("## ", 1)[0]
+        for phrase in (
+            "attempt to prepare",
+            "using-git-worktrees",
+            "before selecting serial fallback",
+            "concrete blocker",
+            "parallel-only",
+            "must not silently serialize",
+            "read-only",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, section)
+
+        for path in (
+            "skills/spec-coder/SKILL.md",
+            "skills/plan-coder/SKILL.md",
+            "references/workflow-contract.md",
+            "references/ticket-template.md",
+            "references/upstream-compatibility.md",
+            "skills/using-git-worktrees/SKILL.md",
+            "README.md",
+            "INSTALL.md",
+        ):
+            with self.subTest(path=path):
+                self.assertIn("subagent-routing-contract.md#explicit-parallel-requests", read(path))
+
+    def test_single_ticket_scope_does_not_serialize_sibling_workers(self) -> None:
+        tdd = " ".join(read("skills/tdd-coder/SKILL.md").split())
+        self.assertIn("per ticket, not per wave", tdd)
+        self.assertIn("sibling workers", tdd)
+        self.assertIn("parallel", tdd)
+        self.assertIn("integration and commits remain serial", tdd)
+
+    def test_parallel_capacity_wait_can_recheck_before_dispatch(self) -> None:
+        routing = " ".join(read("references/subagent-routing-contract.md").split())
+        self.assertNotIn(
+            "recompute isolation and capacity only after the main agent has accounted",
+            routing,
+        )
+        self.assertIn("before dispatch", routing)
+        self.assertIn("no batch in flight", routing)
+
     def test_orchestrator_forms_default_dependency_aware_waves(self) -> None:
         orchestrator = read("skills/spec-coder/SKILL.md")
 

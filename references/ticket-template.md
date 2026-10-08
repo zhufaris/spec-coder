@@ -43,8 +43,10 @@ production scheduler or a persisted workflow aggregate. The durable plan fixes
 membership and order; runtime forms a live dispatch batch only from the current
 earliest incomplete planned wave. Delegated dispatch is capped by live Host
 capacity and the suite wave limit, and requires real isolation for every
-mutating worker when parallel. Without real isolation, serialize the current
-planned wave. Runtime may shrink or serialize that wave but must not regroup it
+mutating worker when parallel. Apply
+[Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests)
+before isolation or capacity fallback. Runtime may shrink or serialize that wave
+only as that policy permits, and must not regroup it
 or pull tickets from a later planned wave. Resume reads durable wave membership,
 checkboxes, and committed Git state; it does not invent new waves.
 

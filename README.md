@@ -62,7 +62,7 @@ codex plugin add spec-coder@spec-coder
 
 Gate 3 之后，每个 dependency-ready 且具备完整输入、边界明确且可逆的 scope、独立验证 seam，并且不携带 main-only 权限或凭据的 eligible ticket 都会 default delegation 给一个 direct subagent；单个 eligible ticket 也同样委派。显式的 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 只在对应范围改为 main-local 执行，并禁止该范围内直接或间接 spawn。opt-out 只在当前请求的对话中生效，不写入仓库或用户配置。
 
-在 Gate 3 前，`plan-coder` 会把 ticket 拆成显式的 durable planned wave，并将 membership/order 一并交 Gate 3 审批。每个 ticket 恰好属于一个 wave；同 wave 不存在依赖或冲突，且 main-local ticket 单独成 wave。main 每次只维护当前最早未完成的 dependency-aware active execution wave。live dispatch batch 可以因 Host capacity 缩小，parallel mutation 必须具备 real Host/task workspace isolation；没有真实隔离时通过 serialized direct workers 逐个执行。runtime must not pull later-wave tickets，也不得重新分组；Host handles 仍只保留在对话中，checkbox 与 commits 用于恢复。
+在 Gate 3 前，`plan-coder` 会把 ticket 拆成显式的 durable planned wave，并将 membership/order 一并交 Gate 3 审批。每个 ticket 恰好属于一个 wave；同 wave 不存在依赖或冲突，且 main-local ticket 单独成 wave。main 每次只维护当前最早未完成的 dependency-aware active execution wave。live dispatch batch 可以因 Host capacity 缩小，parallel mutation 必须具备 real Host/task workspace isolation；没有真实隔离时通过 serialized direct workers 逐个执行；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，再决定是否回退，并说明具体阻碍。用户要求必须并行时，不擅自改为串行。每个 ticket 一个 worker 不限制同 wave 的 sibling workers 并行；main 的整合与提交仍串行。runtime must not pull later-wave tickets，也不得重新分组；Host handles 仍只保留在对话中，checkbox 与 commits 用于恢复。
 
 所有 Gate 解释、scope 决策、Red 或结构证据、diff 接受、fresh integration verification、归属、stage、commit、delivery 汇总及 completion claim 都是 main-only。agent tree 固定为 at most two layers，only the active main agent 可以 spawn；每个 direct-child brief 都写明 `delegation_allowed = false`，child 不得直接、间接或借助其他 skill/workflow 再委派。
 

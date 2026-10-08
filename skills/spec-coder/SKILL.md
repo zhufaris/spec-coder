@@ -119,8 +119,10 @@ direct workers and never more than the Host's currently available
 direct-child slots. It must not pull tickets from a later planned wave.
 
 Parallel mutation requires real isolation for every worker at the recorded wave
-base; disjoint paths in a shared checkout are not isolation. Without real
-isolation, keep default delegation but use serialized direct workers. Every
+base; disjoint paths in a shared checkout are not isolation. Apply
+[Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests)
+before any fallback to serialized direct workers, including isolation
+preparation and reporting the actual mode. Every
 child is a direct layer-2 worker whose brief includes
 `delegation_allowed = false`, prohibits direct or indirect delegation, and says
 that workers must not stage or commit. The active main agent retains gate and
@@ -160,7 +162,8 @@ past the recorded base is acceptable only when every intervening change is an
 accepted sibling result with proven disjoint ownership. A base mismatch,
 transfer conflict, ownership overlap, unexplained diff, or failed fresh
 verification rejects that parallel result and leaves its ticket unchecked for
-later serialized execution from the authoritative base. Dependents do not
+later serialized execution from the authoritative base only when the explicit
+parallel request policy permits that recovery mode. Dependents do not
 unblock until the accepted ticket has passed fresh verification, updated its
 durable checkbox, and received its atomic commit.
 
