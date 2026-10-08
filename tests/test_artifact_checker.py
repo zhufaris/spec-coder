@@ -154,6 +154,25 @@ class ArtifactCheckerCLI(unittest.TestCase):
         self.edit_field("Mutation ownership", "`src/file.py")
         self.assert_rule("ownership.ambiguous")
 
+    def test_ticket_id_checkboxes_outside_canonical_heading_are_rejected(self):
+        original = self.plan.read_text()
+        # Ordinary checklist prose and fenced examples are not ticket declarations.
+        self.plan.write_text(original + "\n- [ ] Record verification evidence\n```markdown\n- [ ] T99: Fenced example\n```\n")
+        code, report = self.run_cli()
+        self.assertEqual(code, 0, report)
+        for declaration in (
+                "- [ ] T99: An additional ticket",
+                "- [x] T1: A hidden duplicate ticket",
+                "* [ ] T99: An additional ticket",
+                "+ [ ] T1: A hidden duplicate ticket",
+                "1. [ ] T99: An additional ticket",
+                "  - [ ] T1: A hidden duplicate ticket"):
+            with self.subTest(declaration=declaration):
+                self.plan.write_text(original + "\n" + declaration + "\n")
+                findings = self.assert_rule("ticket.invalid-definition")
+                self.assertEqual(findings[0]["path"], str(self.plan))
+                self.assertEqual(findings[0]["line"], len(original.splitlines()) + 2)
+
     def test_separate_acceptance_and_verification_fields(self):
         self.plan.write_text(self.plan.read_text().replace("| Acceptance criteria and verification | Invoke CLI on valid and invalid documents and assert exit codes. |", "| Acceptance criteria | Valid documents pass. |\n| Verification | Run the CLI fixture checks. |"))
         self.assertEqual(self.run_cli()[0], 0)

@@ -187,7 +187,8 @@ def parse_plan(doc):
                 doc.add("wave.duplicate-id", number, f"duplicate wave {wave[1]}")
             wave_ids.add(wave[1])
             waves.append((number, split_ids(doc, wave[2], number, TICKET_ID, "Wave members")))
-        elif re.match(r"#{1,6}\s+(?:- \[|T[0-9])", line):
+        elif (re.match(r"#{1,6}\s+(?:- \[|T[0-9])", line) or
+              re.match(r" {0,3}(?:[-+*]|[0-9]+[.)])\s+\[[ xX]\]\s+T[0-9]+\s*:", line)):
             current = None
             doc.add("ticket.invalid-definition", number, "use ### - [ ] T1: Nonempty title")
         elif re.match(r"## Wave\b", line):
