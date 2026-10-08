@@ -5,12 +5,22 @@ description: Audit and initialize a target Git repository for spec-coder through
 
 # Setup Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md),
-[setup contract](../../references/setup-contract.md), and
-[approval review contract](../../references/approval-review-contract.md). Read
-the repository model routing policy under the
-[subagent routing contract](../../references/subagent-routing-contract.md).
-Invoke bundled `show-me` before requesting any configuration mutation.
+Apply the required owner sections below. Setup follows its own exact-diff
+authorization and read-only routing-policy audit.
+
+## Required Reading
+
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
+
+- [Repository Setup](../../references/workflow-contract.md#repository-setup).
+- [Configuration](../../references/subagent-routing-contract.md#configuration).
+- [Capability Map](../../references/upstream-compatibility.md#capability-map), [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
+
+## Conditional Reading
+
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Setup audit or mutation:** load the complete [setup contract](../../references/setup-contract.md) before auditing or proposing bytes.
 
 ## Input
 

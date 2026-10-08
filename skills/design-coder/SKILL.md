@@ -5,7 +5,7 @@ description: Turn confirmed coding requirements into an approved or autonomously
 
 # Design Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md).
+Apply the required owner sections below.
 The interactive path must compose `brainstorming`, `domain-modeling`,
 `codebase-design`, and `clean-architecture`; do not copy or weaken their rules.
 The autonomous path must not invoke `brainstorming` because its hard human
@@ -13,23 +13,27 @@ approval gate is incompatible with explicit no-wait authority. It natively
 compares approaches while still composing `domain-modeling`, `codebase-design`,
 and `clean-architecture`.
 
-Read and apply the [domain design contract](../../references/domain-design-contract.md) to carry scenario, invariant, ownership, and architecture decisions into the specification.
+Apply the required domain sections to the selected approach. Approach selection
+precedes design elaboration and remains separate from Gate 1. Both transitions
+follow Approval Gates and, when human review is needed, the approval contract.
 
-Read the [worked examples](../../references/domain-design-examples.md) for applicable modeling triggers, service responsibilities, concurrency and dependency decisions.
+## Required Reading
 
-For interactive approach selection before design elaboration, invoke bundled
-`show-me` with approval kind `design alternative selection` and 2-3 real
-approaches, each labeled with its actual consequence. Return control and let
-`design-coder` ask and interpret the selection. The autonomous path instead
-uses the unique grounded recommendation. This is not Gate 1 and does not add a
-gate.
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
 
-Before requesting interactive Gate 1 approval, read the
-[approval review contract](../../references/approval-review-contract.md) and
-invoke bundled `show-me` with the selected design, key decisions, material
-risks/blockers, approval effect, the `plan-coder` handoff, and the labeled
-approve and continue, request changes, and reject and stop options. The ASCII
-map supplements the complete design and explicit approval question.
+- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Artifact Contract](../../references/workflow-contract.md#artifact-contract).
+- [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Design content and specification mapping](../../references/domain-design-contract.md#design-content-and-specification-mapping).
+- [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
+
+## Conditional Reading
+
+- **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
+- **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
+- **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
+- **Domain behavior:** when rules, invariants, lifecycle or valid-value constraints are affected, load [Protect behavior and valid values](../../references/domain-design-contract.md#protect-behavior-and-valid-values).
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
 

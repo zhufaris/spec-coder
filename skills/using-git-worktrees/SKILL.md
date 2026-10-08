@@ -5,14 +5,24 @@ description: Prepare an optional isolated Git workspace after workspace prefligh
 
 # Using Git Worktrees
 
-Follow the shared [workflow contract](../../references/workflow-contract.md) and
-its optional workspace-selection policy. Before requesting any safety mutation,
-follow the [approval review contract](../../references/approval-review-contract.md)
-and invoke bundled `show-me`.
+Apply the required owner sections and conditional human-review path below.
 
 This skill adapts the official
 [`obra/superpowers`](https://github.com/obra/superpowers) implementation. See
 `THIRD_PARTY_NOTICES.md` for provenance and MIT terms.
+
+## Required Reading
+
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
+
+- [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Recovery](../../references/workflow-contract.md#recovery).
+- [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
+
+## Conditional Reading
+
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Parallel worker allocation:** also load [Execution Waves](../../references/subagent-routing-contract.md#execution-waves) and [Result Integration](../../references/subagent-routing-contract.md#result-integration) before preparing per-worker workspaces.
 
 ## Input
 

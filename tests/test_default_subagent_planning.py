@@ -1,12 +1,13 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import instruction_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(relative: str) -> str:
-    return (ROOT / relative).read_text(encoding="utf-8")
+    return instruction_text(ROOT / relative)
 
 
 class DefaultSubagentPlanningContractTests(unittest.TestCase):

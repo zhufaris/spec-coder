@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from test_stage_loading import instruction_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,7 +64,7 @@ class PluginContractTests(unittest.TestCase):
         for dependency in dependencies:
             self.assertIn(f"`{dependency}`", text)
         self.assertIn("../../references/workflow-contract.md", text)
-        return text
+        return instruction_text(path)
 
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
@@ -75,7 +76,7 @@ class PluginContractTests(unittest.TestCase):
 
     def test_general_subagent_routing_uses_shared_contract(self) -> None:
         routing = read_text(ROOT / "references" / "subagent-routing-contract.md")
-        orchestrator = read_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
+        orchestrator = instruction_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
         for phrase in (
             "economy",
             "standard",
@@ -95,7 +96,7 @@ class PluginContractTests(unittest.TestCase):
     def test_subagent_tree_is_limited_to_two_layers(self) -> None:
         routing = read_text(ROOT / "references" / "subagent-routing-contract.md")
         delegating_stages = {
-            stage: read_text(ROOT / "skills" / stage / "SKILL.md")
+            stage: instruction_text(ROOT / "skills" / stage / "SKILL.md")
             for stage in ("spec-coder", "tdd-coder", "delivery-coder")
         }
         for phrase in (
@@ -239,7 +240,7 @@ class PluginContractTests(unittest.TestCase):
             with self.subTest(skill=skill_name):
                 skill = root / "skills" / skill_name / "SKILL.md"
                 links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
-                self.assertIn(APPROVAL_REFERENCE, links)
+                self.assertTrue(any(link.split("#")[0] == APPROVAL_REFERENCE for link in links))
                 target = (skill.parent / APPROVAL_REFERENCE).resolve()
                 self.assertTrue(target.is_relative_to(root.resolve()))
                 self.assertTrue(target.is_file())
@@ -289,7 +290,7 @@ class PluginContractTests(unittest.TestCase):
                 links = re.findall(r"\]\(([^)]+)\)", read_text(skill))
                 for link in (DESIGN_REFERENCE, EXAMPLE_REFERENCE):
                     with self.subTest(reference=link):
-                        self.assertIn(link, links)
+                        self.assertTrue(any(value.split("#")[0] == link for value in links))
                         reference = (skill.parent / link).resolve()
                         self.assertTrue(reference.is_relative_to(root.resolve()))
                         self.assertTrue(reference.is_file())
@@ -304,15 +305,15 @@ class PluginContractTests(unittest.TestCase):
     def test_approval_review_is_available_at_every_gate(self) -> None:
         self.assert_approval_reference_resolves(ROOT)
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
-        design = read_text(ROOT / "skills" / "design-coder" / "SKILL.md")
-        plan = read_text(ROOT / "skills" / "plan-coder" / "SKILL.md")
-        orchestrator = read_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
+        design = instruction_text(ROOT / "skills" / "design-coder" / "SKILL.md")
+        plan = instruction_text(ROOT / "skills" / "plan-coder" / "SKILL.md")
+        orchestrator = instruction_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
 
         for text in (workflow, design, plan, orchestrator):
             self.assertIn("`show-me`", text)
         for gate in ("Gate 1", "Gate 2", "Gate 3"):
             self.assertIn(gate, workflow)
-        normalized_workflow = " ".join(workflow.lower().split())
+        normalized_workflow = " ".join((workflow + read_text(ROOT / "references/approval-review-contract.md")).lower().split())
         for phrase in (
             "reopened gate",
             "artifact or exact proposed mutation",
@@ -328,7 +329,7 @@ class PluginContractTests(unittest.TestCase):
         self.assertNotEqual(
             fields.get("disable-model-invocation", "false").lower(), "true"
         )
-        text = read_text(path)
+        text = instruction_text(path)
         contract = read_text(ROOT / "references" / "approval-review-contract.md")
         metadata = read_text(path.parent / "agents" / "openai.yaml")
 
@@ -809,7 +810,6 @@ class PluginContractTests(unittest.TestCase):
             "request-wide opt-out",
             "ticket-specific opt-out",
             "review-specific opt-out",
-            "at most four",
             "real host/task workspace isolation",
             "serialized direct workers",
             "spawn unavailable",
@@ -829,6 +829,11 @@ class PluginContractTests(unittest.TestCase):
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, published)
+
+        # The summary links to the normative wave bound instead of restating it.
+        self.assertIn("./subagent-routing-contract.md#execution-waves", compatibility)
+        routing = read_text(ROOT / "references/subagent-routing-contract.md")
+        self.assertIn("at most four", routing)
 
     def test_published_model_routing_contract_is_complete_and_optional(self) -> None:
         readme = read_text(ROOT / "README.md")

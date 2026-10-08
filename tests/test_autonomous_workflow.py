@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import instruction_text
 
 from forward_contracts import decide_approval_route, resolve_autonomy_mode
 
@@ -8,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(relative: str) -> str:
-    return (ROOT / relative).read_text(encoding="utf-8").lower()
+    return instruction_text(ROOT / relative).lower()
 
 
 class AutonomousModeOracleTests(unittest.TestCase):
@@ -149,7 +150,7 @@ class AutonomousModeContractTests(unittest.TestCase):
         for phrase in (
             "gate 2",
             "gate 3",
-            "does not wait",
+            "do not request human",
             "auto-selected under explicit autonomous authority",
             "durable planned wave",
         ):
@@ -216,7 +217,7 @@ class AutonomousModeContractTests(unittest.TestCase):
             orchestrator,
         )
         self.assertIn(
-            "approved or autonomously selected planned-wave membership",
+            "approved or autonomously selected order",
             orchestrator,
         )
         self.assertIn(

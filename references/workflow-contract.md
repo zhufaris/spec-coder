@@ -44,21 +44,11 @@ credentials, destructive actions, and other independently protected effects.
 The mode still produces the design, specification, tickets, durable planned
 waves, self-check evidence, TDD, review, verification, and atomic commits.
 
-Every suite-owned human review follows the
-[approval review contract](./approval-review-contract.md): the owning skill
-invokes bundled `show-me` before asking and supplies 2-4 grounded, materially
-distinct labeled options with their consequences. Authorization reviews use
-approve and continue, request changes, and reject and stop. Genuine choices
-use their real alternatives; neither fake choices nor options that widen the
-shown authority are allowed. The owning skill asks and interprets the answer;
-`show-me` only validates and renders the review and never approves anything.
-
-This requirement covers design alternative selection, Gate 1, Gate 2, Gate 3,
-a reopened gate, and a named mutation authorization. Design alternative
-selection remains the existing pre-Gate approach choice and is distinct from
-Gate 1; it does not add a fourth gate. Ordinary status, clarification,
-read-only reporting or inspection, and already authorized work are not human
-review interactions and do not generate review options.
+Every suite-owned human review consumes the [approval review contract](./approval-review-contract.md#review-snapshot),
+[rendering](./approval-review-contract.md#rendering), [authority and safety](./approval-review-contract.md#authority-and-safety),
+and [owning-skill responsibilities](./approval-review-contract.md#owning-skill-responsibilities).
+Invoke bundled `show-me` before asking; it presents the ASCII review map and
+never owns approval. Design alternative selection precedes Gate 1 and adds no gate.
 
 In the interactive path, stop for explicit user approval after:
 
@@ -68,18 +58,10 @@ In the interactive path, stop for explicit user approval after:
 
 Approval applies only to the artifact presented at that gate. A scope or architecture change reopens the relevant gate. After the third gate, in-scope TDD, verification, and atomic commits proceed without another confirmation.
 
-Before asking at Gate 1, Gate 2, or Gate 3, the owning stage must follow the
-[approval review contract](./approval-review-contract.md) and invoke bundled
-`show-me`. Supply the artifact or exact proposed mutation, key decisions,
-risks/blockers, approval effect, next stage, and review options. Present the
-authoritative artifact or diff and the ASCII review map before the explicit
-approval question; the map does not grant approval.
-
-A reopened gate uses the same review contract and must show the prior approval,
-changed fact, affected decision, and returned gate. Any other suite-owned
-mutation authorization follows the same rule. Ordinary clarification, status,
-read-only checks, and work already authorized by Gate 3 are not additional
-approval requests.
+A reopened gate follows the same approval contract and identifies the prior
+approval, changed fact, affected decision and returned gate. Ordinary
+clarification, status, read-only checks and already authorized work create no
+additional approval request.
 
 ## Artifact Contract
 
@@ -92,23 +74,12 @@ green baseline. The workspace can be the current checkout or a linked worktree:
 - domain terminology: root `GLOSSARY.md`, only when terms change;
 - architecture decisions: `docs/adr/`, only for decisions that are hard to reverse, surprising without context, and based on a real trade-off.
 
-The plan checkboxes are the task-status source of truth. Before Gate 3, the
-plan must persist explicit durable planned-wave sections in order. Every ticket exactly once
-is required, each planned wave contains at most four tickets,
-dependencies point only to earlier waves, no intra-wave conflict exists, and a
-main-local ticket is a singleton wave. Interactive Gate 3 approves both the
-ticket set and the planned wave membership/order; autonomous Gate 3 records
-their unique grounded recommendation. Scheduling order is not a functional dependency.
-
-Runtime has at most **one active execution wave**, not one active ticket. It
-forms a live dispatch batch only from the current earliest incomplete planned
-wave: live capacity may shrink the batch; isolation and capacity fallback follow
-[Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests),
-but runtime must not regroup membership or pull a ticket from a later planned
-wave. Keep execution modes and Host/recovery handles in conversation only. Do
-not create a private workflow-state file. On resume, use durable wave
-membership with unchecked tickets and committed Git state; do not invent a new
-wave from stale conversational handles.
+The plan checkboxes are the task-status source of truth. Before Gate 3,
+persist durable planned-wave membership and order. Gate 3 approves the ticket
+set and wave layout (or records their autonomous selection).
+[Execution Waves](./subagent-routing-contract.md#execution-waves) owns the
+partition and runtime rules, including every ticket exactly once and one active execution wave. Load it when creating, executing or recovering a plan. Keep
+Host/recovery handles conversational; never create a private workflow-state file.
 
 ## Default Routing
 
@@ -116,28 +87,10 @@ Use `spec-coder` by default for requests that create or change code. Do not auto
 
 ## Worker Progress Heartbeat
 
-Every suite-owned direct-child brief consumes the shared **Worker Progress
-Heartbeat** / `ProgressSnapshot` policy in the
-[subagent routing contract](./subagent-routing-contract.md). When proactive
-child-to-main messaging is available, require the child to report a valid
-snapshot at start, every 45-60 seconds while active, on each phase change,
-before and after a long command, and immediately on blocker, failure, or
-completion. A short attempt reports start and terminal state without inventing
-a periodic update. The brief preserves the literal `delegation_allowed = false`
-and the child must not stage or commit; a reviewer also remains read-only.
-
-Main records proactive heartbeat capability **before or at dispatch**. A
-capability-unavailable record is non-blocking and preserves delegation; it is
-not valid to record capability only after dispatch.
-
-`heartbeat-capability-unavailable` records that proactive messaging is absent
-but preserves the existing delegation decision and final-return behavior.
-`heartbeat-overdue` means a Host wait timed out or a reporting interval was
-missed; `awaiting-heartbeat` is an ordinary observation without either
-condition. Neither outcome creates a failure or blocker and
-neither grants interruption, takeover, promotion, local fallback, or other
-authority. Snapshots are conversational evidence only: main-only completion
-authority, diff acceptance, and fresh verification remain unchanged.
+For every direct child, load [Worker Progress Heartbeat](./subagent-routing-contract.md#worker-progress-heartbeat)
+and [Worker Brief Assembly](./subagent-routing-contract.md#worker-brief-assembly).
+These own ProgressSnapshot reporting, heartbeat-overdue observations, and the
+unchanged main-only completion authority.
 
 ## Repository Setup
 
@@ -165,7 +118,7 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
   orchestrator requests a parallel mutation wave, however, each worker must
   receive real Host/task isolation or a separately validated Git worktree at
   the recorded wave base. File disjointness inside one shared checkout is not
-  isolation. Apply the explicit parallel request policy before serial fallback;
+  isolation. Apply [Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests) before serial fallback;
   do not make worktrees mandatory merely because delegation is used.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
 

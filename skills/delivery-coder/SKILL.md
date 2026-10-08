@@ -5,15 +5,30 @@ description: Review and verify a completed spec-coder plan before declaring deli
 
 # Delivery Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md). Use the `code-review` review method only through a route compatible with the review mode below, then invoke `verification-before-completion`; route behavior repairs through `tdd-coder`.
+Apply the required owner sections below. Use the `code-review` review method only through a route compatible with the review mode below, then invoke `verification-before-completion`; route behavior repairs through `tdd-coder`.
 
-Apply the [subagent routing contract](../../references/subagent-routing-contract.md). Delivery delegates review by default to exactly two independent, read-only direct layer-2 reviewers: one Standards reviewer and one Spec reviewer. Each direct-child brief must include the literal `delegation_allowed = false`, say that the reviewer **must not spawn** or delegate directly or indirectly (including through another skill, workflow, tool or agent), prohibit edits/staging/commits, and provide complete inputs, explicit exclusions, the expected evidence, and the return format. Both briefs require the shared **Worker Progress Heartbeat** / `ProgressSnapshot` when proactive child-to-main messaging is available: report at start, every 45-60 seconds while active, on phase change, before and after a long command, and immediately on blocker, failure, or completion. If a reviewer needs another specialist or more decomposition, it returns its evidence and blocker to main.
+Apply the required Review Execution policy before either axis. Reviewers
+collect bounded evidence; main authors the final Standards/Spec conclusions
+and retains repair judgment, delivery aggregation and every completion claim.
 
-Each reviewer collects bounded evidence for its assigned axis. The active main agent remains accountable: main authors the final Standards/Spec conclusions. Reviewer output is evidence only: main retains scope and attribution decisions, repair judgment, integration review, fresh verification, delivery aggregation, commit authority, and every completion claim.
+## Required Reading
 
-Read and apply the [domain design contract](../../references/domain-design-contract.md) to verify scenario/invariant coverage and architecture evidence separately.
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
 
-Read the [worked examples](../../references/domain-design-examples.md) when reviewing rule ownership, consistency guarantees, type leakage or disproportionate abstractions.
+- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Verification Layers](../../references/workflow-contract.md#verification-layers).
+- [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
+- [Review Execution](../../references/subagent-routing-contract.md#review-execution).
+
+## Conditional Reading
+
+- **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
+- **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
+- **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
+- **Domain behavior:** when rules, invariants, lifecycle or valid-value constraints are affected, load [Protect behavior and valid values](../../references/domain-design-contract.md#protect-behavior-and-valid-values).
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
+- **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
 
@@ -28,32 +43,11 @@ Findings ordered by severity, TDD-backed repair commits when needed, fresh evide
 
 ## Review Execution
 
-Choose the review mode before starting either axis:
-
-- With eligible spawn capability and no applicable opt-out, directly brief the two reviewers. The **Standards reviewer** receives the repository instructions, current status, cumulative task diff, relevant history and verification conventions; it checks correctness, security, performance, error handling, test quality, repository standards and unintended scope. The **Spec reviewer** receives the approved or autonomously selected specification and plan, completed ticket commits, cumulative task diff, domain and architecture decisions and test evidence; it checks acceptance criteria, public contracts, scenario/invariant coverage, dependency direction, architecture evidence and scope fidelity. Keep the axes independent and require findings ordered by severity with concrete file/line evidence and any uncertainty.
-- A **review-specific opt-out** or **request-wide opt-out** selects main-local review for both the Standards axis and Spec axis and forbids direct or indirect spawning for the affected scope. Main performs the same two independent passes with the same inputs, checks and findings-first output described above.
-- When spawn unavailable and delegated review was not explicitly required, record the unavailable capability and use that same main-local two-axis review.
-- When spawn unavailable and delegated review was explicitly required, stop with a concrete Host-capability blocker; do not silently substitute local review.
-- When spawn exists but no direct-child slot is currently available, wait
-  through the Host mechanism and recompute capacity. Do not turn temporary
-  capacity exhaustion into local fallback or a delegated review wave.
-
-Delegated mode prepares exactly two distinct direct layer-2 briefs, one with
-`axis = standards` and one with `axis = spec`. Both briefs are read-only, carry
-`delegation_allowed = false`, and state `must_not_spawn = true`; neither
-reviewer may delegate directly or indirectly. Each must use the shared
-`ProgressSnapshot` reporting schedule above when proactive messaging is
-available. Before or at dispatch, main records `heartbeat-ready` when proactive
-messaging is available or `heartbeat-capability-unavailable` when it is not;
-the unavailable state preserves the selected delegation decision. While
-waiting, an ordinary no-message observation is `awaiting-heartbeat`. Only a
-Host wait timeout or missed interval is `heartbeat-overdue`; it still means no
-message only and does not create a failure or blocker or grant interruption,
-takeover, promotion, or local fallback authority. Main-only completion
-authority, diff acceptance, and fresh verification remain unchanged.
-Nondelegated modes prepare no reviewer brief.
-
-The upstream `code-review` skill is compatible only when it can preserve the selected mode and the two-layer limit. In a review/request opt-out or spawn-unavailable local fallback, main **must not invoke** `code-review` if it would itself delegate, spawn children or otherwise violate the opt-out. Instead, main performs the equivalent Standards axis and Spec axis checks spelled out above. Do not claim that the Host enforces the no-delegation instruction when it does not; the brief remains authoritative.
+Load the routing owner's [Review Execution](../../references/subagent-routing-contract.md#review-execution)
+and choose the review mode before either axis. In delegated mode assemble two
+complete reviewer briefs with separate Standards and Spec inputs; in local mode
+perform both independent passes. The upstream `code-review` method must preserve
+the selected mode and child limits.
 
 ## Process
 
@@ -66,7 +60,9 @@ The upstream `code-review` skill is compatible only when it can preserve the sel
 7. Inspect final status and commit history against recorded initial changes. Confirm each task change is represented by an atomic commit and no unrelated change entered those commits. Preserve any user-staged work that predated the task; its presence is not itself a delivery failure.
 8. Report the delivered specification, commits, fresh evidence, resolved findings, and residual risks. Claim completion only when all required checks pass.
 
-If delegated evidence fails, is uncertain, lacks required support or crosses its boundary, preserve the chosen route and attempt evidence and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 promotion sibling with `delegation_allowed = false`, read-only/no-edit/no-stage/no-commit limits, and the shared Worker Progress Heartbeat / `ProgressSnapshot` reporting requirement. A review child cannot create its replacement. Heartbeat capability unavailable preserves delegation; heartbeat overdue or a wait timeout is no message only and cannot itself trigger promotion, failure, blocker, interruption, takeover, or local fallback. Do not cycle through configured tiers, and never treat apparent subagent success as approval or completion authority.
+If delegated evidence fails or is uncertain, preserve the attempt and return to
+main under Attempt Evidence and Promotion. A promotion reviewer retains the
+reviewer role's read-only limits in its assembled brief.
 
 Do not push, create a pull request, publish external tickets, amend pre-existing commits, or make external changes without separate explicit authorization.
 

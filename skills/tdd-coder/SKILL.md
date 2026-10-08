@@ -5,18 +5,30 @@ description: Implement one approved or autonomously selected unblocked vertical 
 
 # TDD Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md). Compose the installed `tdd` skill at the public testing seams already selected in the specification and ticket plan.
+Apply the required owner sections below. Compose the installed `tdd` skill at the public testing seams already selected in the specification and ticket plan.
 
-Route implementation work through the [subagent routing contract](../../references/subagent-routing-contract.md). This skill delegates eligible implementation work by default to one direct layer-2 child, even when the execution wave contains one ticket. A delegated implementation must remain inside the approved or autonomously selected ticket, be bounded and reversible, and expose an explicit verification seam. Ambiguous scope, missing context, high-risk mutation, attribution, and commit ownership remain with the main agent.
+This skill delegates eligible implementation work by default within one
+approved or autonomously selected bounded ticket and its verification seam.
+The main agent retains Red-Green, attribution and commit ownership. Apply the
+required routing and domain sections before implementation.
 
-Read and apply the [domain design contract](../../references/domain-design-contract.md) to resolve ticket constraints and distinguish behavior verification from dependency verification.
+## Required Reading
 
-The one-child boundary is per ticket, not per wave. Main may run sibling workers
-for eligible tickets in the current planned wave in parallel under
-[Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
-Each child owns only its ticket; main integration and commits remain serial.
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
 
-Read the [worked examples](../../references/domain-design-examples.md) when implementing rules, concurrency mechanisms or cross-context failures at the selected testing seams.
+- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Verification Layers](../../references/workflow-contract.md#verification-layers).
+- [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
+
+## Conditional Reading
+
+- **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
+- **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
+- **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
+- **Domain behavior:** when rules, invariants, lifecycle or valid-value constraints are affected, load [Protect behavior and valid values](../../references/domain-design-contract.md#protect-behavior-and-valid-values).
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
+- **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
 
@@ -45,28 +57,10 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    test setup before implementation. For structural-only work, main instead
    establishes the structural preservation and dependency evidence required by
    the path below; do not manufacture a behavior Red.
-5. After main owns that evidence, delegate eligible implementation work by
-   default. Main supplies the complete selected boundary, exclusions, recorded
-   wave base, mutation ownership, verification seam, and
-   `delegation_allowed = false`. The direct child writes the minimum implementation
-   needed for Green. Place rules in the selected domain modules, coordination in
-   application modules, and external conversion in adapters. It must not spawn
-   or delegate directly or indirectly, and workers must not stage or commit. If
-   it needs decomposition or another agent, it returns its evidence and blocker
-   to main. The brief requires the shared **Worker Progress Heartbeat** /
-   `ProgressSnapshot` when proactive child-to-main messaging is available; main
-   records that capability **before or at dispatch**:
-   starting, every 45-60 seconds while active, on phase change, before and
-   after a long command, and immediately on blocker, failure, or completion.
-   `heartbeat-capability-unavailable` preserves delegation. A
-   `heartbeat-overdue` means a wait timeout or missed interval; an ordinary observation is
-   `awaiting-heartbeat` and neither grants failure, blocker, interrupt, takeover, promotion, or local
-   fallback authority; main-only diff acceptance, fresh verification, and
-   completion authority remain unchanged. Main-local behavior remains the path
-   for ineligible work, an applicable opt-out, or recorded spawn-unavailable
-   fallback; explicitly
-   required delegation follows the routing contract's blocker outcome. Do not
-   anticipate later tickets.
+5. After main owns the Red or structural evidence, apply Delegation Eligibility
+   and Execution Mode, then assemble the worker brief with the implementation
+   role. The child writes the minimum implementation for Green at the selected
+   domain/application/adapter boundaries. Do not anticipate later tickets.
 6. Run the focused test. Repeat steps 3-6 one behavior at a time until all applicable ticket scenarios and invariants have test evidence, including existing tests where sufficient. Include selected concurrent interleavings, duplicates and partial failures when relevant; a sequential fake alone does not prove a persistence concurrency guarantee. Then run the affected checks: relevant test modules, lint, type checks, and build steps defined by the repository.
 7. Main inspects the complete task-owned diff, attributes every change, and
    freshly verifies the focused behavior or structural evidence plus all
@@ -81,7 +75,8 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
 9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior.
 10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
 
-A failed, uncertain, evidence-poor or boundary-crossing delegated attempt is not retried across configured tiers. Preserve its route, output and verification state and return to the active main agent. Only main may promote once by creating an inherited-main layer-2 promotion sibling whose brief includes `delegation_allowed = false`, must not stage or commit, and the same Worker Progress Heartbeat / `ProgressSnapshot` reporting requirements with capability recorded **before or at dispatch**; the failed child never creates its replacement. Heartbeat capability unavailable preserves delegation; heartbeat overdue is a wait timeout or missed interval, and an ordinary awaiting-heartbeat observation cannot itself trigger promotion, repair, or local fallback. A second failure follows this skill's normal repair or stop conditions.
+For a failed or uncertain delegated attempt, use Attempt Evidence and Promotion;
+only main can create the promotion sibling using the complete common brief.
 
 Never use `git add -A`. Never stage unrelated user changes, amend a commit that predates the ticket, skip or weaken a failing test, or broaden scope without returning to the appropriate approval gate.
 

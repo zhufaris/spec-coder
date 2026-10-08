@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import instruction_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,9 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class DefaultSubagentDeliveryContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.delivery = (
-            ROOT / "skills" / "delivery-coder" / "SKILL.md"
-        ).read_text(encoding="utf-8").lower()
+        cls.delivery = instruction_text(ROOT / "skills" / "delivery-coder" / "SKILL.md").lower()
 
     def test_delivery_uses_two_direct_reviewers_by_default(self) -> None:
         for phrase in (

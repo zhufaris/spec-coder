@@ -95,7 +95,9 @@ are grounded, its scope is bounded and reversible, the main agent has an
 independently inspectable verification seam, and it carries no main-only
 authority or credentials. Every
 dependency-ready eligible ticket delegates to one direct child by default,
-including a wave containing only one ticket.
+including a wave containing only one ticket. The one-child boundary is
+per ticket, not per wave: main may run sibling workers in parallel under
+Explicit Parallel Requests; integration and commits remain serial.
 
 An explicit request-, ticket-, or review-scoped opt-out selects local execution
 for exactly that scope and forbids both direct and indirect spawning there.
@@ -329,3 +331,45 @@ approval gate.
 Ineligible work, applicable opt-out scopes, and spawn-unavailable fallback run
 locally when safe. Model routing chooses the child route; it does not make
 eligible default delegation optional.
+
+## Result Integration
+
+For a parallel wave, every child starts from the recorded wave base and returns
+its base identity, complete task-owned diff, and verification evidence. Main
+integrates one result at a time into the authoritative workspace. Advancement
+past the recorded base is acceptable only when every intervening change is an
+accepted sibling result with proven disjoint ownership. A base mismatch,
+transfer conflict, ownership overlap, unexplained diff, or failed fresh
+verification rejects that parallel result and leaves its ticket unchecked for
+later serialized execution from the authoritative base only when the explicit
+parallel request policy permits that recovery mode. Dependents do not
+unblock until the accepted ticket has passed fresh verification, updated its
+durable checkbox, and received its atomic commit.
+
+## Review Execution
+
+Delivery delegates review by default to exactly two independent read-only direct layer-2 reviewers.
+Choose the review mode before starting either axis:
+
+- With eligible spawn capability and no applicable opt-out, directly brief the two reviewers. The **Standards reviewer** receives the repository instructions, current status, cumulative task diff, relevant history and verification conventions; it checks correctness, security, performance, error handling, test quality, repository standards and unintended scope. The **Spec reviewer** receives the approved or autonomously selected specification and plan, completed ticket commits, cumulative task diff, domain and architecture decisions and test evidence; it checks acceptance criteria, public contracts, scenario/invariant coverage, dependency direction, architecture evidence and scope fidelity. Keep the axes independent and require findings ordered by severity with concrete file/line evidence and any uncertainty.
+- A **review-specific opt-out** or **request-wide opt-out** selects main-local review for both the Standards axis and Spec axis and forbids direct or indirect spawning for the affected scope. Main performs the same two independent passes with the same inputs, checks and findings-first output described above.
+- When spawn unavailable and delegated review was not explicitly required, record the unavailable capability and use that same main-local two-axis review.
+- When spawn unavailable and delegated review was explicitly required, stop with a concrete Host-capability blocker; do not silently substitute local review.
+- When spawn exists but no direct-child slot is currently available, wait
+  through the Host mechanism and recompute capacity. Do not turn temporary
+  capacity exhaustion into local fallback or a delegated review wave.
+
+Delegated mode uses the [worker brief template](./worker-brief-template.md#assembly)
+with the reviewer role, separately for `axis = standards` and `axis = spec`.
+Nondelegated modes prepare no reviewer brief. Follow [Worker Progress Heartbeat](#worker-progress-heartbeat)
+for capability and observations; reviewers remain read-only.
+
+The upstream `code-review` skill is compatible only when it can preserve the selected mode and the two-layer limit. In a review/request opt-out or spawn-unavailable local fallback, main **must not invoke** `code-review` if it would itself delegate, spawn children or otherwise violate the opt-out. Instead, main performs the equivalent Standards axis and Spec axis checks spelled out above. Do not claim that the Host enforces the no-delegation instruction when it does not; the brief remains authoritative.
+
+## Worker Brief Assembly
+
+Before every implementation, reviewer, or promotion dispatch, main must assemble
+the [worker brief template](./worker-brief-template.md#assembly), common content
+and selected role. Copy the resolved constraints into the outgoing brief; a
+link alone or assumed inherited context is insufficient. Record heartbeat
+capability before or at dispatch under [Worker Progress Heartbeat](#worker-progress-heartbeat).

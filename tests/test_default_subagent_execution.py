@@ -1,12 +1,13 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import instruction_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(relative: str) -> str:
-    return (ROOT / relative).read_text(encoding="utf-8").lower()
+    return instruction_text(ROOT / relative).lower()
 
 
 class DefaultSubagentExecutionContractTests(unittest.TestCase):
@@ -60,11 +61,11 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
 
         for phrase in (
             "dependency-aware execution wave",
-            "delegates by default",
+            "delegates to one direct child by default",
             "host capacity",
             "at most four",
             "real isolation",
-            "serialized direct workers",
+            "serial fallback through one direct worker at a time",
             "one active execution wave",
         ):
             with self.subTest(phrase=phrase):
@@ -122,9 +123,9 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
         for phrase in (
             "opt-out",
             "stop new dispatch",
-            "temporary capacity",
+            "zero currently available direct-child slots",
             "wait",
-            "spawn unavailable",
+            "absent host spawn capability",
             "local fallback",
             "explicitly required",
             "blocker",

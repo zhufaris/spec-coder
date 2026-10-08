@@ -5,28 +5,22 @@ description: Orchestrate code-changing requests through requirements grilling, d
 
 # Spec Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md) and verify the installed capabilities listed in [upstream compatibility](../../references/upstream-compatibility.md) before delegating stages. Route subagent work through the [subagent routing contract](../../references/subagent-routing-contract.md).
+Coordinate stages under the required owner sections below. Validate current
+Host capabilities before invoking stages or dispatching workers.
 
-All initial and reopened human approval gates use bundled `show-me` under the
-shared approval review contract. The stage that owns the gate supplies grounded
-facts, presents the complete artifact, asks the explicit question, and
-interprets the answer; visualization never owns approval.
+## Required Reading
 
-The optional `autonomous=true` parameter is request-scoped. The default is false.
-Only an explicit choice in the current user request enables it; never
-infer or persist it from repository or global configuration, `AGENTS.md`,
-history, prior sessions, or a subagent. An explicit false choice or revocation
-returns the remaining workflow prospectively to interactive review.
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
 
-With autonomous authority, select exactly one unique grounded recommendation
-for the design alternative and Gate 1, Gate 2, and Gate 3, recording
-`auto-selected under explicit autonomous authority` rather than user-approved.
-Do the same for an in-scope reopened gate. Do not wait for a human response or
-invoke `show-me` when no human review is requested. Stop on a missing or
-ambiguous recommendation or unresolved load-bearing decision. Scope expansion,
-named mutation, setup exact-diff review, push, install, external publication,
-configuration, credentials, destructive action, or any other action requiring
-separate authorization still requires human review; autonomous mode does not widen it.
+- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Default Routing](../../references/workflow-contract.md#default-routing), [Recovery](../../references/workflow-contract.md#recovery), [Verification Layers](../../references/workflow-contract.md#verification-layers).
+- [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
+
+## Conditional Reading
+
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
+- **Isolation:** when selected or needed for a parallel mutation request, invoke bundled `using-git-worktrees`.
 
 ## Input
 
@@ -41,131 +35,43 @@ evidence, and a final delivery report produced through `delivery-coder`.
 
 ## Process
 
-1. Inspect repository instructions, Git status, current branch, worktrees, relevant specifications and plans, plan checkboxes, and Git log before changing anything.
-2. Verify required local and upstream skills are visible in the current Host catalog, permitted for model invocation and materially compatible for the selected path. A file on disk or an enabled plugin is insufficient; respect `disable-model-invocation: true` without attempting indirect invocation. Planning is native to `plan-coder` and needs its bundled templates, not external planning skills. Defer the bundled optional `using-git-worktrees` path until workspace selection; safe in-place work does not invoke it. Stop for other unavailable required capabilities with specific evidence rather than approximating them.
-   Before spawning a subagent, classify the bounded task as economy, standard,
-   strong, or main-only; apply trusted user mappings and any repository minimum;
-   inspect the live Host catalog/tool interface; and inherit the main model when
-   no safe compatible override exists. A configured route never transfers
-   approval, attribution, commit, delivery, or completion authority. Only the
-   active main agent may spawn. Every direct-child brief must include
-   `delegation_allowed = false` and prohibit indirect delegation through skills,
-   workflows, tools, or other agents. Apply a supported Host child-tool denial
-   as defense in depth; otherwise rely on the contract without claiming sandbox
-   enforcement. A child that needs delegation must return evidence and its
-   blocker to main, which alone may create a layer-2 sibling. Every direct-child
-   brief also requires the shared **Worker Progress Heartbeat** /
-   `ProgressSnapshot` policy when proactive child-to-main messaging is
-   available. Record its capability **before or at dispatch**: report at start, every 45-60 seconds while active, on phase
-   change, before and after a long command, and immediately on blocker,
-   failure, or completion. `heartbeat-capability-unavailable` preserves the
-   delegation decision; a Host wait timeout or missed reporting interval is `heartbeat-overdue`, while an
-   ordinary observation is `awaiting-heartbeat`; neither grants failure, blocker, interrupt, takeover, promotion, or
-   local fallback authority. A snapshot never changes main-only diff
-   acceptance, fresh verification, or completion authority.
-3. Classify the request:
-   - For a new request, complete workspace preflight under the shared contract:
-     account for initial changes, select safe in-place or isolated execution,
-     prepare dependencies, and observe a fresh green baseline. Use bundled
-     `using-git-worktrees` only if isolation is selected. Keep the prepared
-     workspace evidence in conversation, then start `grill-coder`.
-   - For resumed work, infer the earliest incomplete phase from durable artifacts and fresh verification at the inferred boundary. Never maintain a private workflow-state file.
-4. Run the fixed stage order:
-   1. `grill-coder` consumes the prepared workspace and exposes hidden requirements, boundaries, constraints, and acceptance signals.
-   2. `design-coder` compares 2-3 approaches. The interactive path stops for
-      explicit selection and Gate 1 approval; the autonomous path selects the
-      unique grounded recommendation without waiting.
-   3. `plan-coder` revalidates the prepared workspace, user-change ownership,
-      and baseline freshness, writes the local specification, stops for
-      specification approval in the interactive path, decomposes it into
-      vertical tickets, then stops for ticket approval and implementation
-      authorization. The autonomous path performs the same synthesis,
-      self-checks, decomposition, and durable planned-wave work but does not
-      wait at Gate 2 or Gate 3 when one unique grounded recommendation exists.
-   4. After Gate 3, form and run the dependency-aware execution wave described
-      below from the approved or autonomously selected durable planned wave order. `tdd-coder` executes
-      each wave member through Red-Green or the approved structural path,
-      affected checks, a plan-checkbox update, and an atomic commit. Repeat
-      with the next planned wave until all tickets are complete.
-   5. `delivery-coder` performs findings-first review, routes repairs back through TDD, runs the full applicable suite, and alone may produce the terminal completion claim.
-5. Keep the durable plan checkboxes and approved or autonomously selected planned-wave membership
-   as task-state truth. Runtime has one active execution wave at most; execution
-   modes and Host handles remain conversational. On resume, use durable wave
-   membership with checkboxes and committed Git rather than regrouping work.
-6. Reopen the affected approval gate whenever scope or architecture changes.
-   Scope expansion returns to human review. For an in-scope change under
-   autonomous authority, require one unique grounded recommendation and record
-   its auto-selection without `show-me`; otherwise show the prior approval,
-   changed fact, affected decision, and return path through `show-me` before
-   requesting renewed approval. Return to `design-coder` when implementation
-   evidence invalidates an approved or autonomously selected assumption.
-7. Stop after the same blocking condition occurs three consecutive times, preserving the exact evidence and resume point.
-
-The three human gates in interactive mode are design approval,
-written-specification approval, and ticket-set approval plus implementation
-authorization. After the third gate, proceed autonomously within the approved
-scope through TDD, review, verification, and commits. Request-scoped autonomous
-mode skips only their human waiting steps, not their artifacts or checks.
+1. Inspect repository instructions, Git status, current branch, worktrees,
+   relevant artifacts, plan checkboxes and Git log before changing anything.
+   Check current Host visibility, invocation eligibility and compatibility;
+   respect `disable-model-invocation: true`. Planning uses bundled templates.
+2. For a new request, complete workspace preflight: account for initial changes,
+   select a safe workspace, prepare dependencies and observe a fresh green
+   baseline. Invoke `using-git-worktrees` only for selected isolation. Keep
+   prepared workspace evidence in conversation, then start `grill-coder`.
+   For a resume, infer the earliest incomplete phase and run fresh verification
+   at that boundary under Recovery.
+3. Run `grill-coder` for confirmed requirements, then `design-coder` for 2-3
+   alternatives and Gate 1. Run `plan-coder` for workspace revalidation,
+   specification/Gate 2 and vertical tickets with durable waves/Gate 3.
+   Apply Approval Gates to each interactive or autonomous transition.
+4. After Gate 3, execute the approved or autonomously selected durable planned wave order.
+   Main schedules the current planned wave as one dependency-aware execution wave.
+   `tdd-coder` supplies behavior Red-Green or structural preservation evidence,
+   affected checks, checkbox updates and one atomic commit per ticket.
+   Execute eligible work using the required routing sections and assembled
+   worker briefs; integrate one result at a time under Result Integration.
+5. When all tickets are complete, invoke `delivery-coder` for findings-first
+   review, TDD repairs and fresh full verification. Only that stage produces
+   the terminal completion claim.
+6. Reopen the relevant gate for scope or architecture changes and return to
+   `design-coder` when evidence invalidates an assumption. Follow Approval Gates
+   for in-scope autonomous reconsideration; scope expansion needs human review.
+7. Stop after the same blocking condition occurs three consecutive times and
+   preserve exact evidence and the resume point.
 
 ## Approved Ticket Execution Waves
 
-From the approved or autonomously selected planned wave order, the active main agent schedules
-one active dependency-aware execution wave. Select the current planned wave:
-the earliest wave with an unchecked ticket. Recompute delegation eligibility,
-isolation, and live Host capacity before dispatch, but retain selected planned
-wave membership and order. Eligible work delegates by default, including when
-only one eligible ticket exists. A live dispatch batch may shrink to at most four
-direct workers and never more than the Host's currently available
-direct-child slots. It must not pull tickets from a later planned wave.
-
-Parallel mutation requires real isolation for every worker at the recorded wave
-base; disjoint paths in a shared checkout are not isolation. Apply
+Apply [Execution Waves](../../references/subagent-routing-contract.md#execution-waves),
 [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests)
-before any fallback to serialized direct workers, including isolation
-preparation and reporting the actual mode. Every
-child is a direct layer-2 worker whose brief includes
-`delegation_allowed = false`, prohibits direct or indirect delegation, and says
-that workers must not stage or commit. The active main agent retains gate and
-scope decisions, behavior Red or structural preservation/dependency evidence,
-diff acceptance, attribution, fresh verification, staging, atomic commits,
-delivery aggregation, and completion authority.
-
-Each worker brief requires the shared Worker Progress Heartbeat /
-`ProgressSnapshot` reporting schedule: starting, 45-60 seconds while active,
-phase change, pre/post long command, and blocker/failure/completion whenever
-proactive messaging is available. Record that capability **before or at dispatch**.
-The same requirement applies to a
-main-created promotion sibling. A capability-unavailable observation preserves
-delegation, while a wait timeout or missed interval is overdue and an ordinary observation is
-`awaiting-heartbeat` only;
-neither authorizes failure classification, interruption, takeover, promotion,
-or local execution.
-
-Apply execution outcomes distinctly. An applicable opt-out means local
-execution and no spawning in that scope. A mid-run opt-out requires main to
-stop new dispatch and promotion prospectively. Account for already-dispatched
-results under the normal inspection and acceptance rules, and report accepted
-commits rather than automatically reverting them. Spawn unavailable selects a
-recorded local fallback when safe, but is a blocker when delegation was
-explicitly required. If spawn exists but temporary capacity is zero, wait
-through the Host mechanism and recompute rather than falling back locally.
-Noneligible work runs locally when safe, or is a blocker when delegation was
-explicitly required.
-An `inherit-main` route, missing optional mapping, or optional-model fallback
-still uses delegation; model routing does not convert eligible work to local
-execution.
-
-For a parallel wave, every child starts from the recorded wave base and returns
-its base identity, complete task-owned diff, and verification evidence. Main
-integrates one result at a time into the authoritative workspace. Advancement
-past the recorded base is acceptable only when every intervening change is an
-accepted sibling result with proven disjoint ownership. A base mismatch,
-transfer conflict, ownership overlap, unexplained diff, or failed fresh
-verification rejects that parallel result and leaves its ticket unchecked for
-later serialized execution from the authoritative base only when the explicit
-parallel request policy permits that recovery mode. Dependents do not
-unblock until the accepted ticket has passed fresh verification, updated its
-durable checkbox, and received its atomic commit.
+and [Result Integration](../../references/subagent-routing-contract.md#result-integration).
+Recompute eligibility, live Host capacity and isolation for the current planned
+wave; preserve durable membership and serial main integration. Use the common
+brief for every dispatch, including a main-created promotion sibling.
 
 ## Stop Conditions
 

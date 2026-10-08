@@ -5,25 +5,28 @@ description: Prepare an approved or autonomously selected coding design for impl
 
 # Plan Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md), including its workspace selection rules. This skill owns specification synthesis and vertical-ticket decomposition. Use the plugin's [specification template](../../references/specification-template.md) and [ticket template](../../references/ticket-template.md); no external planning skill is required. Use `using-git-worktrees` only if isolation is selected.
+Apply the required owner sections below, including workspace selection. This skill owns specification synthesis and vertical-ticket decomposition. Use the plugin's [specification template](../../references/specification-template.md) and [ticket template](../../references/ticket-template.md); no external planning skill is required. Use `using-git-worktrees` only if isolation is selected.
 
-Read and apply the [domain design contract](../../references/domain-design-contract.md) during both synthesis and decomposition. Preserve its decisions in the local templates, scaling detail to the task.
+Preserve the required domain decisions during synthesis and decomposition.
+Apply Approval Gates for interactive and autonomous Gate 2/3 transitions.
 
-Read the [worked examples](../../references/domain-design-examples.md) when translating context/model responsibilities, consistency requirements or interactions into verifiable slices.
+## Required Reading
 
-Read the [approval review contract](../../references/approval-review-contract.md).
-Before asking at Gate 2 or Gate 3, invoke bundled `show-me` with the artifact,
-decisions, material risks/blockers, approval effect, and immediate next stage.
-The ASCII map supplements the complete specification or ticket set and the
-explicit approval question.
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
 
-On the autonomous path, still produce and self-check the complete specification,
-tickets, and durable planned wave partition. The autonomous path does not wait
-at Gate 2 or Gate 3 and does not invoke `show-me` when each has a unique
-grounded recommendation; record
-`auto-selected under explicit autonomous authority` for each transition. Stop
-on a missing or ambiguous recommendation or unresolved load-bearing decision.
-Scope expansion and any separate authorization return to human review.
+- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract).
+- [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Design content and specification mapping](../../references/domain-design-contract.md#design-content-and-specification-mapping), [Ticket decomposition](../../references/domain-design-contract.md#ticket-decomposition).
+- [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
+
+## Conditional Reading
+
+- **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
+- **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
+- **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
+- **Domain behavior:** when rules, invariants, lifecycle or valid-value constraints are affected, load [Protect behavior and valid values](../../references/domain-design-contract.md#protect-behavior-and-valid-values).
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
 
@@ -54,9 +57,20 @@ dependency-aware ticket plan, and authority to begin implementation.
    when ownership is unsafe or the baseline is not green.
 4. Synthesize the approved or autonomously selected design to write the specification at `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` using the local specification template. Preserve selected outcomes, model/architecture decisions and testing seams; do not conduct a new interview or invent missing decisions. Record workspace mode, reason, branch, starting revision and relevant initial changes in the artifact. Keep it local.
 5. Before Gate 2, reconcile selected scenarios, affected context maps and model responsibilities, invariants, consistency/interaction decisions, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder` rather than inventing entities, services or recovery policies. In the interactive path, present the written specification, invoke `show-me`, and stop at Gate 2 until the user approves it. In the autonomous path, record the unique grounded recommendation and continue without waiting.
-6. After specification approval or autonomous selection, create vertical tickets using the local ticket template: each increment delivers a complete observable capability through the necessary modules and fits one agent context window. Include real blocking edges, acceptance criteria and references to the selected contexts/model elements, rules, interfaces, consistency/interaction constraints and verification. For every ticket, also record dependencies, delegation eligibility, delegation mode and any opt-out, mutation ownership and exclusions, isolation need, concurrency conflicts, an independently inspectable verification seam, Host capacity assumptions, whether real isolation is required, and the mandatory direct-child boundary `delegation_allowed = false`. Do not copy the whole model or split mechanically by layers. A ticket can span business contexts under a selected interaction contract. Store tickets as checkboxes in one plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`, then write explicit durable planned-wave sections before Gate 3. Every ticket exactly once is required; each planned wave has at most four tickets; dependencies point only to earlier waves; same-wave tickets have no ownership or semantic conflict; and a main-local ticket is a singleton wave. Scheduling order is not a functional dependency.
-7. Runtime has at most **one active execution wave**, not one active ticket. The Markdown checkboxes and durable planned-wave membership remain authoritative. Form a live dispatch batch only from the current earliest incomplete planned wave. Keep execution modes, workspace/recovery handles, and live Host capacity conversational; create no private state file. Live capacity may shrink the batch; apply [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests) before isolation or capacity fallback. Runtime must not regroup a planned wave or pull later tickets. On resume, use durable wave membership with unchecked tickets and committed Git state rather than restoring stale conversational handles.
-8. Before Gate 3, check that all in-scope scenarios/invariants have responsible tickets, every ticket traces to selected decisions, blockers are real prerequisites, and each increment is independently verifiable. Check the recorded delegation eligibility and mode, applicable opt-out, mutation ownership and exclusions, dependencies, isolation need, concurrency conflicts, verification seam, live Host capacity requirement, real isolation for parallel mutation, and `delegation_allowed = false` boundary. Check the durable planned-wave partition: every ticket exactly once, ordered waves, at most four members, dependencies only in earlier waves, no intra-wave conflicts, and main-local singleton waves. If real isolation is unavailable, apply the explicit parallel request policy before serial fallback; never permit parallel shared-workspace mutation or automatic local fallback. Name unresolved load-bearing decisions and affected tickets; resolve them through design/specification rather than assuming them or marking affected tickets ready. Independent selected slices need not be blocked by an unrelated open decision. In the interactive path, present the ticket set and durable planned-wave membership/order, invoke `show-me`, and stop at Gate 3 until the user approves both the ticket set and wave layout and authorizes implementation. In the autonomous path, record the unique grounded recommendation and continue without waiting.
+6. After specification approval or autonomous selection, create vertical tickets using the local ticket template: each increment delivers a complete observable capability through the necessary modules and fits one agent context window. Include real blocking edges, acceptance criteria and references to the selected contexts/model elements, rules, interfaces, consistency/interaction constraints and verification. For every ticket, also record dependencies, delegation eligibility, delegation mode and any opt-out, mutation ownership and exclusions, isolation need, concurrency conflicts, an independently inspectable verification seam, Host capacity assumptions, whether real isolation is required, and the mandatory direct-child boundary `delegation_allowed = false`. Do not copy the whole model or split mechanically by layers. A ticket can span business contexts under a selected interaction contract. Store tickets as checkboxes in one plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`, then write explicit durable planned-wave sections before Gate 3 under
+   Execution Waves. Scheduling order is not a functional dependency.
+7. Validate the plan using Execution Waves and Explicit Parallel Requests:
+   retain one active execution wave, real isolation for parallel mutation,
+   durable membership and recovery from checkboxes plus committed Git state.
+8. Before Gate 3, reconcile decision coverage and ticket readiness under the
+   domain contract's Ticket decomposition section. Check delegation eligibility,
+   mutation ownership, exclusions, dependencies, isolation, concurrency conflicts,
+   verification seams and Host capacity. Validate the durable partition under
+   Execution Waves. Resolve load-bearing omissions through design/specification;
+   independent selected slices need not wait for an unrelated open decision.
+   Present the full ticket set and wave membership/order. In interactive mode,
+   invoke `show-me` and wait for explicit implementation authorization; in
+   autonomous mode record the unique grounded recommendation without waiting.
 
 Creating an external issue, publishing to an issue tracker, pushing a branch, or opening a pull request always requires separate explicit authorization.
 

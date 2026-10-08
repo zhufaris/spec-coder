@@ -5,13 +5,27 @@ description: Interrogate a coding request one consequential question at a time w
 
 # Grill Coder
 
-Follow the shared [workflow contract](../../references/workflow-contract.md).
+Apply the required owner sections below.
 Compose the installed, model-callable `grilling` skill for the interview method
 and `domain-modeling` for glossary/ADR discipline. Both capabilities are
 required. Do not call, wrap, rename, or emulate manual-only `grill-with-docs` or
 `grill-me-with-doc`; their presence on disk is not invocation eligibility.
 
 Use the [domain design contract](../../references/domain-design-contract.md) to identify terminology conflicts, missing rule/state owners, and relevant concurrency or failure scenarios. Read the [worked examples](../../references/domain-design-examples.md) when the business meanings or responsibilities are unclear; defer detailed model selection to design.
+
+## Required Reading
+
+On every entry, including standalone invocation and resume, load these owner
+sections before acting. Links are requirements, not background references.
+
+- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract).
+- [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language).
+- [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
+
+## Conditional Reading
+
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
 
