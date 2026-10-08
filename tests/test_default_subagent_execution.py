@@ -156,7 +156,11 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
             self.assertIn("must not stage or commit", document)
             self.assertIn("before or at dispatch", document)
 
-        for document in (workflow, ticket_template):
+        # The template links its normative owner instead of duplicating policy.
+        for link in ("./subagent-routing-contract.md#worker-progress-heartbeat",
+                     "./worker-brief-template.md#common-brief"):
+            self.assertIn(link, ticket_template)
+        for document in (workflow, read("references/worker-brief-template.md")):
             for phrase in (
                 "worker progress heartbeat",
                 "progresssnapshot",

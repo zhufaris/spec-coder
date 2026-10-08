@@ -109,6 +109,39 @@ codex plugin list --json
 
 新任务必须先完成 workspace preflight 并取得 fresh green baseline，再进入 discovery。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。进入规格写入前，`plan-coder` 会重新验证 prepared workspace。
 
+### 验证 bundled 工具
+
+除九个 skills 外，安装来源必须包含 `scripts/verification-evidence.py`、
+`scripts/check-artifacts.py` 和 `scripts/spec_coder_checks/`。不需要额外 Python 包，
+需要 Python 3.11+ 和 Git。在已确认的 plugin root 执行以下只读检查：
+
+```bash
+python3 -c 'import sys; assert sys.version_info >= (3, 11), sys.version'
+git --version
+test -f scripts/spec_coder_checks/evidence.py
+test -f scripts/spec_coder_checks/workspace.py
+test -f scripts/spec_coder_checks/artifacts.py
+test -f scripts/spec_coder_checks/waves.py
+python3 -B scripts/verification-evidence.py --help
+python3 -B scripts/check-artifacts.py --help
+```
+
+全部应 exit 0；路径缺失、Python/Git 不满足或 import 失败时报告具体命令/output，
+不要把工具缺失当成已通过检查。在其他 target-project cwd 调用时，使用已验证的
+plugin root 下脚本绝对路径；不要从 target cwd 猜测 `./scripts/`。
+这些 smoke checks 不执行项目 baseline，也不安装任何东西。
+
+实际流程参数见 [Verification contract](./references/verification-contract.md#worked-invocation)
+和 [Artifact format](./references/artifact-format.md#command-interface)。首个 baseline
+始终 fresh，capture 可指定未来 active artifact 路径并把 JSON 留在对话中，baseline
+成功后才写文档。同一 uninterrupted request 的 planning 才可比较每条 required
+baseline；main 需确认记录来源及依赖/环境，工具不能验证这些声明的真实性。
+查看 child `exit_code` 和 `reasons`，不能把 capture exit 1 一律当成 baseline 失败。
+缺失/不确定证据重跑；resume、integrated checks 与 final full suite 始终 fresh。
+新模板的 spec/plan 在 Gate 2/3 前检查，delivery phase 要求完成与记录字段；旧格式
+明确 unsupported，走人工 review 或范围内格式规范化。工具不会执行文档命令、
+批准 gate、改 checkbox 或证明记录真实。
+
 ### 默认委派与执行边界
 
 Gate 3 前，`plan-coder` 将 ticket 写入 explicit durable planned wave sections；Gate 3 同时审批 ticket set 与 wave membership/order。Gate 3 后，default delegation 会把当前最早未完成 planned wave 中 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。live dispatch batch 可在当前 durable planned wave 内因 Host capacity 缩小，最多 four tickets。

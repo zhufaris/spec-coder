@@ -60,6 +60,13 @@ uses an empty path. Rule identifiers are machine-readable; messages are for
 humans. Unsupported/unusable input stops dependent checking and never reports
 partial validation as passing.
 
+The [specification template](./specification-template.md#copyable-v1-skeleton)
+and [ticket template](./ticket-template.md#copyable-v1-skeleton) contain paired,
+copyable examples exercised by real CLI integration tests. Replace illustrative
+task data before use; never prefill actual verification results or commit IDs.
+The stages invoke spec/plan checks at the existing Gate 2/3 boundaries and
+delivery checks alongside fresh full-suite execution, without adding a gate.
+
 ## Active Markdown and markers
 
 Each document contains exactly one standalone marker of the matching kind:

@@ -141,6 +141,29 @@ minimum_tier = "standard"
 
 验证包括仓库契约测试、九个 skill 的官方格式检查，以及 Git whitespace 检查。
 
+## Baseline evidence and artifact checks
+
+`0.5.0` 保持九个 skills；工具随插件的 `scripts/` 和
+`scripts/spec_coder_checks/` 一起提供，依赖 Python 3.11+ 与 Git，无额外 Python 包。
+各 stage 在 standalone/resume 入口加载必需的共享规则；main 每次 dispatch 都组装
+[完整 worker brief](./references/worker-brief-template.md#assembly)。
+
+首次 preflight 实际执行每个 baseline command，以 `verification-evidence.py capture`
+保留可观察结果；先把 JSON 留在对话中，green baseline 后才写入现有规格/计划。
+同一 uninterrupted request 的 planning 对每条必需记录运行 `check`，main 确认来源及
+依赖/环境仍有效后才复用，并报告 `record_id`。变更、缺失或未知输入都会要求重跑；
+resume、ticket integration 和最终 full verification 始终 fresh。
+CLI exit 1 也可能表示 baseline 成功但记录不可复用，应分别检查 child `exit_code`
+和 `reasons`。完整参数、声明限制与示例见 [Verification contract](./references/verification-contract.md)。
+
+新[规格](./references/specification-template.md#copyable-v1-skeleton)与
+[ticket 计划](./references/ticket-template.md#copyable-v1-skeleton)使用 v1 Markdown。
+`check-artifacts.py` 在 Gate 2 前运行 `--phase spec`，Gate 3 前运行 `--phase plan`，
+交付运行 `--phase delivery`，检查实际文件中的引用、coverage、dependencies、waves、
+ownership 和记录字段。旧的无标记文档明确返回 unsupported，可在范围内规范格式或
+人工 review，不能称为 checker pass。结构通过不证明业务正确性、命令实际执行或
+批准；Markdown 仍是唯一权威。参数和 exit codes 见 [Artifact format](./references/artifact-format.md)。
+
 ## Workflow
 
 可选参数 `autonomous=true` 只在当前请求中生效（request-scoped），default is

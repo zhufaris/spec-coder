@@ -81,6 +81,15 @@ set and wave layout (or records their autonomous selection).
 partition and runtime rules, including every ticket exactly once and one active execution wave. Load it when creating, executing or recovering a plan. Keep
 Host/recovery handles conversational; never create a private workflow-state file.
 
+New specifications and plans use the versioned Markdown markers and grammar in
+[Supported artifact format](./artifact-format.md#active-markdown-and-markers),
+emitted by the bundled templates. Run the read-only artifact checker on actual
+files before Gate 2 (`spec`), Gate 3 (`plan`) and final delivery (`delivery`).
+Resolve findings and explicitly report unsupported historical documents under
+[Findings and compatibility](./artifact-format.md#findings-and-compatibility);
+manual review is not a checker pass. Structural success never grants approval
+or establishes business correctness. Markdown remains the sole authority.
+
 ## Default Routing
 
 Use `spec-coder` by default for requests that create or change code. Do not automatically route read-only explanation, status, investigation, or review requests through it. Honor an explicit `skip spec-coder` or `directly modify` request while continuing to obey all other applicable instructions and skills.
@@ -170,3 +179,11 @@ For behavior changes, use the Red-Green sequence below. For approved behavior-pr
 3. Run affected tests, lint, type checks, and builds before the ticket commit.
 4. Review the complete diff against the specification, domain language, architecture, and tickets.
 5. Run the full applicable repository suite freshly before claiming completion.
+
+[Authority and lifecycle](./verification-contract.md#authority-and-lifecycle)
+owns baseline capture/reuse: first preflight executes, same-request planning may
+reuse every required matching record, and resume, integrated-ticket checks and
+delivery remain fresh. Capture JSON can stay in conversation until the green
+baseline permits artifact writes. Neither tool authenticates main observation
+or authorizes stage/commit/completion. Follow the CLI contracts for exact inputs,
+uncertainty and exit handling.

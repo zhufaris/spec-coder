@@ -16,6 +16,9 @@ sections before acting. Links are requirements, not background references.
 - [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Default Routing](../../references/workflow-contract.md#default-routing), [Recovery](../../references/workflow-contract.md#recovery), [Verification Layers](../../references/workflow-contract.md#verification-layers).
 - [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
 
+- [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).
+- [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), [Worked invocation](../../references/verification-contract.md#worked-invocation).
+
 ## Conditional Reading
 
 - **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
@@ -40,9 +43,14 @@ evidence, and a final delivery report produced through `delivery-coder`.
    Check current Host visibility, invocation eligibility and compatibility;
    respect `disable-model-invocation: true`. Planning uses bundled templates.
 2. For a new request, complete workspace preflight: account for initial changes,
-   select a safe workspace, prepare dependencies and observe a fresh green
-   baseline. Invoke `using-git-worktrees` only for selected isolation. Keep
-   prepared workspace evidence in conversation, then start `grill-coder`.
+   select a safe workspace and invoke `using-git-worktrees` first when isolation
+   is selected. Prepare dependencies in that final workspace and establish the
+   fresh green baseline by running bundled `scripts/verification-evidence.py capture`
+   for each explicit baseline command using the verification contract. Select the future
+   active artifact path without writing it; keep stdout JSON and prepared
+   workspace evidence in conversation until baseline succeeds and artifacts
+   may be written. Inspect the child `exit_code` and reasons separately from
+   the capture CLI exit, then start `grill-coder`.
    For a resume, infer the earliest incomplete phase and run fresh verification
    at that boundary under Recovery.
 3. Run `grill-coder` for confirmed requirements, then `design-coder` for 2-3

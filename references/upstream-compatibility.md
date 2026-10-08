@@ -29,6 +29,18 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
   reports external capability compatibility but never installs or rewrites an
   upstream skill.
 
+The bundle also contains `scripts/verification-evidence.py`,
+`scripts/check-artifacts.py` and their `scripts/spec_coder_checks/` modules.
+These are Python 3.11+ standard-library CLIs, not additional public skills or an
+external planning package. Git is required for workspace evidence and delivery
+commit inspection. Keep scripts and modules together and resolve their absolute
+paths from the plugin root, independently of target-project cwd. Follow
+[Verification evidence](./verification-contract.md#cli-and-explicit-observations)
+and [Artifact checking](./artifact-format.md#command-interface). Missing baseline
+capture/check tooling falls back to fresh project verification with the reason;
+missing artifact tooling must be reported as unavailable, never a structural
+pass. Historical unmarked artifacts follow the explicit manual-review path.
+
 ## Reference Snapshots
 
 These source snapshots identify the integration's provenance, not proof that every skill in them is model-callable or currently compatible. Apply the live checks below.

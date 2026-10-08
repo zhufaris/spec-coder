@@ -2,6 +2,60 @@
 
 This is a spec-coder resource used directly by `plan-coder` after specification approval or autonomous Gate 2 selection. Decompose the selected specification into a local plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`. Apply the [domain design contract](./domain-design-contract.md); do not require an external planning skill or issue tracker.
 
+## Copyable v1 skeleton
+
+This example pairs with the specification template's status-command example.
+Replace illustrative content with actual selected decisions and ownership; keep
+[Plan grammar](./artifact-format.md#plan-grammar), one checkbox heading per ticket
+and explicit wave membership. It passes draft checking without fabricated
+execution or commit evidence. Draft success is not implementation authorization.
+
+```markdown
+# Status command plan
+
+<!-- spec-coder:artifact-v1 plan -->
+
+## Workspace and authority
+
+Record the selected specification path, actual workspace/base, baseline evidence
+and Gate 2/3 decisions here before implementation.
+
+## Wave W1: `T1`
+
+### - [ ] T1: Report local readiness
+
+| Field | Content |
+| --- | --- |
+| What to build | A read-only command that reports ready after checks pass. |
+| Spec references | SCN-1, INV-1 |
+| Dependencies | None |
+| Delegation eligibility | Bounded local command with subprocess output and file-preservation checks. |
+| Delegation mode | Default direct worker |
+| Mutation ownership | status.py, tests/test_status.py |
+| Exclusions | Remote health probes and automatic repairs. |
+| Isolation | Serial worker; main validates workspace and recorded base before dispatch. |
+| Concurrency conflicts | None |
+| Verification seam | Public command output, exit status and unchanged project files. |
+| Host capacity | One direct-child slot; recheck live capacity before dispatch. |
+| Direct-child boundary | delegation_allowed = false; assemble common brief and implementation role before dispatch. |
+| Acceptance criteria and verification | Command reports ready, exits zero and leaves project files unchanged; verify through subprocess execution and file comparison. |
+
+## Final delivery checks
+
+Main reviews acceptance and commits, freshly executes the full applicable suite,
+and checks delivery evidence before claiming completion.
+```
+
+Keep the active baseline record in the existing specification or plan following
+[Authority and lifecycle](./verification-contract.md#authority-and-lifecycle).
+Moving it to another artifact changes the exclusion context and requires fresh
+capture; do not rewrite captured context to manufacture a hit.
+After actual ticket verification and main's accepted commit, add
+`Verification commands`, `Verification results` and `Commits` rows using
+[Delivery evidence](./artifact-format.md#delivery-evidence). Never prefill results
+or commit IDs. `--phase plan` allows unchecked tickets; `--phase delivery`
+requires completion and recorded evidence but does not authenticate claims.
+
 ## Plan structure
 
 Reference the selected specification and workspace, record the starting revision/baseline and approval or autonomous-selection status, then list tickets, explicit durable planned waves, and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan has **one active execution wave** at most, selected from the approved or autonomously selected planned wave order; Host and recovery handles remain conversational.
@@ -21,20 +75,20 @@ For each ticket, include:
 
 | Field | Content |
 | --- | --- |
-| Title and completion checkbox | A concise delivered capability, e.g. `- [ ] T1: Cancel an eligible order` |
+| Title and completion checkbox | A concise delivered capability, e.g. `### - [ ] T1: Cancel an eligible order` |
 | What to build | Observable outcome and scope; a complete path through only the necessary modules |
-| Spec references | Approved scenarios, invariants and architecture decisions this ticket implements |
+| Spec references | Comma-separated approved decision IDs, e.g. SCN-1, INV-1; None only when no defined ID applies |
 | Dependencies | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
 | Delegation eligibility | Grounded inputs, bounded/reversible scope, independently inspectable seam, and any main-only authority or credential that makes the ticket ineligible |
 | Delegation mode | Default direct worker, main-local, required delegation, or an applicable request/ticket opt-out, including the reason |
 | Ownership and implementation path | Relevant contexts/model elements, enforcing modules, interfaces, allowed boundary data and consistency/failure constraints; reference rather than copy the model |
-| Mutation ownership | Exact allowed files/modules and the result-transfer boundary |
+| Mutation ownership | Comma-separated repository-relative files/directories, e.g. src/status.py, tests/; no globs or ambiguous module names |
 | Exclusions | Files, responsibilities, authority, and unrelated changes outside the ticket |
 | Isolation | Whether mutation is read-only, serial/shared, or requires real per-worker Host/task or Git isolation, including the wave base when applicable |
-| Concurrency conflicts | Known ownership overlap, semantic conflicts, and tickets that cannot share a parallel wave |
+| Concurrency conflicts | Comma-separated IDs of tickets with ownership overlap or semantic conflicts that cannot share a wave; otherwise None |
 | Verification seam | Independently inspectable focused evidence plus affected checks and separate dependency/preservation evidence |
 | Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
-| Direct-child boundary | Every child brief states `delegation_allowed = false`; children do not spawn directly or indirectly, stage, or commit. Before or at dispatch, record `heartbeat-ready` or `heartbeat-capability-unavailable`; unavailable capability preserves delegation. Require the shared Worker Progress Heartbeat / `ProgressSnapshot` when proactive messaging is available: start, every 45-60 seconds while active, phase change, before/after a long command, and blocker/failure/completion. An ordinary no-message observation is `awaiting-heartbeat`; only a missed interval or wait timeout is `heartbeat-overdue`. Neither state grants failure, blocker, interrupt, takeover, promotion, or local fallback authority. Completion authority remains main-only. |
+| Direct-child boundary | `delegation_allowed = false`; main assembles the [common brief](./worker-brief-template.md#common-brief) and applicable role additions as actual outgoing content, including ownership, no indirect delegation/staging/commits and the shared heartbeat contract. |
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
 
@@ -63,14 +117,14 @@ For relevant domain changes, references and acceptance preserve the approved bus
 
 ## Gate 3 review
 
+Run bundled `check-artifacts.py --phase plan --spec <absolute-spec> --plan
+<absolute-plan>` and resolve findings under [Findings and compatibility](./artifact-format.md#findings-and-compatibility).
 Check coverage in both directions: every in-scope scenario/invariant has a responsible ticket, and every ticket traces to approved behavior and architecture. Resolve invalid blockers, excessive size and missing verification. Check every ticket's delegation eligibility and mode, mutation ownership and exclusions, dependencies, isolation need, concurrency conflicts, verification seam, Host-capacity requirement, real-isolation requirement, and `delegation_allowed = false` child boundary. Name unresolved load-bearing decisions and affected tickets; do not mark them implementation-ready. Independent approved slices need not wait on unrelated open decisions.
 
-For every delegated ticket, the direct-child brief also references the shared
-Worker Progress Heartbeat / `ProgressSnapshot` contract. It requires the
-reporting schedule above only when proactive child-to-main messaging is
-available; it does not promise a Host implementation. Heartbeat snapshots are
-transient observation evidence, so their absence cannot update durable plan
-state or transfer any main-only completion, diff, or verification authority.
+For every dispatch, main loads [Worker Progress Heartbeat](./subagent-routing-contract.md#worker-progress-heartbeat)
+and [Worker Brief Assembly](./subagent-routing-contract.md#worker-brief-assembly),
+then supplies the complete common brief and role additions. The routing owner
+defines reporting capability/schedule and observation-only authority.
 
 Present the ticket set, deliverables, dependencies, and durable planned-wave
 membership/order for Gate 3 review and implementation authority. Interactive

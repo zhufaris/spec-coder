@@ -20,6 +20,10 @@ sections before acting. Links are requirements, not background references.
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
 - [Review Execution](../../references/subagent-routing-contract.md#review-execution).
 
+- [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).
+- [Command interface](../../references/artifact-format.md#command-interface), [Findings and compatibility](../../references/artifact-format.md#findings-and-compatibility).
+- [Delivery evidence](../../references/artifact-format.md#delivery-evidence).
+
 ## Conditional Reading
 
 - **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
@@ -57,7 +61,12 @@ the selected mode and child limits.
 4. Route behavior defects through `tdd-coder`: add or correct a failing test, observe Red, implement the minimum repair, run affected checks, and create a separate atomic commit. Perform structural refactoring only while behavior tests remain green.
 5. Repeat review until no unresolved blocking findings remain. Do not conceal accepted residual risks.
 6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command. Do not rely on earlier output or a ticket-level subset.
-7. Inspect final status and commit history against recorded initial changes. Confirm each task change is represented by an atomic commit and no unrelated change entered those commits. Preserve any user-staged work that predated the task; its presence is not itself a delivery failure.
+7. Run bundled `scripts/check-artifacts.py --phase delivery --spec <absolute-spec>
+   --plan <absolute-plan> --repo <absolute-workspace>` against actual artifacts.
+   Resolve findings or explicitly report unsupported historical format and
+   manual review. This checks recorded structure and local commit identities,
+   never proof of execution, attribution or freshness; step 6 remains required.
+   Inspect final status and commit history against recorded initial changes. Confirm each task change is represented by an atomic commit and no unrelated change entered those commits. Preserve any user-staged work that predated the task; its presence is not itself a delivery failure.
 8. Report the delivered specification, commits, fresh evidence, resolved findings, and residual risks. Claim completion only when all required checks pass.
 
 If delegated evidence fails or is uncertain, preserve the attempt and return to

@@ -20,6 +20,8 @@ sections before acting. Links are requirements, not background references.
 - [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Verification Layers](../../references/workflow-contract.md#verification-layers).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
 
+- [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle), [Delivery evidence](../../references/artifact-format.md#delivery-evidence).
+
 ## Conditional Reading
 
 - **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
@@ -70,9 +72,11 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    points and verify source dependencies, exposed boundary types and assembly
    with existing tooling or a concrete source review; child-local or passing
    behavior tests alone do not establish integrated Green or dependency
-   compliance.
+   compliance. Planning baseline reuse never satisfies this fresh integration
+   check; record actual verification commands/results in the ticket under the
+   artifact-format delivery evidence contract.
 8. Update the durable plan checkbox and runtime mirror only after the affected checks pass.
-9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior.
+9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior. After it exists, append its actual commit ID to the ticket evidence.
 10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
 
 For a failed or uncertain delegated attempt, use Attempt Evidence and Promotion;

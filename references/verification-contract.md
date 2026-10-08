@@ -163,6 +163,11 @@ python3 /absolute/plugin/scripts/verification-evidence.py capture \
   -- /usr/bin/python3 -B -m unittest discover -s tests
 ```
 
+The active artifact may be a future path: do not create it before the first
+green baseline. Retain stdout JSON in conversation until artifact writing is
+permitted; capture does not require the file to exist. Keep the same active
+artifact/exclusions during comparison, because moving a record changes context.
+
 Main observes the visible output and CLI/command results, then copies the exact
 stdout JSON into the existing active specification or plan:
 

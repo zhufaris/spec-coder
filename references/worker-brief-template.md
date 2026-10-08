@@ -29,7 +29,8 @@ Inputs: {approved/autonomously selected decisions and authority, acceptance
 Mutation ownership: {explicit allowed files/modules; none for reviewer}
 Exclusions: {out-of-scope files, behaviors, effects and other workers' ownership}
 Verification seam: {commands, prerequisites, expected results and evidence
-                    main already owns, including Red or structural baseline}
+                    main already owns, including Red or structural baseline;
+                    exact tool paths/target cwd and artifact phase when applicable}
 Return: base identity; complete task-owned diff and all changed/untracked paths;
         commands actually run with results; findings with file/line evidence;
         unresolved uncertainty/blockers. Do not claim checks you did not run.
@@ -72,7 +73,10 @@ Append the applicable role text, resolving its inputs:
   Red or approved structural preservation evidence. Keep unchanged checks green;
   run the selected focused/affected commands and return the full owned diff.
   Do not anticipate later tickets. Main freshly verifies the accepted integrated
-  state and owns checkbox updates and the atomic commit.
+  state and owns checkbox updates and the atomic commit. When the task consumes
+  verification records, include actual record IDs and main-observed provenance;
+  a reusable baseline or structural artifact pass cannot satisfy fresh integrated
+  checks. Apply [Authority and lifecycle](./verification-contract.md#authority-and-lifecycle).
 - **Reviewer:** read-only; no edits, no staging, no commits. `axis = {standards |
   spec}`. Standards receives repository instructions, status, cumulative diff,
   relevant history and verification conventions; checks correctness, security,

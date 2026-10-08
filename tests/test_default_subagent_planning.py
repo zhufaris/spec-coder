@@ -37,13 +37,13 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, template)
 
-        for phrase in (
-            "before or at dispatch",
-            "awaiting-heartbeat",
-            "missed interval",
+        for owner in (
+            "./worker-brief-template.md#common-brief",
+            "./subagent-routing-contract.md#worker-progress-heartbeat",
+            "./subagent-routing-contract.md#worker-brief-assembly",
         ):
-            with self.subTest(heartbeat_phrase=phrase):
-                self.assertIn(phrase, template)
+            with self.subTest(owner=owner):
+                self.assertIn(owner, template)
 
     def test_planner_checks_wave_coverage_and_safe_parallel_ownership(self) -> None:
         planner = read("skills/plan-coder/SKILL.md").lower()
