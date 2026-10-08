@@ -78,6 +78,49 @@ class VerificationEvidenceTests(unittest.TestCase):
                 self.assert_rerun(self.invoke("check", context=context))
         self.assertEqual(self.counter.read_text(), "3")
 
+    def test_unknown_environment_capture_runs_baseline_but_never_reuses_it(self):
+        values = ["unknown", "unconfirmed", "unavailable", "?", " Unknown (not inspected) "]
+        for count, value in enumerate(values, 1):
+            with self.subTest(value=value):
+                context = self.changed_context("--environment", json.dumps({"APP_CONFIG": value}))
+                result = self.invoke("capture", context=context)
+                payload = self.assert_rerun(result)
+                self.assertEqual(payload["exit_code"], 0)
+                self.assertIn("environment observation is unknown", " ".join(payload["reasons"]))
+                self.assertIn("BASELINE VISIBLE", result.stderr)
+                self.assertEqual(self.counter.read_text(), str(count))
+                self.embed(payload)
+                self.assert_rerun(self.invoke("check", context=context))
+                self.assertEqual(self.counter.read_text(), str(count), "check must not run the baseline")
+
+    def test_unknown_environment_check_rejects_previously_captured_records(self):
+        record, _ = self.capture()
+        for value in ["unknown", "unconfirmed", "unavailable", "?", " Unknown (not inspected) "]:
+            with self.subTest(value=value):
+                environment = {"APP_CONFIG": value}
+                # Older captures could declare success despite uncertain environment observations.
+                record["context"]["environment"] = environment
+                self.embed(record)
+                context = self.changed_context("--environment", json.dumps(environment))
+                payload = self.assert_rerun(self.invoke("check", context=context))
+                self.assertIn("environment observation is unknown", " ".join(payload["reasons"]))
+                self.assertEqual(self.counter.read_text(), "1", "check must not run the baseline")
+
+    def test_known_and_empty_environment_observations_are_reusable(self):
+        for count, environment in enumerate([{}, {"APP_CONFIG": "production"}, {"APP_CONFIG": ""}], 1):
+            with self.subTest(environment=environment):
+                context = self.changed_context("--environment", json.dumps(environment))
+                result = self.invoke("capture", context=context)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                record = json.loads(result.stdout)
+                self.assertEqual(record["status"], "captured")
+                self.assertEqual(record["exit_code"], 0)
+                self.embed(record)
+                checked = self.invoke("check", context=context)
+                self.assertEqual(checked.returncode, 0, checked.stderr)
+                self.assertEqual(json.loads(checked.stdout)["status"], "reusable")
+                self.assertEqual(self.counter.read_text(), str(count), "check must not run the baseline")
+
     def test_malformed_or_incomplete_records_are_never_reusable(self):
         record, _ = self.capture()
         invalid = [None, [], {}, {**record, "context": []},

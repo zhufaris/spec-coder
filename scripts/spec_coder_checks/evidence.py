@@ -80,7 +80,7 @@ def context_reasons(context):
         if name != "environment" and not value:
             reasons.append(name + " observations are unknown")
         for key, observation in value.items():
-            if not key or not isinstance(observation, str) or (name != "environment" and unknown(observation)):
+            if not key or (unknown(observation) and not (name == "environment" and observation == "")):
                 reasons.append(name + " observation is unknown or invalid: " + key)
         if name == "dependencies" and not {"installed", "external"}.issubset(value):
             reasons.append("dependencies require explicit installed and external observations")

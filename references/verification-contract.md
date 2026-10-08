@@ -60,9 +60,16 @@ for the child process.
 
 Missing required CLI options are usage errors. Empty/unknown request, toolchain
 or dependency observations, missing `installed`/`external`, non-string values,
-and explicit `unknown`, `unconfirmed`, `unavailable` or `?` readiness cannot be
-reused. Capture can still run an explicitly supplied baseline when these
-observations are uncertain; it emits a nonreusable record. Malformed JSON,
+and uncertain environment observations cannot be reused. The case-insensitive
+words `unknown`, `unconfirmed`, and `unavailable`, including inside longer
+observation strings, and a trimmed value of `?` are reserved uncertainty
+sentinels across request, toolchain, dependencies, and environment. They
+conservatively cause cache misses even when an environment variable literally
+contains such a value. An explicit environment `{}` and genuinely empty string
+variable values remain valid; whitespace-only observations are uncertain.
+Capture can still run an explicitly supplied baseline when these observations
+are uncertain; it emits a nonreusable record even if the child exits zero.
+Check returns `rerun` without executing the command. Malformed JSON,
 invalid paths or unsafe exclusions are rejected before command execution.
 
 ## Capture and record schema
