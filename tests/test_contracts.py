@@ -535,7 +535,12 @@ class PluginContractTests(unittest.TestCase):
         text = self.assert_skill_contract(
             "grill-coder", ("grilling", "domain-modeling")
         )
-        self.assertIn("one question at a time", text.lower())
+        self.assertIn("dependency-ready frontier", text.lower())
+        self.assertIn("up to three", text.lower())
+        self.assertIn("stable `qn`", text.lower())
+        self.assertIn("qn: default", text.lower())
+        self.assertIn("unknown", text.lower())
+        self.assertIn("partial", text.lower())
         self.assertIn("recommend", text.lower())
         self.assertIn("original checkout", text.lower())
         for phrase in (
@@ -682,6 +687,8 @@ class PluginContractTests(unittest.TestCase):
             "## Overlapping user changes",
             "## Pre-discovery workspace",
             "## Pre-discovery baseline failure",
+            "## Dependency-aware discovery frontier rounds",
+            "## Serial discovery coupling and partial answers",
             "## Planning revalidates prepared workspace",
             "## Confirmed discovery term",
             "## Qualifying discovery ADR",

@@ -11,7 +11,7 @@
 | Skill | 用途 |
 | --- | --- |
 | `spec-coder` | 总入口；识别新任务或恢复点，并编排完整流程 |
-| `grill-coder` | 组合 `grilling` + `domain-modeling` 逐问澄清，并惰性记录已确认的领域语言或 ADR |
+| `grill-coder` | 组合 `grilling` + `domain-modeling` 以保守 frontier rounds 澄清，并惰性记录已确认的领域语言或 ADR |
 | `design-coder` | 比较 2–3 个方案，完成轻量 DDD 与 Clean Architecture 设计 |
 | `plan-coder` | 重新验证已准备的 workspace，再生成规格和垂直 tickets |
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
@@ -181,7 +181,7 @@ human wait/`show-me`，但仍生成 design、specification、tickets、durable w
 
 Discovery 开始前先完成 workspace preflight，并取得 fresh green baseline。Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
 
-`grill-coder` 在预检后逐问确认决策。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
+`grill-coder` 在预检后按 dependency-ready frontier rounds 确认决策：每轮按 decision-tree order 至多提出三个相互独立的问题；会改变 scope、领域含义或 ownership、core invariant、architecture 的问题，以及 coupling 重叠或未知的问题保持串行。每题都有稳定 `Qn`、适用选项和单独 recommendation/reason；多题轮次只能用 `Qn: default` 接受单题推荐，partial answer 只确认明确回答，ambiguous answer 先单题澄清再重算 frontier。Repository facts 始终由 agent 查证，不向用户提问。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
 
 Interactive Gate 1、Gate 2、Gate 3、重新打开的 human Gate，以及仍需
 separate human authority 的 suite-owned mutation authorization，都会先调用本地

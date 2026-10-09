@@ -72,6 +72,119 @@ PROGRESS_PHASES = {"starting", "working", "verifying", "blocked", "completed"}
 VERIFICATION_STATES = {"not-started", "running", "passed", "failed"}
 
 
+def _discovery_question_fields(question: Mapping[str, object]) -> tuple[str, tuple[str, ...], str, tuple[str, ...] | None]:
+    """Normalize one decision-tree question without changing its tree order."""
+    question_id = question.get("id")
+    dependencies = question.get("dependencies", ())
+    risk = question.get("risk", "ordinary")
+    coupling_keys = question.get("coupling_keys", ())
+    if not isinstance(question_id, str) or not question_id:
+        raise ValueError("discovery question id must be a nonempty string")
+    if isinstance(dependencies, str) or not isinstance(dependencies, Iterable):
+        raise ValueError("discovery question dependencies must be an iterable")
+    dependencies = tuple(dependencies)
+    if not all(isinstance(dependency, str) and dependency for dependency in dependencies):
+        raise ValueError("discovery question dependencies must be nonempty strings")
+    if not isinstance(risk, str):
+        raise ValueError("discovery question risk must be a string")
+    if coupling_keys is not None:
+        if isinstance(coupling_keys, str) or not isinstance(coupling_keys, Iterable):
+            raise ValueError("discovery question coupling_keys must be iterable or None")
+        coupling_keys = tuple(coupling_keys)
+        if not all(isinstance(key, str) and key for key in coupling_keys):
+            raise ValueError("discovery question coupling_keys must be nonempty strings")
+    return question_id, dependencies, risk, coupling_keys
+
+
+def select_discovery_question_batch(
+    questions: Iterable[Mapping[str, object]], confirmed_ids: set[str]
+) -> tuple[str, ...]:
+    """Select the safe, dependency-ready discovery frontier (capped at three).
+
+    The input sequence is decision-tree order.  A high-risk decision, unknown
+    coupling, or overlapping coupling means that the next round must be serial
+    so an answer cannot silently reshape another question in that round.
+    """
+    if not isinstance(confirmed_ids, set) or not all(
+        isinstance(question_id, str) for question_id in confirmed_ids
+    ):
+        raise ValueError("confirmed_ids must be a set of question IDs")
+
+    ready: list[tuple[str, str, tuple[str, ...] | None]] = []
+    seen_ids: set[str] = set()
+    for question in questions:
+        if not isinstance(question, Mapping):
+            raise ValueError("discovery questions must be mappings")
+        question_id, dependencies, risk, coupling_keys = _discovery_question_fields(question)
+        if question_id in seen_ids:
+            raise ValueError("discovery question IDs must be unique")
+        seen_ids.add(question_id)
+        if question_id not in confirmed_ids and all(
+            dependency in confirmed_ids for dependency in dependencies
+        ):
+            ready.append((question_id, risk, coupling_keys))
+
+    if not ready:
+        return ()
+    first_id, first_risk, first_keys = ready[0]
+    if first_risk == "high" or first_keys is None:
+        return (first_id,)
+
+    selected = [first_id]
+    selected_keys = set(first_keys)
+    for question_id, risk, coupling_keys in ready[1:]:
+        if risk == "high" or coupling_keys is None:
+            break
+        if selected_keys.intersection(coupling_keys):
+            break
+        selected.append(question_id)
+        selected_keys.update(coupling_keys)
+        if len(selected) == 3:
+            break
+    return tuple(selected)
+
+
+def apply_discovery_round(
+    question_ids: tuple[str, ...],
+    answers: Mapping[str, object],
+    *,
+    ambiguous_ids: set[str] | None = None,
+    bare_default: bool = False,
+) -> Dict[str, object]:
+    """Apply only explicit, unambiguous answers from one discovery round."""
+    if not question_ids or len(set(question_ids)) != len(question_ids):
+        raise ValueError("a discovery round requires unique question IDs")
+    if not all(isinstance(question_id, str) and question_id for question_id in question_ids):
+        raise ValueError("discovery round IDs must be nonempty strings")
+    if not isinstance(answers, Mapping):
+        raise ValueError("answers must be a mapping")
+    ambiguous = ambiguous_ids or set()
+    if not isinstance(ambiguous, set) or not ambiguous.issubset(question_ids):
+        raise ValueError("ambiguous_ids must be round question IDs")
+
+    confirmed = []
+    for question_id in question_ids:
+        answer = answers.get(question_id)
+        if question_id in ambiguous or not isinstance(answer, str) or not answer.strip():
+            continue
+        confirmed.append(question_id)
+
+    # A bare `default` is valid only for a one-question round.  In a batch it
+    # cannot identify which independent recommendation the user accepted.
+    if bare_default and len(question_ids) == 1 and question_ids[0] not in ambiguous:
+        confirmed = [question_ids[0]]
+    unresolved = tuple(question_id for question_id in question_ids if question_id not in confirmed)
+    serial_follow_up = next(
+        (question_id for question_id in question_ids if question_id in ambiguous),
+        unresolved[0] if bare_default and unresolved else None,
+    )
+    return {
+        "confirmed": tuple(confirmed),
+        "unresolved": unresolved,
+        "serial_follow_up": serial_follow_up,
+    }
+
+
 def resolve_autonomy_mode(
     *, explicit_user_choice: bool | None, source: str | None
 ) -> str:

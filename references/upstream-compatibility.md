@@ -69,6 +69,15 @@ their installation, modify their flags, rename/wrap them, or ask the user to
 run them to complete the native workflow. `grill-coder` instead composes the
 model-callable `grilling` and `domain-modeling` primitives directly.
 
+`grill-coder` adopts `grilling`'s decision-tree frontier rounds, then refines
+them locally: each round contains at most three dependency-ready, mutually
+independent questions in tree order. Scope, domain meaning or ownership, core
+invariant, architecture, overlapping-coupling, and unknown-coupling decisions
+remain serial. It assigns stable IDs and individual recommendations, handles
+partial answers and ambiguity conservatively, and keeps repository-fact
+investigation agent-owned. This refinement does not invoke or emulate either
+manual-only with-doc wrapper.
+
 ## Default Delegation and Review Compatibility
 
 Every eligible approved or autonomously selected ticket delegates by default.

@@ -1,6 +1,6 @@
 ---
 name: grill-coder
-description: Interrogate a coding request one consequential question at a time while lazily recording confirmed domain language and qualifying architecture decisions in repository docs. Use for the with-doc discovery phase of spec-coder or when a coding plan needs evidence-backed requirements stress-testing before design.
+description: Interrogate a coding request in conservative dependency-aware question rounds while lazily recording confirmed domain language and qualifying architecture decisions in repository docs. Use for the with-doc discovery phase of spec-coder or when a coding plan needs evidence-backed requirements stress-testing before design.
 ---
 
 # Grill Coder
@@ -50,31 +50,43 @@ the later specification; persist only qualifying domain language or ADRs.
    write. Missing or stale evidence returns to workspace preflight.
 2. Inspect implementation evidence, the applicable glossary map/glossary and
    ADRs before asking what the repository already answers.
-3. Build a private decision tree and start with the decision that constrains
-   the most downstream choices. Ask exactly one question at a time.
-4. Include a clear recommendation and one-sentence reason with every material
-   question. The user may accept it by replying `default`. A recommendation is
-   not a confirmed decision.
-5. Absorb each answer before choosing the next branch. Clarify an ambiguous
-   answer with one focused follow-up. Only an explicit, unambiguous user answer
-   establishes a confirmed decision.
-6. After each confirmed decision, classify its durable destination:
+3. Build a private decision tree and work it in dependency-ready frontier
+   rounds, preserving decision-tree order. Ask up to three mutually independent
+   questions whose prerequisites are settled, then recompute the frontier after
+   each response. Do not ask a question whose answer depends on another open
+   question in the same round.
+4. Keep a question serial when its answer controls scope, domain meaning or
+   ownership, a core invariant, or an architecture trade-off that could reshape
+   another question's meaning, options, recommendation, or necessity. Unknown
+   or overlapping coupling is serial as well. A repository fact remains
+   agent-owned: inspect it as a prerequisite only for its downstream question
+   without blocking unrelated ready frontier items.
+5. Give every question a stable `Qn` ID, applicable options, and its own clear
+   recommendation with a one-sentence reason. The user may accept one
+   recommendation with `Qn: default`; never interpret one bare `default` as an
+   answer to a multi-question round. A recommendation is not a confirmed
+   decision.
+6. Absorb only explicit, unambiguous individual answers. Confirm answered IDs,
+   leave omitted IDs unresolved, and ask ambiguity as one focused serial
+   follow-up before recomputing the next frontier. Only an explicit,
+   unambiguous user answer establishes a confirmed decision.
+7. After each confirmed decision, classify its durable destination:
    - canonical domain terminology, context-specific meaning, or an invariant
      updates the applicable `GLOSSARY.md` through `domain-modeling`;
    - an architecture decision updates or creates an ADR only when it is
      hard to reverse, surprising without context, and the result of a real trade-off;
    - scope, interface, acceptance, and ephemeral implementation choices stay in
      conversation for design/specification and produce no document write.
-7. Immediately before a qualifying write, prove that the target is task-owned
+8. Immediately before a qualifying write, prove that the target is task-owned
    or safely separable from initial/user changes. Create glossary or ADR files
    lazily. Preserve existing definitions and explain compatibility before a
    confirmed replacement. On overlapping or ambiguous ownership, make no write
    and stop with the decision, target, conflict, and resume point.
-8. Challenge fuzzy or conflicting terms, distinguish affected contexts'
+9. Challenge fuzzy or conflicting terms, distinguish affected contexts'
    meanings and state owners, and probe relevant transitions, concurrent
    requests, retries and partial failures. Defer detailed entities, services
    and architecture selection to `design-coder`.
-9. Finish when every load-bearing decision is confirmed, explicitly deferred,
+10. Finish when every load-bearing decision is confirmed, explicitly deferred,
    or out of scope. Report settled decisions, changed documentation paths,
    unresolved branches, prepared workspace evidence, and the recommended next
    action.

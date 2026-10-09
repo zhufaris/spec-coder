@@ -171,6 +171,33 @@ disallowed meanings when needed; return the changed path with the decisions.
 Forbidden action: Do not defer the confirmed term until specification writing,
 put implementation details in the glossary, or update a different context.
 
+## Dependency-aware discovery frontier rounds
+
+Starting state: A prepared workspace has four unresolved decisions in
+decision-tree order. Three have settled prerequisites and distinct coupling
+keys; the fourth is also ready but exceeds the round cap.
+
+Expected route: `grill-coder` asks `Q1`, `Q2`, and `Q3` together with their
+own applicable options and recommendation/reason. It leaves `Q4` unresolved,
+waits for individual answers, and recomputes the dependency-ready frontier.
+
+Forbidden action: Do not ask more than three questions, use one bare `default`
+for the whole batch, or treat a repository fact as a user question.
+
+## Serial discovery coupling and partial answers
+
+Starting state: A dependency-ready decision controls scope, domain meaning or
+ownership, a core invariant, architecture, overlapping coupling, or unknown
+coupling. A prior multi-question round receives `Q1: default`, omits `Q3`, and
+answers `Q2` ambiguously.
+
+Expected route: Ask the serial decision alone. Confirm only `Q1`; leave `Q3`
+unresolved; ask one focused serial follow-up for `Q2` before recomputing the
+frontier.
+
+Forbidden action: Do not batch a high-risk or uncertain decision, infer omitted
+answers, or allow an ambiguous answer to settle a downstream branch.
+
 ## Qualifying discovery ADR
 
 Starting state: Preflight is green and the user confirms an architecture
