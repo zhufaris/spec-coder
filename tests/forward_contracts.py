@@ -101,9 +101,10 @@ def select_discovery_question_batch(
 ) -> tuple[str, ...]:
     """Select the safe, dependency-ready discovery frontier (capped at three).
 
-    The input sequence is decision-tree order.  A high-risk decision, unknown
-    coupling, or overlapping coupling means that the next round must be serial
-    so an answer cannot silently reshape another question in that round.
+    The input sequence is decision-tree order.  Any nonordinary risk
+    classification, unknown coupling, or overlapping coupling means that the
+    next round must be serial so an answer cannot silently reshape another
+    question in that round.
     """
     if not isinstance(confirmed_ids, set) or not all(
         isinstance(question_id, str) for question_id in confirmed_ids
@@ -127,13 +128,13 @@ def select_discovery_question_batch(
     if not ready:
         return ()
     first_id, first_risk, first_keys = ready[0]
-    if first_risk == "high" or first_keys is None:
+    if first_risk != "ordinary" or first_keys is None:
         return (first_id,)
 
     selected = [first_id]
     selected_keys = set(first_keys)
     for question_id, risk, coupling_keys in ready[1:]:
-        if risk == "high" or coupling_keys is None:
+        if risk != "ordinary" or coupling_keys is None:
             break
         if selected_keys.intersection(coupling_keys):
             break

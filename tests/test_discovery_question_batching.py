@@ -69,6 +69,25 @@ class DiscoveryQuestionBatchingTests(unittest.TestCase):
         self.assertEqual(select_discovery_question_batch(overlapping, set()), ("Q1",))
         self.assertEqual(select_discovery_question_batch(unknown, set()), ("Q1",))
 
+    def test_every_nonordinary_or_unknown_risk_classification_serializes(self):
+        for risk in (
+            "scope",
+            "domain-meaning",
+            "domain-ownership",
+            "core-invariant",
+            "architecture",
+            "unrecognized-risk",
+        ):
+            with self.subTest(risk=risk):
+                questions = [
+                    self.question("Q1", risk=risk, coupling_keys=("decision",)),
+                    self.question("Q2", coupling_keys=("locale",)),
+                ]
+                self.assertEqual(
+                    select_discovery_question_batch(questions, confirmed_ids=set()),
+                    ("Q1",),
+                )
+
     def test_later_coupling_keeps_the_already_safe_frontier_prefix(self):
         questions = [
             self.question("Q1", coupling_keys=("audience",)),
