@@ -2,7 +2,7 @@
 
 本文供编码 Agent 使用。目标是把 `spec-coder` 安装到当前用户的 Codex 环境，并确认完整工作流可被新会话发现。
 
-本指南对应 `spec-coder 0.5.0`，安装后应发现九个本地 skills。
+本指南对应 `spec-coder 0.6.0`，安装后应发现九个本地 skills。
 
 ## 执行边界
 
@@ -105,7 +105,7 @@ codex plugin list --json
 
 若九个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
-`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.5.0` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
+`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.6.0` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
 
 新任务必须先完成 workspace preflight 并取得 fresh green baseline，再进入 discovery。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。进入规格写入前，`plan-coder` 会重新验证 prepared workspace。
 
@@ -216,7 +216,7 @@ Agent tree 固定为两层：只有 active main 可以创建第 2 层 direct sub
 
 `setup-coder` 只发现和报告该仓库策略，不自动创建或修改这两个配置。若确需创建或编辑用户拥有的配置，必须作为独立 mutation 展示 exact diff 并获得明确授权。
 
-`0.5.0` 使用 Luna/economy、Terra/standard、Sol/strong。安装器不会自动迁移已有用户配置；任何调整都需要先展示 exact diff 并由用户明确授权。
+`0.6.0` 使用 Luna/economy、Terra/standard、Sol/strong。安装器不会自动迁移已有用户配置；任何调整都需要先展示 exact diff 并由用户明确授权。
 
 ## 6. 初始化目标仓库
 

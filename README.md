@@ -2,7 +2,7 @@
 
 `spec-coder` 是一组面向 Codex 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
-当前版本为 `0.5.0`，插件包含九个 model-callable skills。
+当前版本为 `0.6.0`，插件包含九个 model-callable skills。
 
 它参考 Matt Pocock skills 的“小而可组合”结构。插件负责阶段编排、审批门禁、产物位置和 Git 安全策略；`plan-coder` 使用本插件维护的模板完成规格合成与任务拆分，其余阶段组合允许模型调用的上游能力。
 
@@ -56,7 +56,7 @@ codex plugin add spec-coder@spec-coder
 
 必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 已随插件本地化，只在选定隔离路径后调用；原地执行不调用它。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
 
-`0.5.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec` 或 `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；discovery 直接组合可调用的 `grilling` + `domain-modeling`，规划使用本地模板。
+`0.6.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec` 或 `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；discovery 直接组合可调用的 `grilling` + `domain-modeling`，规划使用本地模板。
 
 ## Default delegation
 
@@ -92,7 +92,7 @@ reviewer read-only 边界保持不变。
 
 ## Optional subagent model routing
 
-`0.5.0` 为新建 subagent 提供三挡模型：`economy`、`standard`、`strong`。插件自带 trusted bundled defaults，因此 no initial configuration 也能使用 Luna/economy、Terra/standard、Sol/strong；实际委派仍以 live Host capability 为准。active main 始终使用 current Agent/session model，routing 不会切换它；Gate 解释、scope 变更、最终架构/安全决策、改动归属、commit、delivery 聚合和 completion claim 始终是 `main-only`。
+`0.6.0` 为新建 subagent 提供三挡模型：`economy`、`standard`、`strong`。插件自带 trusted bundled defaults，因此 no initial configuration 也能使用 Luna/economy、Terra/standard、Sol/strong；实际委派仍以 live Host capability 为准。active main 始终使用 current Agent/session model，routing 不会切换它；Gate 解释、scope 变更、最终架构/安全决策、改动归属、commit、delivery 聚合和 completion claim 始终是 `main-only`。
 
 完整 agent tree 固定为两层：第 1 层是 active main，第 2 层是它的 direct subagents；只有 active main 可以 spawn/delegate。每个 child brief 必须包含 `delegation_allowed = false`，子 agent 若需要进一步拆分或委派，必须把证据和 blocker 返回 main。main 可以创建新的第 2 层 sibling 完成一次 promotion，但 child 不能直接或间接创建替代者。Host 若支持禁用 child spawn tool，应作为 defense in depth 使用；这是契约约束，不代表 Host 层沙箱隔离，也不宣称跨 Host 的 sandbox enforcement。
 
@@ -127,7 +127,7 @@ minimum_tier = "standard"
 
 `setup-coder` 可以发现并报告仓库策略，但不会创建或修改用户/仓库 routing 配置；任何用户拥有的配置写入都需要单独展示 exact diff 并取得明确授权。
 
-`0.5.0` 的固定映射是 Luna/economy、Terra/standard、Sol/strong。已有配置仍由用户所有，不会被安装器或 workflow 自动重写；需要调整时由用户先审阅 exact diff 并明确授权。
+`0.6.0` 的固定映射是 Luna/economy、Terra/standard、Sol/strong。已有配置仍由用户所有，不会被安装器或 workflow 自动重写；需要调整时由用户先审阅 exact diff 并明确授权。
 
 ## Default routing
 
@@ -143,7 +143,7 @@ minimum_tier = "standard"
 
 ## Baseline evidence and artifact checks
 
-`0.5.0` 保持九个 skills；工具随插件的 `scripts/` 和
+`0.6.0` 保持九个 skills；工具随插件的 `scripts/` 和
 `scripts/spec_coder_checks/` 一起提供，依赖 Python 3.11+ 与 Git，无额外 Python 包。
 各 stage 在 standalone/resume 入口加载必需的共享规则；main 每次 dispatch 都组装
 [完整 worker brief](./references/worker-brief-template.md#assembly)。

@@ -1,6 +1,6 @@
 # Upstream Compatibility
 
-This compatibility contract applies to spec-coder `0.5.0`.
+This compatibility contract applies to spec-coder `0.6.0`.
 
 The plugin owns specification synthesis and ticket decomposition through `plan-coder` and its bundled [specification](./specification-template.md) and [ticket](./ticket-template.md) templates. Other stages compose installed, model-callable skills by capability and name.
 
@@ -64,7 +64,7 @@ Before a stage delegates, confirm that each required upstream skill is visible i
 The current Matt Pocock `grill-with-docs`, `to-spec`, and `to-tickets` entries,
 and the locally installed `grill-me-with-doc`, are manual-only and intentionally
 excluded from the capability map. They are not dependencies of spec-coder
-0.5.0. Users may invoke them manually outside this orchestration; do not require
+0.6.0. Users may invoke them manually outside this orchestration; do not require
 their installation, modify their flags, rename/wrap them, or ask the user to
 run them to complete the native workflow. `grill-coder` instead composes the
 model-callable `grilling` and `domain-modeling` primitives directly.
@@ -91,7 +91,7 @@ Autonomous selection does not invoke `show-me`; authority is determined by
 
 ## Optional Host Model Routing
 
-Version `0.5.0` exposes nine bundled skills. Optional model routing is not a required Host model dependency and never switches the active main model (the
+Version `0.6.0` exposes nine bundled skills. Optional model routing is not a required Host model dependency and never switches the active main model (the
 current Agent/session model). Load [Configuration](./subagent-routing-contract.md#configuration)
 and [Route Selection](./subagent-routing-contract.md#route-selection) before a
 route decision; these own bundled defaults, user precedence and repository floors.
