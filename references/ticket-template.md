@@ -17,8 +17,10 @@ execution or commit evidence. Draft success is not implementation authorization.
 
 ## Workspace and authority
 
-Record the selected specification path, actual workspace/base, baseline evidence
-and Gate 2/3 decisions here before implementation.
+Name the native implement-spec executor and record the selected specification
+path, authoritative workspace, recorded wave base, isolation requirement,
+permitted integration/isolation preparation, baseline evidence, durable waves,
+blocking edges, and Gate 2/3 decisions here before implementation.
 
 ## Wave W1: `T1`
 
@@ -33,7 +35,7 @@ and Gate 2/3 decisions here before implementation.
 | Delegation mode | Default direct worker |
 | Mutation ownership | status.py, tests/test_status.py |
 | Exclusions | Remote health probes and automatic repairs. |
-| Isolation | Serial worker; main validates workspace and recorded base before dispatch. |
+| Isolation | Serial worker; main validates the authoritative workspace, recorded wave base, and isolation requirement before dispatch. |
 | Concurrency conflicts | None |
 | Verification seam | Public command output, exit status and unchanged project files. |
 | Host capacity | One direct-child slot; recheck live capacity before dispatch. |
@@ -58,7 +60,14 @@ requires completion and recorded evidence but does not authenticate claims.
 
 ## Plan structure
 
-Reference the selected specification and workspace, record the starting revision/baseline and approval or autonomous-selection status, then list tickets, explicit durable planned waves, and final delivery checks. Use stable ticket IDs and one completion checkbox per ticket as the authoritative progress record. The runtime plan has **one active execution wave** at most, selected from the approved or autonomously selected planned wave order; Host and recovery handles remain conversational.
+Name the native implement-spec executor. Reference the selected specification and
+authoritative workspace, record the recorded wave base, isolation requirement,
+permitted integration/isolation preparation, starting revision/baseline, blocking
+edges, and approval or autonomous-selection status, then list tickets, explicit
+durable planned waves, and final delivery checks. Use stable ticket IDs and one
+completion checkbox per ticket as the authoritative progress record. The runtime
+plan has **one active execution wave** at most, selected from the approved or autonomously selected planned wave order;
+Host and recovery handles remain conversational.
 
 ## Wave W1: `T1`, `T2`
 
@@ -84,7 +93,7 @@ For each ticket, include:
 | Ownership and implementation path | Relevant contexts/model elements, enforcing modules, interfaces, allowed boundary data and consistency/failure constraints; reference rather than copy the model |
 | Mutation ownership | Comma-separated repository-relative files/directories, e.g. src/status.py, tests/; no globs or ambiguous module names |
 | Exclusions | Files, responsibilities, authority, and unrelated changes outside the ticket |
-| Isolation | Whether mutation is read-only, serial/shared, or requires real per-worker Host/task or Git isolation, including the wave base when applicable |
+| Isolation | Whether mutation is read-only, serial/shared, or requires real per-worker Host/task or Git isolation; record the isolation requirement and recorded wave base when applicable |
 | Concurrency conflicts | Comma-separated IDs of tickets with ownership overlap or semantic conflicts that cannot share a wave; otherwise None |
 | Verification seam | Independently inspectable focused evidence plus affected checks and separate dependency/preservation evidence |
 | Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
@@ -126,9 +135,11 @@ and [Worker Brief Assembly](./subagent-routing-contract.md#worker-brief-assembly
 then supplies the complete common brief and role additions. The routing owner
 defines reporting capability/schedule and observation-only authority.
 
-Present the ticket set, deliverables, dependencies, and durable planned-wave
-membership/order for Gate 3 review and implementation authority. Interactive
-Gate 3 approves both the ticket set and wave layout. Autonomous Gate 3 requires
+Present the ticket set, deliverables, dependencies, blocking edges, authoritative
+workspace, recorded wave base, isolation requirement, permitted
+integration/isolation preparation, and durable planned-wave membership/order for
+Gate 3 review and implementation authority. Interactive Gate 3 approves the
+workspace/isolation inputs with both the ticket set and wave layout. Autonomous Gate 3 selects
 one unique grounded recommendation, records
 `auto-selected under explicit autonomous authority`, and continues without
 human waiting or `show-me`. Adjust granularity within the selected design when

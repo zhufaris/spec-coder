@@ -5,7 +5,7 @@ description: Prepare an approved or autonomously selected coding design for impl
 
 # Plan Coder
 
-Apply the required owner sections below, including workspace selection. This skill owns specification synthesis and vertical-ticket decomposition. Use the plugin's [specification template](../../references/specification-template.md) and [ticket template](../../references/ticket-template.md); no external planning skill is required. Use `using-git-worktrees` only if isolation is selected.
+Apply the required owner sections below, including workspace selection. This skill owns specification synthesis and vertical-ticket decomposition. It compiles every approved Gate-3 ticket graph, including a singleton graph, into inputs for the one native implement-spec executor; it does not schedule workers. Use the plugin's [specification template](../../references/specification-template.md) and [ticket template](../../references/ticket-template.md); no external planning skill is required. Use `using-git-worktrees` only if isolation is selected.
 
 Preserve the required domain decisions during synthesis and decomposition.
 Apply Approval Gates for interactive and autonomous Gate 2/3 transitions.
@@ -18,6 +18,7 @@ sections before acting. Links are requirements, not background references.
 - [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Design content and specification mapping](../../references/domain-design-contract.md#design-content-and-specification-mapping), [Ticket decomposition](../../references/domain-design-contract.md#ticket-decomposition).
 - [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
+- [Executor entry](../../references/implement-spec-execution-contract.md#executor-entry), [Task graph and ready frontier](../../references/implement-spec-execution-contract.md#task-graph-and-ready-frontier), [Adaptive workspace](../../references/implement-spec-execution-contract.md#adaptive-workspace).
 
 - [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).
 - [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), [Worked invocation](../../references/verification-contract.md#worked-invocation).
@@ -43,8 +44,12 @@ existing `spec-coder` artifacts.
 
 A freshly revalidated prepared workspace and recorded rationale (in place or
 isolated), accounted-for initial changes, current green baseline evidence, a
-reviewed local specification, an approved or autonomously selected
-dependency-aware ticket plan, and authority to begin implementation.
+reviewed local specification, and an approved or autonomously selected
+dependency-aware task graph. Before Gate 3, that graph records the authoritative
+workspace, recorded wave base, isolation requirement, permitted
+integration/isolation preparation, durable waves, ticket ownership and seams so
+the native implement-spec executor has complete approved inputs to begin
+implementation.
 
 ## Process
 
@@ -74,15 +79,25 @@ dependency-aware ticket plan, and authority to begin implementation.
    a pass. Structural success does not approve decisions. Before Gate 2, reconcile selected scenarios, affected context maps and model responsibilities, invariants, consistency/interaction decisions, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder` rather than inventing entities, services or recovery policies. In the interactive path, present the written specification, invoke `show-me`, and stop at Gate 2 until the user approves it. In the autonomous path, record the unique grounded recommendation and continue without waiting.
 6. After specification approval or autonomous selection, create vertical tickets using the local ticket template: each increment delivers a complete observable capability through the necessary modules and fits one agent context window. Include real blocking edges, acceptance criteria and references to the selected contexts/model elements, rules, interfaces, consistency/interaction constraints and verification. For every ticket, also record dependencies, delegation eligibility, delegation mode and any opt-out, mutation ownership and exclusions, isolation need, concurrency conflicts, an independently inspectable verification seam, Host capacity assumptions, whether real isolation is required, and the mandatory direct-child boundary `delegation_allowed = false`. Do not copy the whole model or split mechanically by layers. A ticket can span business contexts under a selected interaction contract. Store tickets as checkboxes in one plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`, then write explicit durable planned-wave sections before Gate 3 under
    Execution Waves. Scheduling order is not a functional dependency.
-7. Validate the plan using Execution Waves and Explicit Parallel Requests:
+7. Before Gate 3, compile the nonempty ticket graph for the native
+   implement-spec executor. Alongside ticket ownership, seams and capacity,
+   record the authoritative workspace, recorded wave base, isolation
+   requirement, and permitted integration/isolation preparation. Record durable
+   waves and real blocking edges so the executor can derive its ready frontier;
+   a singleton plan is the one-ticket form of the same graph. Planning records
+   approved inputs only and does not schedule workers.
+8. Validate the plan using Execution Waves and Explicit Parallel Requests:
    retain one active execution wave, real isolation for parallel mutation,
    durable membership and recovery from checkboxes plus committed Git state.
-8. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
+9. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
    --plan <absolute-plan>` before Gate 3; resolve findings under the same format
    contract. Before Gate 3, reconcile decision coverage and ticket readiness under the
    domain contract's Ticket decomposition section. Check delegation eligibility,
    mutation ownership, exclusions, dependencies, isolation, concurrency conflicts,
-   verification seams and Host capacity. Validate the durable partition under
+   verification seams and Host capacity. Review and approve the authoritative
+   workspace, recorded wave base, isolation requirement, permitted
+   integration/isolation preparation, task graph, durable-wave membership/order,
+   and blocking edges with the tickets. Validate the durable partition under
    Execution Waves. Resolve load-bearing omissions through design/specification;
    independent selected slices need not wait for an unrelated open decision.
    Present the full ticket set and wave membership/order. In interactive mode,
@@ -106,6 +121,7 @@ Stop when:
 - interactive Gate 3 ticket approval or implementation authorization is pending;
 - a bundled planning template is missing or inconsistent with the selected design, or required isolation depends on unavailable/incompatible `using-git-worktrees` and no permitted safe alternative exists.
 
-After Gate 3, hand the approved or autonomously selected durable planned waves back to the main
-orchestrator. They describe safe formation of the current execution wave; they
-do not prescribe a production scheduler.
+After Gate 3, hand the approved or autonomously selected nonempty task graph and
+durable planned waves to the native implement-spec executor. They describe safe
+formation of the current execution wave; plan-coder does not schedule workers or
+prescribe a production scheduler.
