@@ -56,13 +56,13 @@ codex plugin add spec-coder@spec-coder
 
 必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 已随插件本地化，只在选定隔离路径后调用；原地执行不调用它。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
 
-`0.6.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec` 或 `to-tickets`。它们的 `disable-model-invocation: true` 不应被配置、改名包装或修改全局文件绕过；discovery 直接组合可调用的 `grilling` + `domain-modeling`，规划使用本地模板。
+`0.6.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 或 `implement-spec`。当前 Matt `implement-spec` 的 `disable-model-invocation: true` 表示它仅作为 provenance，不是 dependency；其他 manual-only skill 也不应被配置、改名包装或修改全局文件绕过。discovery 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用本地模板，原生 executor 执行已批准的计划。
 
 ## Default delegation
 
 Gate 3 之后，每个 dependency-ready 且具备完整输入、边界明确且可逆的 scope、独立验证 seam，并且不携带 main-only 权限或凭据的 eligible ticket 都会 default delegation 给一个 direct subagent；单个 eligible ticket 也同样委派。显式的 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 只在对应范围改为 main-local 执行，并禁止该范围内直接或间接 spawn。opt-out 只在当前请求的对话中生效，不写入仓库或用户配置。
 
-在 Gate 3 前，`plan-coder` 会把 ticket 拆成显式的 durable planned wave，并将 membership/order 一并交 Gate 3 审批。每个 ticket 恰好属于一个 wave；同 wave 不存在依赖或冲突，且 main-local ticket 单独成 wave。main 每次只维护当前最早未完成的 dependency-aware active execution wave。live dispatch batch 可以因 Host capacity 缩小，parallel mutation 必须具备 real Host/task workspace isolation；没有真实隔离时通过 serialized direct workers 逐个执行；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，再决定是否回退，并说明具体阻碍。用户要求必须并行时，不擅自改为串行。每个 ticket 一个 worker 不限制同 wave 的 sibling workers 并行；main 的整合与提交仍串行。runtime must not pull later-wave tickets，也不得重新分组；Host handles 仍只保留在对话中，checkbox 与 commits 用于恢复。
+在 Gate 3 前，`plan-coder` 会把 ticket 拆成显式的 durable planned wave，并将 membership/order 一并交 Gate 3 审批。每个 ticket 恰好属于一个 wave；同 wave 不存在依赖或冲突，且 main-local ticket 单独成 wave。每次 Gate 3 通过后，计划（singleton 也一样）都进入同一个 native implement-spec executor：main 每次只维护当前最早未完成的 dependency-aware active execution wave，并为每个 selected ticket 调度一个 `tdd-coder` lifecycle。live dispatch batch 可以因 Host capacity 缩小，parallel mutation 必须具备 real Host/task workspace isolation；没有真实隔离时通过 serialized direct workers 逐个执行；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，再决定是否回退，并说明具体阻碍。用户要求必须并行时，不擅自改为串行。每个 ticket 一个 worker 不限制同 wave 的 sibling workers 并行；main 的整合与提交仍串行。There is no implement-spec wrapper agent and no merger subagent; runtime must not pull later-wave tickets，也不得重新分组；Host handles 仍只保留在对话中，checkbox 与 commits 用于恢复。
 
 所有 Gate 解释、scope 决策、Red 或结构证据、diff 接受、fresh integration verification、归属、stage、commit、delivery 汇总及 completion claim 都是 main-only。agent tree 固定为 at most two layers，only the active main agent 可以 spawn；每个 direct-child brief 都写明 `delegation_allowed = false`，child 不得直接、间接或借助其他 skill/workflow 再委派。
 
@@ -198,8 +198,9 @@ workspace preflight + fresh green baseline
     -> grill-coder        [`grilling` + `domain-modeling`; lazy GLOSSARY.md / ADR]
     -> design-coder        [设计审批]
     -> plan-coder          [规格审批 + tickets/实施审批]
+    -> native implement-spec executor [singleton 与多 ticket 共享；per-ticket tdd-coder lifecycle]
     -> tdd-coder           [dependency-aware waves + delegated Red-Green + main integration]
     -> delivery-coder      [two-reviewer Standards/Spec review + 完整验证]
 ```
 
-工作流不会自动 push、创建 PR 或发布外部 issue。完整契约见 [`references/workflow-contract.md`](./references/workflow-contract.md)。
+工作流不会自动 push、创建 PR、发布外部 issue、合并原始分支、安装或清理 worktree；这些外部 effects 都需要 separate authorization。完整契约见 [`references/workflow-contract.md`](./references/workflow-contract.md)。

@@ -891,6 +891,63 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("not a required Host model", compatibility)
         self.assertIn("nine bundled skills", compatibility)
 
+    def test_native_implement_spec_delivery_and_published_contract(self) -> None:
+        delivery = read_text(ROOT / "skills/delivery-coder/SKILL.md").lower()
+        workflow = read_text(ROOT / "references/workflow-contract.md").lower()
+        compatibility = read_text(ROOT / "references/upstream-compatibility.md").lower()
+        published = "\n".join(
+            (read_text(ROOT / "README.md"), read_text(ROOT / "INSTALL.md"))
+        ).lower()
+
+        self.assertIn(
+            "implement-spec-execution-contract.md#completion-handoff", delivery
+        )
+        self.assertIn(
+            "implement-spec-execution-contract.md#forbidden-external-effects",
+            delivery,
+        )
+        for phrase in (
+            "native implement-spec executor",
+            "cumulative accepted",
+            "authoritative workspace",
+        ):
+            with self.subTest(surface="delivery", phrase=phrase):
+                self.assertIn(phrase, delivery)
+
+        for phrase in (
+            "plan-coder",
+            "native implement-spec executor",
+            "tdd-coder",
+            "delivery-coder",
+            "every gate 3",
+        ):
+            with self.subTest(surface="workflow", phrase=phrase):
+                self.assertIn(phrase, workflow)
+
+        for phrase in (
+            "implement-spec",
+            "disable-model-invocation: true",
+            "provenance only",
+            "not a dependency",
+            "to-spec",
+            "to-tickets",
+        ):
+            with self.subTest(surface="compatibility", phrase=phrase):
+                self.assertIn(phrase, compatibility)
+
+        for phrase in (
+            "plan-coder",
+            "native implement-spec executor",
+            "delivery-coder",
+            "singleton",
+            "no implement-spec wrapper agent",
+            "no merger subagent",
+            "separate authorization",
+        ):
+            with self.subTest(surface="published", phrase=phrase):
+                self.assertIn(phrase, published)
+        self.assertNotIn("execution profile", published)
+
     def test_published_worker_heartbeat_contract_is_complete(self) -> None:
         readme = read_text(ROOT / "README.md").lower()
         install_guide = read_text(ROOT / "INSTALL.md").lower()

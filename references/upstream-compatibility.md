@@ -61,13 +61,18 @@ Both paths continue to use `domain-modeling`, `codebase-design`, and
 
 Before a stage delegates, confirm that each required upstream skill is visible in the current Host skill catalog, permitted for model invocation, and materially compatible with the expected input/output contract. Disk presence, plugin enablement and configuration overrides are not proof of invocation eligibility. Inspect the selected entry's metadata when needed: `disable-model-invocation: true` is a hard boundary even if the file can be read. If the catalog entry or invocation eligibility is absent, do not execute that skill indirectly through file reads, renamed wrappers, configuration changes, edited frontmatter or subagents.
 
-The current Matt Pocock `grill-with-docs`, `to-spec`, and `to-tickets` entries,
-and the locally installed `grill-me-with-doc`, are manual-only and intentionally
-excluded from the capability map. They are not dependencies of spec-coder
-0.6.0. Users may invoke them manually outside this orchestration; do not require
-their installation, modify their flags, rename/wrap them, or ask the user to
-run them to complete the native workflow. `grill-coder` instead composes the
-model-callable `grilling` and `domain-modeling` primitives directly.
+The current Matt Pocock `grill-with-docs`, `to-spec`, `to-tickets`, and
+`implement-spec` entries, and the locally installed `grill-me-with-doc`, are
+manual-only and intentionally excluded from the capability map. In particular,
+current Matt `implement-spec` declares `disable-model-invocation: true`; it is
+provenance only, not a dependency. `to-spec` and `to-tickets` also remain
+nondependencies of spec-coder 0.6.0. Users may invoke these skills manually
+outside this orchestration; do not require their installation, modify their
+flags, rename/wrap them, or ask the user to run them to complete the native
+workflow. `grill-coder` instead composes the model-callable `grilling` and
+`domain-modeling` primitives directly. Native `plan-coder` owns specification
+and ticket planning, while the native implement-spec executor schedules the
+approved plan after Gate 3; neither invokes a manual-only upstream skill.
 
 `grill-coder` adopts `grilling`'s decision-tree frontier rounds, then refines
 them locally: each round contains at most three dependency-ready, mutually

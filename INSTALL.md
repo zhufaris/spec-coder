@@ -105,7 +105,7 @@ codex plugin list --json
 
 若九个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
 
-`grill-with-docs`、`grill-me-with-doc`、`to-spec` 和 `to-tickets` 都不是 `0.6.0` 的依赖。它们声明 `disable-model-invocation: true`，不能由其他 skill 调用；fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板。
+`grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 和当前 Matt `implement-spec` 都不是 `0.6.0` 的依赖。当前 Matt `implement-spec` 声明 `disable-model-invocation: true`，因此仅为 provenance，不是 dependency；其他 manual-only skill 也不能由其他 skill 调用。fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板，native implement-spec executor 在 Gate 3 后执行批准的计划。
 
 新任务必须先完成 workspace preflight 并取得 fresh green baseline，再进入 discovery。`grill-coder` 使用可调用的 `grilling` decision-tree frontier rounds：每轮最多三个 dependency-ready、相互独立的问题；scope、domain meaning/ownership、core invariant、architecture、overlapping coupling 或 unknown coupling 保持串行。每题提供稳定 `Qn`、适用选项和独立 recommendation/reason；多题轮次须以 `Qn: default` 接受单题推荐，partial answer 只确认明确 ID，ambiguous answer 先单题澄清并重算 frontier。repository facts 由 agent 检查而非询问用户。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。进入规格写入前，`plan-coder` 会重新验证 prepared workspace。
 
@@ -144,9 +144,9 @@ baseline；main 需确认记录来源及依赖/环境，工具不能验证这些
 
 ### 默认委派与执行边界
 
-Gate 3 前，`plan-coder` 将 ticket 写入 explicit durable planned wave sections；Gate 3 同时审批 ticket set 与 wave membership/order。Gate 3 后，default delegation 会把当前最早未完成 planned wave 中 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。live dispatch batch 可在当前 durable planned wave 内因 Host capacity 缩小，最多 four tickets。
+Gate 3 前，`plan-coder` 将 ticket 写入 explicit durable planned wave sections；Gate 3 同时审批 ticket set 与 wave membership/order。每次 Gate 3 通过后，计划（包括 singleton）进入同一个 native implement-spec executor，按当前最早未完成 planned wave 调度每个 ticket 的 `tdd-coder` lifecycle。default delegation 会把其中 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。live dispatch batch 可在当前 durable planned wave 内因 Host capacity 缩小，最多 four tickets。
 
-Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，回退须说明具体阻碍，必须并行的要求不可擅自降为串行；不要以共享 workspace 中的文件不相交代替隔离。runtime must not pull tickets from a later planned wave，亦不得重组已审批 membership；Host handles 保持 conversational，checkbox 与 commits 支持恢复。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
+Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，回退须说明具体阻碍，必须并行的要求不可擅自降为串行；不要以共享 workspace 中的文件不相交代替隔离。There is no implement-spec wrapper agent and no merger subagent; runtime must not pull tickets from a later planned wave，亦不得重组已审批 membership；Host handles 保持 conversational，checkbox 与 commits 支持恢复。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
 
 Agent tree 为 at most two layers，only the active main agent 可以 spawn。每个 child brief 都必须包含 `delegation_allowed = false`；child 需要更多协作时返回证据与 blocker，不能自行再委派。
 
@@ -279,4 +279,4 @@ review 与 verification 仍完整执行。scope expansion、push、install、发
 
 ### 上游依赖缺失
 
-先判断依赖是否属于当前执行路径。本地 `using-git-worktrees` 只在隔离路径使用；四个 manual-only wrappers 均不在依赖集合中。必需外部依赖缺失或禁止模型调用时，列出精确名称、Host 可见性和调用资格证据，并按 [Upstream Compatibility](./references/upstream-compatibility.md) 停止；仅恢复实际必需且允许调用的能力。重启不会解除 `disable-model-invocation: true`。
+先判断依赖是否属于当前执行路径。本地 `using-git-worktrees` 只在隔离路径使用；这些 manual-only skills 均不在依赖集合中。必需外部依赖缺失或禁止模型调用时，列出精确名称、Host 可见性和调用资格证据，并按 [Upstream Compatibility](./references/upstream-compatibility.md) 停止；仅恢复实际必需且允许调用的能力。重启不会解除 `disable-model-invocation: true`。

@@ -17,6 +17,7 @@ On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
 - [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Verification Layers](../../references/workflow-contract.md#verification-layers).
+- [Completion handoff](../../references/implement-spec-execution-contract.md#completion-handoff), [Forbidden external effects](../../references/implement-spec-execution-contract.md#forbidden-external-effects).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
 - [Review Execution](../../references/subagent-routing-contract.md#review-execution).
 
@@ -55,12 +56,12 @@ the selected mode and child limits.
 
 ## Process
 
-1. Confirm every ticket checkbox is complete and inspect the selected workspace/mode, branch, recorded initial changes, Git log, and cumulative task diff. In-place execution is valid; preserve unrelated user changes and distinguish them from ticket-owned edits.
+1. Confirm every ticket checkbox is complete and inspect the authoritative workspace, selected mode, branch, recorded initial changes, Git log, and cumulative accepted ticket range/diff supplied by the native implement-spec executor. In-place execution is valid; preserve unrelated user changes and distinguish them from ticket-owned edits.
 2. Execute the selected review mode for both the Standards and Spec axes. Report findings before conclusions. Main inspects all returned or locally collected evidence and authors the final Standards/Spec conclusions; reviewer success never grants approval, repair, fresh-verification, commit, delivery or completion authority.
 3. Check acceptance criteria, domain language, public contracts, dependency direction, Clean Architecture boundaries, error handling, security, and unintended scope. Map each in-scope scenario/invariant to completed tickets and actual test evidence. Verify context/model ownership, shared rule placement, and applicable atomicity/conflict, idempotency and recovery guarantees. Verify architecture separately with dependency checks or documented imports, exposed types and assembly; plan checkboxes and green sequential tests alone are insufficient. Check that simple CRUD/query work has not acquired unjustified abstractions or lost access controls.
 4. Route behavior defects through `tdd-coder`: add or correct a failing test, observe Red, implement the minimum repair, run affected checks, and create a separate atomic commit. Perform structural refactoring only while behavior tests remain green.
 5. Repeat review until no unresolved blocking findings remain. Do not conceal accepted residual risks.
-6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command. Do not rely on earlier output or a ticket-level subset.
+6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command against the authoritative workspace and cumulative accepted range. Do not rely on earlier output or a ticket-level subset.
 7. Run bundled `scripts/check-artifacts.py --phase delivery --spec <absolute-spec>
    --plan <absolute-plan> --repo <absolute-workspace>` against actual artifacts.
    Resolve findings or explicitly report unsupported historical format and
@@ -73,7 +74,7 @@ If delegated evidence fails or is uncertain, preserve the attempt and return to
 main under Attempt Evidence and Promotion. A promotion reviewer retains the
 reviewer role's read-only limits in its assembled brief.
 
-Do not push, create a pull request, publish external tickets, amend pre-existing commits, or make external changes without separate explicit authorization.
+The native implement-spec executor's completion handoff and forbidden external-effects boundary remain in force during delivery. Do not push, create a pull request, publish external tickets, amend pre-existing commits, merge an original branch, install, delete worktrees, or make external changes without separate explicit authorization.
 
 Apply the contract's [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery) review requirements to applicable domain and persistence changes. Map approved decisions to actual behavior, mapping and dependency evidence across affected entry paths; a model inventory or renamed operation is not enforcement evidence.
 

@@ -4,7 +4,7 @@ This file is normative for every skill in the plugin. A stage may add stricter s
 
 ## Phase Order
 
-Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder` in that order. `spec-coder` routes a new request to the first stage and a resumed request to the earliest incomplete stage.
+Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder` in that order. `spec-coder` routes a new request to the first stage and a resumed request to the earliest incomplete stage. After every Gate 3 approval or autonomous selection, every plan enters the native implement-spec executor. The executor schedules the approved task graph as per-ticket `tdd-coder` lifecycles before handing the completed cumulative accepted range to `delivery-coder`; it is orchestration within the fixed five-stage order, not another public stage.
 
 For a new request, complete workspace preflight before entering that fixed stage
 order. Select a safe in-place or isolated workspace, account for initial user
