@@ -72,6 +72,48 @@ PROGRESS_PHASES = {"starting", "working", "verifying", "blocked", "completed"}
 VERIFICATION_STATES = {"not-started", "running", "passed", "failed"}
 
 
+def enter_implement_spec_executor(*, gate3_approved: bool, ticket_count: int) -> str:
+    """Enter the one native executor only for an approved nonempty graph."""
+    if not isinstance(gate3_approved, bool):
+        raise ValueError("gate3_approved must be a boolean")
+    if isinstance(ticket_count, bool) or not isinstance(ticket_count, int):
+        raise ValueError("ticket_count must be an integer")
+    if ticket_count < 0:
+        raise ValueError("ticket_count must not be negative")
+    if not gate3_approved:
+        return "stop-gate-3"
+    if ticket_count == 0:
+        return "stop-empty-task-graph"
+    return "native-implement-spec"
+
+
+def select_executor_workspace(
+    *,
+    serial_safe: bool,
+    parallel_mutation: bool,
+    isolation_required: bool,
+    integration_approved: bool,
+    isolation_available: bool,
+) -> str:
+    """Choose reuse, approved integration, or a Gate-3 reopening deterministically."""
+    values = {
+        "serial_safe": serial_safe,
+        "parallel_mutation": parallel_mutation,
+        "isolation_required": isolation_required,
+        "integration_approved": integration_approved,
+        "isolation_available": isolation_available,
+    }
+    if not all(isinstance(value, bool) for value in values.values()):
+        raise ValueError("executor workspace inputs must be booleans")
+
+    integration_needed = parallel_mutation or isolation_required or not serial_safe
+    if not integration_needed:
+        return "reuse-authoritative"
+    if integration_approved and isolation_available:
+        return "prepare-integration"
+    return "reopen-gate-3"
+
+
 def _discovery_question_fields(question: Mapping[str, object]) -> tuple[str, tuple[str, ...], str, tuple[str, ...] | None]:
     """Normalize one decision-tree question without changing its tree order."""
     question_id = question.get("id")
