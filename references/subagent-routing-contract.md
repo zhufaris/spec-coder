@@ -136,8 +136,9 @@ both the ticket set and its durable planned wave layout; autonomous Gate 3 selec
 their unique grounded recommendation and records the autonomous
 transition. Scheduling order is not a functional dependency.
 
-After Gate 3, form the current execution wave only from the earliest durable
-planned wave with an unchecked ticket. A live dispatch batch considers its
+After Gate 3, the native implement-spec executor forms the current execution
+wave only from the earliest incomplete durable planned wave with an unchecked
+ticket. A live dispatch batch considers its
 eligible members in approved or autonomously selected order and may shrink for
 live Host capacity. It must not pull a ticket from a later planned wave or
 regroup membership.
@@ -151,7 +152,8 @@ batch, account for its returned results and advance accepted plan state. A
 capacity wait before dispatch has no batch in flight and may recheck live
 capacity without waiting for ticket results or advancing plan state.
 
-There is at most one active execution wave. Durable planned wave membership,
+There is at most one active execution wave, at most four direct implementers,
+and exactly two agent layers. There is no implement-spec wrapper agent and no merger subagent. Durable planned wave membership,
 selected plan checkboxes, and committed Git state govern recovery; transient
 Host handles and execution modes remain conversational evidence. Do not create
 a scheduler database, private state file, or persistent opt-out record.
@@ -196,10 +198,11 @@ explicitly required delegation rules still apply. Serial repair or recovery is
 subject to the same policy; rejecting a worker result does not waive the user's
 execution requirement.
 
-This policy creates no new approval gate or dispatch authority. Keep one active
-wave, at most four direct workers, two agent layers, and no later-wave pulls or
-regrouping. Every mutating parallel worker needs real isolation at the recorded
-wave base; main integration and commits remain serial.
+This policy creates no new approval gate or dispatch authority. The native
+implement-spec executor keeps one active wave, at most four direct workers, two
+agent layers, and no later-wave pulls or regrouping. Every mutating parallel
+worker needs real isolation at the recorded wave base; main integration and
+commits remain serial.
 
 ## Configuration
 

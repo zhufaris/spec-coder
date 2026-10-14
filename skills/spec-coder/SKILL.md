@@ -18,6 +18,7 @@ sections before acting. Links are requirements, not background references.
 
 - [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).
 - [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), [Worked invocation](../../references/verification-contract.md#worked-invocation).
+- [Authority and provenance](../../references/implement-spec-execution-contract.md#authority-and-provenance), [Executor entry](../../references/implement-spec-execution-contract.md#executor-entry), [Task graph and ready frontier](../../references/implement-spec-execution-contract.md#task-graph-and-ready-frontier), [Adaptive workspace](../../references/implement-spec-execution-contract.md#adaptive-workspace), [Ticket TDD handoff](../../references/implement-spec-execution-contract.md#ticket-tdd-handoff), [Main-only result integration](../../references/implement-spec-execution-contract.md#main-only-result-integration), [Recovery](../../references/implement-spec-execution-contract.md#recovery), [Completion handoff](../../references/implement-spec-execution-contract.md#completion-handoff), and [Forbidden external effects](../../references/implement-spec-execution-contract.md#forbidden-external-effects).
 
 ## Conditional Reading
 
@@ -57,12 +58,18 @@ evidence, and a final delivery report produced through `delivery-coder`.
    alternatives and Gate 1. Run `plan-coder` for workspace revalidation,
    specification/Gate 2 and vertical tickets with durable waves/Gate 3.
    Apply Approval Gates to each interactive or autonomous transition.
-4. After Gate 3, execute the approved or autonomously selected durable planned wave order.
-   Main schedules the current planned wave as one dependency-aware execution wave.
-   `tdd-coder` supplies behavior Red-Green or structural preservation evidence,
-   affected checks, checkbox updates and one atomic commit per ticket.
-   Execute eligible work using the required routing sections and assembled
-   worker briefs; integrate one result at a time under Result Integration.
+4. After Gate 3, execute the approved or autonomously selected durable planned wave order
+   through one dependency-aware execution wave. Every nonempty
+   approved or autonomously selected plan, including a singleton task graph,
+   enters the native implement-spec executor. Main selects only the earliest
+   incomplete durable-wave ready frontier, at most four direct implementers,
+   and recomputes it after each accepted main integration. Each eligible ticket
+   delegates to one direct child by default when host capacity permits. For each
+   selected ticket, enter one `tdd-coder` lifecycle for Red-Green or
+   structural-preservation evidence, then use the required routing sections and
+   assembled worker brief. Main alone accepts one result at a time, freshly
+   verifies the authoritative workspace, commits that ticket, and advances its
+   checkbox. Do not create an implement-spec wrapper agent or a merger subagent.
 5. When all tickets are complete, invoke `delivery-coder` for findings-first
    review, TDD repairs and fresh full verification. Only that stage produces
    the terminal completion claim.
@@ -77,9 +84,10 @@ evidence, and a final delivery report produced through `delivery-coder`.
 Apply [Execution Waves](../../references/subagent-routing-contract.md#execution-waves),
 [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests)
 and [Result Integration](../../references/subagent-routing-contract.md#result-integration).
-Recompute eligibility, live Host capacity and isolation for the current planned
-wave; preserve durable membership and serial main integration. Use the common
-brief for every dispatch, including a main-created promotion sibling.
+The native implement-spec executor preserves durable membership, applies the
+recorded wave base and adaptive workspace decision, and recomputes the earliest
+incomplete frontier after each accepted result. Use the common brief for every
+dispatch, including a main-created promotion sibling.
 
 ## Stop Conditions
 

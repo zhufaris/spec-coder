@@ -21,6 +21,7 @@ sections before acting. Links are requirements, not background references.
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
 
 - [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle), [Delivery evidence](../../references/artifact-format.md#delivery-evidence).
+- [Ticket TDD handoff](../../references/implement-spec-execution-contract.md#ticket-tdd-handoff) and [Main-only result integration](../../references/implement-spec-execution-contract.md#main-only-result-integration).
 
 ## Conditional Reading
 
@@ -52,6 +53,10 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    base, and initial changes; preserve unrelated work in either mode. The
    runtime wave may contain other ownership-safe tickets, but this invocation
    owns only its one selected ticket and must not pull later-wave work forward.
+   It is one lifecycle inside the native executor: main owns Red or structural
+   evidence, authoritative integration, fresh verification, commits, and plan
+   advancement. A direct implementer brief states `delegation_allowed = false`
+   and cannot delegate or integrate sibling work.
 2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
 3. Write one behavior-focused test through a selected public seam for an applicable scenario or invariant.
 4. Run that focused test and have main observe the expected failure as behavior

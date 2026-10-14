@@ -1,4 +1,4 @@
 interface:
   display_name: "Spec Coder"
-  short_description: "Run a gated workflow from requirements to verified commits"
-  default_prompt: "Use $spec-coder to take this coding request through verified commits."
+  short_description: "Run a gated task graph through the native implement-spec executor"
+  default_prompt: "Use $spec-coder to take this coding request through its task graph and verified commits."

@@ -18,6 +18,7 @@ sections before acting. Links are requirements, not background references.
 
 - [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Recovery](../../references/workflow-contract.md#recovery).
 - [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
+- [Adaptive workspace](../../references/implement-spec-execution-contract.md#adaptive-workspace).
 
 ## Conditional Reading
 
@@ -27,12 +28,14 @@ sections before acting. Links are requirements, not background references.
 ## Input
 
 An explicit isolation selection from workspace preflight, or a main-orchestrator
-request for per-worker isolation in a selected parallel execution wave; the
+request from the native implement-spec executor for Gate-3-approved integration
+or per-worker isolation from the recorded wave base; the
 target Git repository; the intended branch/feature slug; current Git state;
 user workspace preferences; and the available native Host worktree tools. This
 capability is optional in general and must not be invoked merely because the
 primary workspace is in place or because serial delegation is selected. A
-selected parallel-wave isolation request is the explicit exception; worktrees
+selected parallel-wave isolation request for a selected parallel execution wave
+is the explicit exception; worktrees
 must never be claimed as mandatory for serial delegation.
 
 Main selects that preparation under
@@ -54,6 +57,12 @@ branch or detached state, isolation mechanism, and recovery handle. The main
 orchestrator owns allocation and cleanup authorization. Workspace preflight
 owns dependency preparation and baseline verification for initial workspace
 selection; this adapter never takes over either responsibility.
+
+For executor work, prepare only the Gate-3-approved integration/isolation
+selection. The authoritative workspace may be reused only when that approved
+fact remains safe. If required isolation cannot be proven available and based
+on the recorded wave base, return the evidence so main can reopen Gate 3; do
+not invent a serial substitute for a required constraint.
 
 ## Process
 
@@ -192,5 +201,6 @@ Stop and preserve actual state when:
 - a sandbox, permission, or Git error prevents creation;
 - cleanup ownership or a native tool result is ambiguous.
 
-Do not delete, relocate, prune, or forcibly unlock an existing worktree. Do not
+Must not delete worktrees without separate disposition authority. Do not delete,
+relocate, prune, or forcibly unlock an existing worktree. Do not
 install dependencies, run the project baseline, stage files, or create a commit.

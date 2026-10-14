@@ -22,8 +22,8 @@ are included in the outgoing message, even in a fresh child context.
 ```text
 Task: {ticket ID or review axis; exact requested bounded outcome}
 Role: {implementation | reviewer | promotion; promotion retains original role}
-Workspace: {absolute validated path; always use this path, not an inherited cwd}
-Base: {recorded revision and relevant initial user changes}
+Workspace: {absolute validated authoritative workspace; always use this path, not an inherited cwd}
+Base: {recorded wave base revision and relevant initial user changes}
 Inputs: {approved/autonomously selected decisions and authority, acceptance
          criteria, relevant source/artifact contents and exact paths}
 Mutation ownership: {explicit allowed files/modules; none for reviewer}
