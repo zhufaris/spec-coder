@@ -42,6 +42,28 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         self.assertIn("main", tdd)
         self.assertIn("delegation_allowed = false", tdd)
 
+    def test_tdd_entry_and_exit_cannot_bypass_the_executor(self):
+        tdd = read("skills/tdd-coder/SKILL.md").lower()
+        brief = read("references/worker-brief-template.md").lower()
+        self.assertIn("executor-issued", tdd)
+        self.assertIn("native implement-spec executor", tdd)
+        self.assertNotIn("use after plan-coder authorization", tdd)
+        self.assertIn("return to the native implement-spec executor", tdd)
+        self.assertNotIn(
+            "select the next unblocked ticket, or hand off to `delivery-coder`",
+            tdd,
+        )
+        self.assertNotIn("standalone tdd", brief)
+        self.assertIn("executor-issued tdd", brief)
+
+    def test_atomic_commit_precedes_checkbox_and_frontier_recomputation(self):
+        tdd = read("skills/tdd-coder/SKILL.md").lower()
+        commit = tdd.index("create one conventional commit")
+        checkbox = tdd.index("update the durable plan checkbox")
+        return_to_executor = tdd.index("return to the native implement-spec executor")
+        self.assertLess(commit, checkbox)
+        self.assertLess(checkbox, return_to_executor)
+
     def test_routing_and_briefs_preserve_frontier_base_and_two_layers(self):
         routing = read("references/subagent-routing-contract.md").lower()
         brief = read("references/worker-brief-template.md").lower()
@@ -76,6 +98,11 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         metadata = read("skills/spec-coder/agents/openai.yaml").lower()
         self.assertIn("task graph", metadata)
         self.assertIn("native implement-spec executor", metadata)
+
+    def test_tdd_interface_requires_executor_issued_ticket(self):
+        metadata = read("skills/tdd-coder/agents/openai.yaml").lower()
+        self.assertIn("executor-issued", metadata)
+        self.assertNotIn("next unblocked ticket", metadata)
 
 
 if __name__ == "__main__":

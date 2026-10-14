@@ -4,6 +4,7 @@ from pathlib import Path
 from forward_contracts import (
     enter_implement_spec_executor,
     integrate_wave_result,
+    recover_executor_progress,
     select_executor_workspace,
     select_planned_wave_batch,
 )
@@ -50,6 +51,9 @@ class UnifiedImplementSpecExecutorTests(unittest.TestCase):
                 isolation_required=False,
                 integration_approved=False,
                 isolation_available=False,
+                recorded_base_matches=True,
+                workspace_fresh=True,
+                workspace_conflict=False,
             ),
             "reuse-authoritative",
         )
@@ -60,6 +64,9 @@ class UnifiedImplementSpecExecutorTests(unittest.TestCase):
                 isolation_required=False,
                 integration_approved=True,
                 isolation_available=True,
+                recorded_base_matches=True,
+                workspace_fresh=True,
+                workspace_conflict=False,
             ),
             "prepare-integration",
         )
@@ -70,6 +77,9 @@ class UnifiedImplementSpecExecutorTests(unittest.TestCase):
                 isolation_required=False,
                 integration_approved=False,
                 isolation_available=True,
+                recorded_base_matches=True,
+                workspace_fresh=True,
+                workspace_conflict=False,
             ),
             "reopen-gate-3",
         )
@@ -80,9 +90,50 @@ class UnifiedImplementSpecExecutorTests(unittest.TestCase):
                 isolation_required=True,
                 integration_approved=True,
                 isolation_available=False,
+                recorded_base_matches=True,
+                workspace_fresh=True,
+                workspace_conflict=False,
             ),
             "reopen-gate-3",
         )
+
+    def test_workspace_reopens_gate_three_for_wrong_stale_or_conflicting_base(self):
+        valid = dict(
+            serial_safe=True,
+            parallel_mutation=False,
+            isolation_required=False,
+            integration_approved=False,
+            isolation_available=False,
+            recorded_base_matches=True,
+            workspace_fresh=True,
+            workspace_conflict=False,
+        )
+        for field, value in (
+            ("recorded_base_matches", False),
+            ("workspace_fresh", False),
+            ("workspace_conflict", True),
+        ):
+            with self.subTest(field=field):
+                self.assertEqual(
+                    select_executor_workspace(**{**valid, field: value}),
+                    "reopen-gate-3",
+                )
+
+    def test_recovery_requires_checkbox_accepted_commit_and_current_git(self):
+        progress = recover_executor_progress(
+            ticket_ids=("T1", "T2", "T3", "T4", "T5"),
+            checked_ids={"T1", "T2", "T4"},
+            accepted_commits={
+                "T1": "c1",
+                "T3": "c3",
+                "T4": "c4",
+                "T5": "c5",
+            },
+            current_git_commits={"c1", "c3"},
+        )
+
+        self.assertEqual(progress["completed"], ("T1",))
+        self.assertEqual(progress["inconsistent"], ("T2", "T3", "T4", "T5"))
 
     def test_ready_frontier_stays_in_earliest_wave_and_caps_at_four(self):
         tickets = [self.ticket(ticket_id) for ticket_id in ("T1", "T2", "T3", "T4")]

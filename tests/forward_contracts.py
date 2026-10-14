@@ -94,6 +94,9 @@ def select_executor_workspace(
     isolation_required: bool,
     integration_approved: bool,
     isolation_available: bool,
+    recorded_base_matches: bool,
+    workspace_fresh: bool,
+    workspace_conflict: bool,
 ) -> str:
     """Choose reuse, approved integration, or a Gate-3 reopening deterministically."""
     values = {
@@ -102,9 +105,15 @@ def select_executor_workspace(
         "isolation_required": isolation_required,
         "integration_approved": integration_approved,
         "isolation_available": isolation_available,
+        "recorded_base_matches": recorded_base_matches,
+        "workspace_fresh": workspace_fresh,
+        "workspace_conflict": workspace_conflict,
     }
     if not all(isinstance(value, bool) for value in values.values()):
         raise ValueError("executor workspace inputs must be booleans")
+
+    if not recorded_base_matches or not workspace_fresh or workspace_conflict:
+        return "reopen-gate-3"
 
     integration_needed = parallel_mutation or isolation_required or not serial_safe
     if not integration_needed:
@@ -112,6 +121,56 @@ def select_executor_workspace(
     if integration_approved and isolation_available:
         return "prepare-integration"
     return "reopen-gate-3"
+
+
+def recover_executor_progress(
+    *,
+    ticket_ids: tuple[str, ...],
+    checked_ids: set[str],
+    accepted_commits: Mapping[str, str],
+    current_git_commits: set[str],
+) -> Dict[str, tuple[str, ...]]:
+    """Recover only progress agreed by checkbox, accepted evidence, and Git."""
+    if not isinstance(ticket_ids, tuple):
+        raise ValueError("ticket_ids must be an ordered tuple")
+    if not ticket_ids or not all(isinstance(ticket_id, str) and ticket_id for ticket_id in ticket_ids):
+        raise ValueError("ticket IDs must be nonempty strings")
+    if len(set(ticket_ids)) != len(ticket_ids):
+        raise ValueError("ticket IDs must be unique")
+    if not isinstance(checked_ids, set) or not all(
+        isinstance(ticket_id, str) and ticket_id for ticket_id in checked_ids
+    ):
+        raise ValueError("checked_ids must be a set of nonempty ticket IDs")
+    if not isinstance(accepted_commits, Mapping):
+        raise ValueError("accepted_commits must be a mapping")
+    if not all(
+        isinstance(ticket_id, str)
+        and ticket_id
+        and isinstance(commit_id, str)
+        and commit_id
+        for ticket_id, commit_id in accepted_commits.items()
+    ):
+        raise ValueError("accepted commit mappings require nonempty ticket and commit IDs")
+    if not isinstance(current_git_commits, set) or not all(
+        isinstance(commit_id, str) and commit_id for commit_id in current_git_commits
+    ):
+        raise ValueError("current_git_commits must be a set of nonempty commit IDs")
+
+    known_ids = set(ticket_ids)
+    if not checked_ids.issubset(known_ids) or not set(accepted_commits).issubset(known_ids):
+        raise ValueError("checkboxes and accepted commits must belong to the ticket set")
+
+    completed = []
+    inconsistent = []
+    for ticket_id in ticket_ids:
+        accepted_commit = accepted_commits.get(ticket_id)
+        checked = ticket_id in checked_ids
+        current = accepted_commit in current_git_commits if accepted_commit is not None else False
+        if checked and accepted_commit is not None and current:
+            completed.append(ticket_id)
+        elif checked or accepted_commit is not None:
+            inconsistent.append(ticket_id)
+    return {"completed": tuple(completed), "inconsistent": tuple(inconsistent)}
 
 
 def _discovery_question_fields(question: Mapping[str, object]) -> tuple[str, tuple[str, ...], str, tuple[str, ...] | None]:

@@ -3,7 +3,7 @@
 ## Assembly
 
 Main assembles this template before **every** direct-child dispatch, including
-standalone TDD, both delivery review axes and a promotion sibling. Its normative
+executor-issued TDD, both delivery review axes and a promotion sibling. Its normative
 sources are [Authority](./subagent-routing-contract.md#authority),
 [Worker Progress Heartbeat](./subagent-routing-contract.md#worker-progress-heartbeat),
 [Review Execution](./subagent-routing-contract.md#review-execution) and

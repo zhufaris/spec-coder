@@ -1,6 +1,6 @@
 ---
 name: tdd-coder
-description: Implement one approved or autonomously selected unblocked vertical ticket through an evidence-backed Red-Green loop, affected verification, plan-state update, and atomic commit. Use after plan-coder authorization or to resume a partially completed spec-coder ticket.
+description: Implement one executor-issued unblocked vertical ticket through an evidence-backed Red-Green loop, affected verification, atomic commit, and plan-state update. Use only from the native implement-spec executor with a validated or reconstructed executor-issued handoff.
 ---
 
 # TDD Coder
@@ -11,6 +11,9 @@ This skill delegates eligible implementation work by default within one
 approved or autonomously selected bounded ticket and its verification seam.
 The main agent retains Red-Green, attribution and commit ownership. Apply the
 required routing and domain sections before implementation.
+Each executor-issued lifecycle owns one selected ticket only.
+It is one unblocked ticket lifecycle, not a plan-selection entry point.
+Each gate-3-approved executor-issued handoff authorizes one approved or autonomously selected ticket: one approved or autonomously selected unblocked vertical ticket in an approved or autonomously selected durable planned wave.
 
 ## Required Reading
 
@@ -35,28 +38,36 @@ sections before acting. Links are requirements, not background references.
 
 ## Input
 
-One unblocked ticket whose dependencies are complete, its acceptance criteria,
-the approved or autonomously selected design and its testing seams, the selected
-safe workspace with accounted-for initial changes, and green baseline evidence.
-The workspace may be in place or isolated; autonomous selection does not relax
-ticket readiness or verification.
+One executor-issued unblocked ticket whose dependencies are complete, its
+acceptance criteria, the approved or autonomously selected design and its
+testing seams, the selected safe workspace with accounted-for initial changes,
+and green baseline evidence. The handoff records Gate-3 approval, the durable
+wave/frontier, selected ticket identity, recorded wave base, and workspace
+decision. It identifies one approved or autonomously selected unblocked vertical
+ticket. A direct or resumed invocation must validate or reconstruct that
+executor-issued handoff from those records before work; it must not turn a plan
+authorization into a plan-to-TDD bypass. The workspace may be in place or
+isolated; autonomous selection does not relax ticket readiness or verification.
 
 ## Output
 
-Observed Red and Green evidence for behavior changes, preservation and dependency evidence for structural work, passing affected checks, a checked-off durable ticket, a synchronized runtime plan, and one atomic Conventional Commit containing only that ticket's files.
+Observed Red and Green evidence for behavior changes, preservation and dependency evidence for structural work, passing affected checks, one atomic Conventional Commit containing only that ticket's files, its recorded commit evidence, and then a checked-off durable ticket with a synchronized runtime plan.
 
 ## Process
 
-1. Confirm the handed-off ticket belongs to the Gate-3-approved or autonomously selected durable planned wave
-   and the current planned wave is the earliest incomplete one. Confirm all
-   of its blockers are complete. Verify the selected workspace, recorded wave
-   base, and initial changes; preserve unrelated work in either mode. The
-   runtime wave may contain other ownership-safe tickets, but this invocation
-   owns only its one selected ticket and must not pull later-wave work forward.
-   It is one lifecycle inside the native executor: main owns Red or structural
-   evidence, authoritative integration, fresh verification, commits, and plan
-   advancement. A direct implementer brief states `delegation_allowed = false`
-   and cannot delegate or integrate sibling work.
+1. Validate the executor-issued handoff: confirm its approved or autonomously selected durable planned wave, Gate-3 approval, selected ticket identity, and
+   recorded frontier reconstruct to the current earliest incomplete wave. Confirm
+   all blockers are complete. Verify the selected workspace, recorded wave base,
+   and initial changes; preserve unrelated work in either mode. If a direct or
+   resumed invocation cannot reconstruct these executor facts, stop and return
+   the missing or conflicting evidence to the native implement-spec executor;
+   never select a ticket from a plan independently. The runtime wave may contain
+   other ownership-safe tickets, but this invocation owns only one selected
+   ticket and must not pull later-wave work forward. It is one lifecycle inside
+   the native executor: main owns Red or structural evidence, authoritative
+   integration, fresh verification, commits, and plan advancement. A direct
+   implementer brief states `delegation_allowed = false` and cannot delegate or
+   integrate sibling work.
 2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
 3. Write one behavior-focused test through a selected public seam for an applicable scenario or invariant.
 4. Run that focused test and have main observe the expected failure as behavior
@@ -80,9 +91,9 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    compliance. Planning baseline reuse never satisfies this fresh integration
    check; record actual verification commands/results in the ticket under the
    artifact-format delivery evidence contract.
-8. Update the durable plan checkbox and runtime mirror only after the affected checks pass.
-9. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior. After it exists, append its actual commit ID to the ticket evidence.
-10. Select the next unblocked ticket, or hand off to `delivery-coder` when none remain.
+8. Inspect the diff against recorded initial changes, stage explicit paths owned by the ticket, and inspect the entire proposed commit for user-owned hunks or previously staged unrelated files. Apply the shared Git safety rules, using a verified path-scoped commit or isolation when necessary to preserve unrelated staged work. Create one Conventional Commit whose subject describes the delivered behavior. Only after it succeeds, append its actual commit ID and commit evidence to the ticket evidence.
+9. After the commit evidence is recorded, update the durable plan checkbox and runtime mirror. Never record a checked state before that accepted commit exists.
+10. Return to the native implement-spec executor for fresh frontier, workspace, and capacity evaluation. This lifecycle never selects another ticket or directly hands work to `delivery-coder`.
 
 For a failed or uncertain delegated attempt, use Attempt Evidence and Promotion;
 only main can create the promotion sibling using the complete common brief.
@@ -99,7 +110,7 @@ For an approved behavior-preserving refactor or dependency-only repair, record t
 
 Stop and preserve evidence when:
 
-- no approved or autonomously selected unblocked ticket exists;
+- no approved or autonomously selected unblocked ticket exists in a valid executor-issued handoff, or that handoff cannot be validated or reconstructed;
 - the selected workspace is unsafe or changes cannot be attributed/separated from user-owned work;
 - a behavior change cannot demonstrate Red for the intended reason, or structural work lacks preservation/dependency evidence;
 - implementation evidence invalidates the selected design;

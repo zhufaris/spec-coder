@@ -1,4 +1,4 @@
 interface:
   display_name: "TDD Coder"
-  short_description: "Implement one approved or autonomously selected ticket through a strict TDD loop"
-  default_prompt: "Use $tdd-coder to implement the next unblocked ticket."
+  short_description: "Implement one executor-issued ticket through a strict TDD loop; implement one approved or autonomously selected ticket only when executor-issued"
+  default_prompt: "Use $tdd-coder for this executor-issued ticket and return control to the native implement-spec executor."
