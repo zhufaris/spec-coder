@@ -50,12 +50,13 @@ recorded by main before or at dispatch.
 When ready, send ProgressSnapshot at start, every 45-60 seconds while active,
 on phase change, before and after a long command, and immediately on blocker,
 failure or completion. A short attempt sends start and terminal state.
-Required nonempty string fields: ticket_or_axis, worker_handle, phase,
-active_command, progress_evidence, verification_state, blocker, observed_at.
-phase: starting | working | verifying | blocked | completed.
-verification_state: not-started | running | passed | failed.
-active_command and blocker: use none when absent.
-observed_at: actual timezone-aware ISO time.
+Send this exact single-line JSON envelope, with valid starting defaults:
+ProgressSnapshot {"ticket_or_axis":"<ticket ID or review axis>","worker_handle":"<this worker handle>","phase":"starting","active_command":"none","progress_evidence":"<replace every placeholder with current evidence>","verification_state":"not-started","blocker":"none","observed_at":"<actual send-time timezone-aware ISO timestamp>"}
+Replace every placeholder before sending. Set `observed_at` to an actual
+send-time timezone-aware ISO timestamp; do not copy an example time. Keep the
+exact keys and listed enum literals from the routing contract: no aliases,
+extra fields, or free-text enum values. `active_command` and `blocker` use
+`none` when absent.
 Message destination/method: {main handle and supported proactive messaging path}.
 If capability is unavailable, preserve delegation and return final evidence.
 Heartbeat is observation only: awaiting-heartbeat is ordinary no-message;

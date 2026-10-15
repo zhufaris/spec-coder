@@ -9,13 +9,16 @@ bundled skill, persisted routing state, or permission boundary.
 
 Every suite-owned direct child must report a Host-neutral `ProgressSnapshot` as
 conversational observation evidence when proactive child-to-main messaging is
-available. The snapshot has exactly these required
+available. This contract is the schema and authority owner; the worker brief
+only supplies its compact machine-copyable presentation. The snapshot has exactly these required
 nonempty string fields: `ticket_or_axis`, `worker_handle`, `phase`,
 `active_command`, `progress_evidence`, `verification_state`, `blocker`, and
 timezone-aware ISO `observed_at`. Valid phases are `starting`, `working`,
 `verifying`, `blocked`, and `completed`; valid verification states are
 `not-started`, `running`, `passed`, and `failed`. `active_command` and
-`blocker` use the explicit string `none` when not applicable.
+`blocker` use the explicit string `none` when not applicable. Snapshots use
+those exact keys and enum literals: aliases, extra fields, and free-text enum
+values are invalid.
 
 Before a direct child is dispatched, or at dispatch, main records whether
 proactive heartbeat capability is available. A ready capability records

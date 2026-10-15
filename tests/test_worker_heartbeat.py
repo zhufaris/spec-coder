@@ -1,4 +1,7 @@
+import json
+import re
 import unittest
+from pathlib import Path
 
 from forward_contracts import (
     heartbeat_report_due,
@@ -19,8 +22,22 @@ VALID_SNAPSHOT = {
     "observed_at": "2026-10-07T10:00:00Z",
 }
 
+WORKER_BRIEF = Path(__file__).resolve().parents[1] / "references" / "worker-brief-template.md"
+
 
 class ProgressSnapshotValidationTests(unittest.TestCase):
+    def test_worker_brief_exposes_one_canonical_json_envelope(self) -> None:
+        text = WORKER_BRIEF.read_text()
+        matches = re.findall(r"(?m)^ProgressSnapshot (\{.*\})$", text)
+        self.assertEqual(len(matches), 1)
+        template = json.loads(matches[0])
+        self.assertEqual(set(template), set(VALID_SNAPSHOT))
+        candidate = {**template, **VALID_SNAPSHOT}
+        self.assertEqual(dict(validate_progress_snapshot(candidate)), VALID_SNAPSHOT)
+        self.assertIn("replace every", text.lower())
+        self.assertIn("send-time", text.lower())
+        self.assertIn("do not copy", text.lower())
+
     def test_accepts_complete_immutable_progress_fact(self) -> None:
         original = dict(VALID_SNAPSHOT)
 
