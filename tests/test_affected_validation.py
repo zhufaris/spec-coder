@@ -50,6 +50,34 @@ class AffectedValidationTests(unittest.TestCase):
         self.assertIn("test_worker_heartbeat", joined)
         self.assertNotIn("test_*.py", joined)
 
+    def test_forward_contracts_maps_exactly_to_static_importers(self):
+        commands = self.build("tests/forward_contracts.py")
+        selected = {
+            Path(command["argv"][-1]).stem
+            for command in commands
+            if command["kind"] == "unittest"
+        }
+        importers = {
+            path.stem
+            for path in (ROOT / "tests").glob("test_*.py")
+            if any(
+                line.startswith("from forward_contracts import")
+                for line in path.read_text().splitlines()
+            )
+        }
+        self.assertEqual(selected, importers)
+        self.assertEqual(commands[-1]["argv"], ("git", "diff", "--check"))
+
+    def test_scenarios_fixture_maps_to_its_two_consumers(self):
+        commands = self.build("tests/fixtures/scenarios.md")
+        selected = {
+            Path(command["argv"][-1]).stem
+            for command in commands
+            if command["kind"] == "unittest"
+        }
+        self.assertEqual(selected, {"test_autonomous_workflow", "test_contracts"})
+        self.assertEqual(commands[-1]["argv"], ("git", "diff", "--check"))
+
     def test_paths_must_exist_inside_repository(self):
         for path in ("../outside.py", "/etc/passwd", "missing.py"):
             with self.subTest(path=path), self.assertRaises(ValueError):
