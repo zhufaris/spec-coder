@@ -184,6 +184,13 @@ read-only。
 
 每个 direct-child brief 使用 routing schema 所有的一个 canonical ProgressSnapshot envelope；`observed_at` 记录 actual send-time，字段不能使用 aliases。invalid snapshot 没有 execution authority，不能恢复、推进或修改 main-only 授权边界。
 
+Heartbeat emitter：当 capability 为 `heartbeat-ready` 时，brief 必须包含
+main 提供的绝对 `scripts/progress-snapshot.py` 命令。Worker 必须使用
+`python3`、该绝对路径及七个 required field flags 作为 argument vector 调用，
+并立即把唯一 stdout 行 unchanged 转发给 main；manual JSON 不得作为 primary
+path。调用失败时才记录 `heartbeat-emitter-unavailable` 并回退到 canonical
+manual envelope，且不改变 delegation 或 authority。
+
 Interactive Gate 和其他仍需 separate human authority 的 suite-owned approval
 或 mutation authorization，先通过 `show-me` 提供 two to four 个 grounded
 choices 及各自后果，再请求选择。Autonomous selection does not invoke `show-me`。

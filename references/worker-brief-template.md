@@ -47,6 +47,13 @@ provisional evidence, never approval. Do not infer Host sandbox enforcement.
 
 Heartbeat capability: {heartbeat-ready | heartbeat-capability-unavailable},
 recorded by main before or at dispatch.
+Heartbeat emitter: {absolute main-supplied path to scripts/progress-snapshot.py}
+When capability is ready, invoke the emitter with `python3` plus this absolute
+path and all seven required field flags as an argument vector. Forward its
+single stdout line immediately, with stdout unchanged. Do not make manual JSON the
+primary path. If invocation fails, record `heartbeat-emitter-unavailable` in
+progress evidence and only then use the canonical manual envelope below as the
+bounded fallback; this never changes delegation or authority.
 When ready, send ProgressSnapshot at start, every 45-60 seconds while active,
 on phase change, before and after a long command, and immediately on blocker,
 failure or completion. A short attempt sends start and terminal state.

@@ -33,6 +33,17 @@ on blocker, failure, or completion. A short attempt need only send its start
 and terminal snapshots. The Host adapter may provide the child-to-main
 message path; the shared contract does not name a tool or process API.
 
+When heartbeat capability is `heartbeat-ready`, the worker brief MUST include a
+`Heartbeat emitter:` field containing the absolute, main-supplied command for
+`scripts/progress-snapshot.py`. The worker invokes that command as an argument
+vector (never through a shell or by discovering a path), forwards its single
+stdout line unchanged to main immediately, and does not construct manual JSON as
+the primary path. If invocation fails, the worker records
+`heartbeat-emitter-unavailable` in progress evidence and only then uses the
+canonical manual `ProgressSnapshot {...}` envelope as the existing fallback.
+This emitter routing is observational only and does not change delegation,
+authority, or the schema owner.
+
 The main agent records only the latest valid snapshot in conversation. Invalid
 snapshots are rejected and cannot replace a prior valid observation. A Host
 wait timeout or missed interval is reported as `heartbeat-overdue`; an ordinary

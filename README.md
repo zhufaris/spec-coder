@@ -92,6 +92,13 @@ reviewer read-only 边界保持不变。
 
 每个 direct-child brief 携带由 routing schema 所有的一个 canonical ProgressSnapshot envelope；`observed_at` 使用 actual send-time，字段不使用 aliases。无效 snapshot 没有 execution authority，不能恢复、推进或改变既有 main-only 边界。
 
+Heartbeat emitter：heartbeat-ready brief 必须携带 main 提供的绝对
+`scripts/progress-snapshot.py` 命令。Worker 用 `python3` 加该绝对路径和七个
+必需字段 flags 组成 argument vector 调用，并立即原样转发唯一一行 stdout；
+手写 manual JSON 不是 primary path。Emitter 调用失败时，progress evidence
+记录 `heartbeat-emitter-unavailable`，随后才使用 canonical manual envelope
+作为 bounded fallback；该 fallback 不改变 delegation 或 main-only authority。
+
 每次 suite-owned human approval 或 mutation review 都先由 `show-me` 展示 authoritative artifact、关键决定、风险、授权效果和下一阶段，并提供 two to four 个 grounded、实质不同且带后果说明的选项；`show-me` 只呈现，不代替用户选择或授予权限。
 
 ## Optional subagent model routing

@@ -799,6 +799,12 @@ class PluginContractTests(unittest.TestCase):
         ):
             for published_doc in (readme, install_guide):
                 self.assertIn(phrase, published_doc.lower())
+        for phrase in (
+            "progress-snapshot.py",
+            "heartbeat-emitter-unavailable",
+        ):
+            for published_doc in (readme, install_guide):
+                self.assertIn(phrase, published_doc.lower())
         published_docs = "\n".join((readme, install_guide, compatibility))
         self.assertNotIn("0.5.0", published_docs)
         self.assertNotIn("0.4.1", published_docs)

@@ -41,6 +41,15 @@ class ProgressSnapshotValidationTests(unittest.TestCase):
         self.assertIn("phase to `completed`", text.lower())
         self.assertIn("never `handoff`", text.lower())
 
+    def test_worker_brief_prefers_bundled_emitter_with_bounded_fallback(self) -> None:
+        text = WORKER_BRIEF.read_text().lower()
+        self.assertIn("heartbeat emitter:", text)
+        self.assertIn("scripts/progress-snapshot.py", text)
+        self.assertIn("argument vector", text)
+        self.assertIn("stdout unchanged", text)
+        self.assertIn("heartbeat-emitter-unavailable", text)
+        self.assertIn("manual envelope", text)
+
     def test_accepts_complete_immutable_progress_fact(self) -> None:
         original = dict(VALID_SNAPSHOT)
 
