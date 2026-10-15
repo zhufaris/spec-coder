@@ -12,8 +12,9 @@ def read(relative):
 class ImplementSpecPlanningContractTests(unittest.TestCase):
     def test_plan_coder_hands_every_gate_three_plan_to_one_executor(self):
         plan = read("skills/plan-coder/SKILL.md").lower()
-        self.assertIn("implement-spec-execution-contract.md#executor-entry", plan)
-        self.assertIn("implement-spec-execution-contract.md#adaptive-workspace", plan)
+        self.assertIn("workflow-contract.md#native-implement-spec-executor", plan)
+        self.assertIn("workflow-contract.md#stage-runtime-envelope", plan)
+        self.assertIn("subagent-routing-contract.md#execution-waves", plan)
         self.assertIn("every", plan)
         self.assertIn("native implement-spec executor", plan)
         self.assertIn("singleton", plan)

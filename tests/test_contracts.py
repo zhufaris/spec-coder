@@ -899,13 +899,8 @@ class PluginContractTests(unittest.TestCase):
             (read_text(ROOT / "README.md"), read_text(ROOT / "INSTALL.md"))
         ).lower()
 
-        self.assertIn(
-            "implement-spec-execution-contract.md#completion-handoff", delivery
-        )
-        self.assertIn(
-            "implement-spec-execution-contract.md#forbidden-external-effects",
-            delivery,
-        )
+        self.assertIn("workflow-contract.md#native-implement-spec-executor", delivery)
+        self.assertIn("workflow-contract.md#stage-runtime-envelope", delivery)
         for phrase in (
             "native implement-spec executor",
             "cumulative accepted",

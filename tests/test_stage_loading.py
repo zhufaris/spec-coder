@@ -151,6 +151,50 @@ class StageLoadingTests(unittest.TestCase):
                 self.assertIn("promoted reviewer is read-only", brief)
                 self.assertIn("Heartbeat delay alone never authorizes promotion", brief)
 
+    def test_resolved_required_owner_budgets(self):
+        budgets = {
+            "spec-coder": 6500,
+            "grill-coder": 4000,
+            "design-coder": 5000,
+            "plan-coder": 8000,
+            "tdd-coder": 7000,
+            "delivery-coder": 8000,
+        }
+        counts = {}
+        for stage, budget in budgets.items():
+            path = ROOT / "skills" / stage / "SKILL.md"
+            counts[stage] = len(instruction_text(path, frozenset()).split())
+            with self.subTest(stage=stage):
+                self.assertLessEqual(counts[stage], budget)
+        self.assertLessEqual(sum(counts.values()), 38500)
+
+    def test_redundant_executor_owner_is_absent_from_distribution(self):
+        old_owner = ROOT / "references/implement-spec-execution-contract.md"
+        self.assertFalse(old_owner.exists())
+        distributed = [ROOT / "README.md", ROOT / "INSTALL.md"]
+        distributed.extend((ROOT / "skills").glob("*/SKILL.md"))
+        distributed.extend((ROOT / "references").glob("*.md"))
+        for path in distributed:
+            with self.subTest(path=path.relative_to(ROOT)):
+                self.assertNotIn(
+                    "implement-spec-execution-contract.md",
+                    path.read_text(),
+                )
+
+    def test_ticket_tdd_names_the_affected_validation_interface(self):
+        for relative in (
+            "skills/tdd-coder/SKILL.md",
+            "references/ticket-template.md",
+        ):
+            text = (ROOT / relative).read_text()
+            with self.subTest(path=relative):
+                for token in ("scripts/validate-affected.py", "--repo", "--path"):
+                    self.assertIn(token, text)
+
+    def test_legacy_execution_wave_oracle_is_removed(self):
+        oracle = (ROOT / "tests/forward_contracts.py").read_text()
+        self.assertNotIn("def select_execution_wave(", oracle)
+
     def test_prompt_reduction_is_material(self):
         # Approved 502fa87 baseline: 9781 words across the nine stage entrypoints.
         words = sum(len(path.read_text().split()) for path in (ROOT / "skills").glob("*/SKILL.md"))

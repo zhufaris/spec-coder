@@ -187,19 +187,32 @@ class UnifiedImplementSpecExecutorTests(unittest.TestCase):
                 )
 
     def test_contract_forbids_wrapper_merger_and_automatic_external_effects(self):
-        contract = (ROOT / "references/implement-spec-execution-contract.md").read_text()
+        workflow = (ROOT / "references/workflow-contract.md").read_text().lower()
+        routing = (ROOT / "references/subagent-routing-contract.md").read_text().lower()
+        delivery = (ROOT / "skills/delivery-coder/SKILL.md").read_text().lower()
         for phrase in (
             "no implement-spec wrapper agent",
             "no merger subagent",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, routing)
+        for phrase in (
             "must not push",
-            "must not create or ready a pull request",
-            "must not close external tickets",
-            "must not merge into the original branch",
             "must not install",
             "must not delete worktrees",
         ):
             with self.subTest(phrase=phrase):
-                self.assertIn(phrase, contract.lower())
+                self.assertIn(phrase, workflow)
+        for phrase in (
+            "do not push",
+            "create a pull request",
+            "publish external tickets",
+            "merge an original branch",
+            "install",
+            "delete worktrees",
+        ):
+            with self.subTest(delivery_effect=phrase):
+                self.assertIn(phrase, delivery)
 
 
 if __name__ == "__main__":

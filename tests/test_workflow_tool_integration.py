@@ -35,12 +35,43 @@ class PublishedWorkflowIntegration(unittest.TestCase):
             tracked = subprocess.run(["git", "ls-files", "-z"], cwd=source,
                                      check=True, capture_output=True, text=True).stdout
             for relative in filter(None, tracked.split("\0")):
+                if not (source / relative).is_file():
+                    continue
                 destination = bundle / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source / relative, destination)
             self.assertFalse((bundle / "docs").exists())
             self.assertEqual(json.loads((bundle / ".codex-plugin/plugin.json").read_text())["version"], "0.6.0")
             self.assertEqual(len(list((bundle / "skills").glob("*/SKILL.md"))), 9)
+            subprocess.run(["git", "init", "-q"], cwd=bundle, check=True)
+
+            relocated_affected = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    str(bundle / "scripts/validate-affected.py"),
+                    "--repo",
+                    str(bundle),
+                    "--path",
+                    "tests/test_affected_validation.py",
+                ],
+                cwd=base,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(
+                relocated_affected.returncode,
+                0,
+                relocated_affected.stdout + relocated_affected.stderr,
+            )
+            affected_report = json.loads(relocated_affected.stdout)
+            self.assertEqual(affected_report["exit_code"], 0)
+            self.assertTrue(
+                any(
+                    "test_affected_validation.py" in command["argv"]
+                    for command in affected_report["planned_commands"]
+                )
+            )
 
             target = base / "project"
             target.mkdir()

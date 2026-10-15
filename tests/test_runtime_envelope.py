@@ -67,8 +67,8 @@ class RuntimeEnvelopeOwnerTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, routing)
 
-    def test_old_executor_reference_remains_temporarily_compatible(self):
-        self.assertTrue(
+    def test_old_executor_reference_is_removed_after_direct_owner_migration(self):
+        self.assertFalse(
             (ROOT / "references/implement-spec-execution-contract.md").is_file()
         )
 

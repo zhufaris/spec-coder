@@ -775,42 +775,6 @@ def decide_execution_mode(
     return "delegate"
 
 
-def select_execution_wave(
-    tickets: Iterable[Dict[str, object]],
-    *,
-    host_available_slots: int,
-    isolated: bool,
-) -> Tuple[Tuple[str, str], ...]:
-    """Select the next ready local or delegated execution wave in plan order."""
-    ready = tuple(ticket for ticket in tickets if ticket.get("dependency_ready"))
-    if not ready:
-        return ()
-
-    first = ready[0]
-    first_mode = str(first.get("mode", "local"))
-    if first_mode == "local":
-        return ((str(first["id"]), first_mode),)
-    if first_mode != "delegate":
-        return ()
-
-    delegated_candidates = tuple(
-        {
-            **ticket,
-            "delegation_eligible": (
-                ticket.get("mode") == "delegate"
-                and ticket.get("delegation_eligible", True)
-            ),
-        }
-        for ticket in ready
-    )
-    selected = select_delegated_wave(
-        delegated_candidates,
-        host_available_slots=host_available_slots,
-        isolated=isolated,
-    )
-    return tuple((ticket_id, "delegate") for ticket_id in selected)
-
-
 def validate_planned_waves(
     tickets: Iterable[Dict[str, object]], waves: Iterable[Iterable[str]]
 ) -> Tuple[Tuple[str, ...], ...]:

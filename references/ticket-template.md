@@ -95,7 +95,7 @@ For each ticket, include:
 | Exclusions | Files, responsibilities, authority, and unrelated changes outside the ticket |
 | Isolation | Whether mutation is read-only, serial/shared, or requires real per-worker Host/task or Git isolation; record the isolation requirement and recorded wave base when applicable |
 | Concurrency conflicts | Comma-separated IDs of tickets with ownership overlap or semantic conflicts that cannot share a wave; otherwise None |
-| Verification seam | Independently inspectable focused evidence plus affected checks and separate dependency/preservation evidence |
+| Verification seam | Independently inspectable focused evidence plus `scripts/validate-affected.py --repo <repository> --path <task-owned-path>` (repeat `--path` for every main-supplied task-owned path), with separate dependency/preservation evidence |
 | Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
 | Direct-child boundary | `delegation_allowed = false`; main assembles the [common brief](./worker-brief-template.md#common-brief) and applicable role additions as actual outgoing content, including ownership, no indirect delegation/staging/commits and the shared heartbeat contract. |
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
@@ -112,6 +112,13 @@ before isolation or capacity fallback. Runtime may shrink or serialize that wave
 only as that policy permits, and must not regroup it
 or pull tickets from a later planned wave. Resume reads durable wave membership,
 checkboxes, and committed Git state; it does not invent new waves.
+
+For ticket verification, main supplies the authoritative repository with
+`--repo` and every attributed task-owned path with a repeated `--path` to the
+bundled `scripts/validate-affected.py`. Record the exact focused and affected
+commands and their results in delivery evidence. This ticket-level selection
+does not replace the separate fresh full verification required at baseline and
+delivery, and it does not grant acceptance, commit, or completion authority.
 
 For relevant domain changes, references and acceptance preserve the approved business actions, refusal/bypass outcomes, value validity/equality, policy responsibilities and terminology compatibility. When persistence is affected, include aggregate save/load, controlled restoration, post-load behavior and applicable conflict verification. Keep these requirements within the capability slice, rather than separate tickets for model classes or a copied domain inventory.
 

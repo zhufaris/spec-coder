@@ -12,22 +12,14 @@ def read(relative):
 class ImplementSpecRuntimeContractTests(unittest.TestCase):
     def test_orchestrator_enters_one_executor_and_loads_all_runtime_owners(self):
         orchestrator = read("skills/spec-coder/SKILL.md").lower()
-        for anchor in (
-            "authority-and-provenance",
-            "executor-entry",
-            "task-graph-and-ready-frontier",
-            "adaptive-workspace",
-            "ticket-tdd-handoff",
-            "main-only-result-integration",
-            "recovery",
-            "completion-handoff",
-            "forbidden-external-effects",
+        for owner in (
+            "../../references/workflow-contract.md#stage-runtime-envelope",
+            "../../references/workflow-contract.md#native-implement-spec-executor",
+            "../../references/subagent-routing-contract.md#execution-waves",
+            "../../references/subagent-routing-contract.md#result-integration",
         ):
-            with self.subTest(anchor=anchor):
-                self.assertIn(
-                    "../../references/implement-spec-execution-contract.md#" + anchor,
-                    orchestrator,
-                )
+            with self.subTest(owner=owner):
+                self.assertIn(owner, orchestrator)
         self.assertIn("native implement-spec executor", orchestrator)
         self.assertIn("every", orchestrator)
         self.assertIn("singleton", orchestrator)
@@ -36,8 +28,9 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
 
     def test_tdd_remains_one_ticket_engine_inside_executor(self):
         tdd = read("skills/tdd-coder/SKILL.md").lower()
-        self.assertIn("implement-spec-execution-contract.md#ticket-tdd-handoff", tdd)
-        self.assertIn("implement-spec-execution-contract.md#main-only-result-integration", tdd)
+        self.assertIn("workflow-contract.md#native-implement-spec-executor", tdd)
+        self.assertIn("subagent-routing-contract.md#execution-waves", tdd)
+        self.assertIn("subagent-routing-contract.md#result-integration", tdd)
         self.assertIn("one selected ticket", tdd)
         self.assertIn("main", tdd)
         self.assertIn("delegation_allowed = false", tdd)
@@ -87,7 +80,9 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
 
     def test_worktree_adapter_prepares_only_approved_executor_isolation(self):
         worktrees = read("skills/using-git-worktrees/SKILL.md").lower()
-        self.assertIn("implement-spec-execution-contract.md#adaptive-workspace", worktrees)
+        self.assertIn("workflow-contract.md#workspace-selection", worktrees)
+        self.assertIn("workflow-contract.md#recovery", worktrees)
+        self.assertIn("subagent-routing-contract.md#execution-waves", worktrees)
         self.assertIn("authoritative workspace", worktrees)
         self.assertIn("integration", worktrees)
         self.assertIn("recorded wave base", worktrees)

@@ -12,11 +12,93 @@ import subprocess
 
 
 _SKILL_CHECKS = {
+    "spec-coder": (
+        "test_runtime_envelope",
+        "test_stage_loading",
+        "test_implement_spec_executor",
+        "test_implement_spec_runtime",
+    ),
+    "grill-coder": (
+        "test_contracts",
+        "test_discovery_question_batching",
+        "test_stage_loading",
+    ),
+    "design-coder": ("test_contracts", "test_stage_loading"),
+    "plan-coder": (
+        "test_implement_spec_planning",
+        "test_stage_loading",
+        "test_workflow_tool_integration",
+    ),
     "tdd-coder": (
         "test_contracts",
         "test_stage_loading",
         "test_implement_spec_runtime",
     ),
+    "delivery-coder": (
+        "test_contracts",
+        "test_default_subagent_delivery",
+        "test_implement_spec_runtime",
+    ),
+    "setup-coder": ("test_contracts", "test_forward_scenarios"),
+    "show-me": ("test_human_review_options", "test_stage_loading"),
+    "using-git-worktrees": (
+        "test_exact_base_worktree",
+        "test_forward_scenarios",
+        "test_implement_spec_runtime",
+    ),
+}
+_OWNER_CHECKS = {
+    "references/workflow-contract.md": (
+        "test_runtime_envelope",
+        "test_stage_loading",
+        "test_implement_spec_executor",
+        "test_implement_spec_runtime",
+    ),
+    "references/subagent-routing-contract.md": (
+        "test_default_subagent_execution",
+        "test_parallel_request_scenarios",
+        "test_implement_spec_runtime",
+    ),
+    "references/artifact-format.md": (
+        "test_artifact_checker",
+        "test_implement_spec_planning",
+        "test_workflow_tool_integration",
+    ),
+    "scripts/check-artifacts.py": (
+        "test_artifact_checker",
+        "test_workflow_tool_integration",
+    ),
+    "scripts/spec_coder_checks/artifacts.py": (
+        "test_artifact_checker",
+        "test_workflow_tool_integration",
+    ),
+    "scripts/spec_coder_checks/waves.py": (
+        "test_artifact_checker",
+        "test_implement_spec_executor",
+        "test_parallel_request_scenarios",
+    ),
+    "references/specification-template.md": (
+        "test_artifact_checker",
+        "test_workflow_tool_integration",
+    ),
+    "references/ticket-template.md": (
+        "test_implement_spec_planning",
+        "test_workflow_tool_integration",
+    ),
+    "references/verification-contract.md": (
+        "test_verification_evidence",
+        "test_workflow_tool_integration",
+    ),
+    "scripts/verification-evidence.py": (
+        "test_verification_evidence",
+        "test_workflow_tool_integration",
+    ),
+    "scripts/spec_coder_checks/evidence.py": (
+        "test_verification_evidence",
+        "test_workflow_tool_integration",
+    ),
+    "references/domain-design-contract.md": ("test_contracts",),
+    "references/domain-design-examples.md": ("test_contracts",),
 }
 _SHARED_ROUTING_CHECKS = (
     "test_default_subagent_execution",
@@ -86,6 +168,7 @@ def build_affected_commands(
             skill = parts[1]
             modules.update(_SKILL_CHECKS[skill])
             skills.add(skill)
+        modules.update(_OWNER_CHECKS.get(path, ()))
         if path == _ROUTING_PATH:
             modules.update(_SHARED_ROUTING_CHECKS)
             skills.update(_SHARED_ROUTING_SKILLS)

@@ -28,7 +28,6 @@ from forward_contracts import (
     route_configured_subagent,
     render_review_snapshot,
     select_delegated_wave,
-    select_execution_wave,
     select_planned_wave_batch,
     validate_planned_waves,
 )
@@ -663,36 +662,31 @@ model = "Custom-Sol"
             (("T3", "delegate"),),
         )
 
-    def test_execution_wave_keeps_local_work_serial_and_skips_pending(self) -> None:
+    def test_planned_wave_keeps_local_work_serial(self) -> None:
         tickets = [
-            {"id": "T1", "dependency_ready": False, "mode": "delegate", "conflicts": set()},
-            {"id": "T2", "dependency_ready": True, "mode": "local", "conflicts": set()},
-            {"id": "T3", "dependency_ready": True, "mode": "delegate", "conflicts": set()},
+            {"id": "T1", "mode": "local", "dependencies": set(), "conflicts": set()},
+            {"id": "T2", "mode": "delegate", "dependencies": {"T1"}, "conflicts": set()},
         ]
 
         self.assertEqual(
-            select_execution_wave(tickets, host_available_slots=4, isolated=True),
-            (("T2", "local"),),
+            select_planned_wave_batch(
+                tickets, (("T1",), ("T2",)), completed_ids=set(),
+                host_available_slots=4, isolated=True,
+            ),
+            (("T1", "local"),),
         )
 
-    def test_wait_and_block_outcomes_do_not_form_execution_waves(self) -> None:
-        for mode in ("wait", "block"):
-            with self.subTest(mode=mode):
-                self.assertEqual(
-                    select_execution_wave(
-                        [
-                            {
-                                "id": "T1",
-                                "dependency_ready": True,
-                                "mode": mode,
-                                "conflicts": set(),
-                            }
-                        ],
-                        host_available_slots=0,
-                        isolated=True,
-                    ),
-                    (),
-                )
+    def test_zero_capacity_does_not_form_a_planned_wave_batch(self) -> None:
+        tickets = [
+            {"id": "T1", "mode": "delegate", "dependencies": set(), "conflicts": set()},
+        ]
+        self.assertEqual(
+            select_planned_wave_batch(
+                tickets, (("T1",),), completed_ids=set(),
+                host_available_slots=0, isolated=True,
+            ),
+            (),
+        )
 
 
 class ExecutionRecoveryForwardScenarios(unittest.TestCase):

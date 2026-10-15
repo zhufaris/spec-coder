@@ -85,6 +85,49 @@ class AffectedValidationTests(unittest.TestCase):
             ("/observed/python3", "/observed/quick_validate.py"),
         )
 
+    def test_shared_owner_groups_select_proportional_checks(self):
+        cases = {
+            "references/workflow-contract.md": (
+                "test_runtime_envelope",
+                "test_stage_loading",
+            ),
+            "references/ticket-template.md": (
+                "test_implement_spec_planning",
+                "test_workflow_tool_integration",
+            ),
+            "references/verification-contract.md": ("test_verification_evidence",),
+            "references/domain-design-contract.md": ("test_contracts",),
+        }
+        for path, expected in cases.items():
+            with self.subTest(path=path):
+                joined = "\n".join(
+                    " ".join(command["argv"]) for command in self.build(path)
+                )
+                for token in expected:
+                    self.assertIn(token, joined)
+                self.assertNotIn("test_*.py", joined)
+
+    def test_each_public_skill_selects_its_validator(self):
+        for stage in (
+            "spec-coder",
+            "grill-coder",
+            "design-coder",
+            "plan-coder",
+            "tdd-coder",
+            "delivery-coder",
+            "setup-coder",
+            "show-me",
+            "using-git-worktrees",
+        ):
+            with self.subTest(stage=stage):
+                commands = self.build(f"skills/{stage}/SKILL.md")
+                validators = [
+                    command for command in commands
+                    if command["kind"] == "skill-validator"
+                ]
+                self.assertEqual(len(validators), 1)
+                self.assertEqual(validators[0]["argv"][-1], f"skills/{stage}")
+
 
 if __name__ == "__main__":
     unittest.main()
