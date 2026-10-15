@@ -812,6 +812,10 @@ class PluginContractTests(unittest.TestCase):
             "workspace preflight + fresh green baseline\n    -> grill-coder",
             readme.lower(),
         )
+        self.assertIn(
+            "grill-coder -- qualifying write --> workspace preparation",
+            readme.lower(),
+        )
         self.assertNotRegex(readme, r"(?i)trax")
         self.assertNotIn("global-agents-snippet.md", readme + install_guide)
         self.assertIn("codex plugin marketplace add", readme)
