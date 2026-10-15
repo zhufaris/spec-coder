@@ -13,7 +13,7 @@ authorization and read-only routing-policy audit.
 On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
-- [Repository Setup](../../references/workflow-contract.md#repository-setup).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Repository Setup](../../references/workflow-contract.md#repository-setup).
 - [Configuration](../../references/subagent-routing-contract.md#configuration).
 - [Capability Map](../../references/upstream-compatibility.md#capability-map), [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
 

@@ -13,12 +13,12 @@ Host capabilities before invoking stages or dispatching workers.
 On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
-- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Default Routing](../../references/workflow-contract.md#default-routing), [Recovery](../../references/workflow-contract.md#recovery), [Verification Layers](../../references/workflow-contract.md#verification-layers).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Native implement-spec executor](../../references/workflow-contract.md#native-implement-spec-executor).
 - [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
 
 - [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).
 - [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), [Worked invocation](../../references/verification-contract.md#worked-invocation).
-- [Authority and provenance](../../references/implement-spec-execution-contract.md#authority-and-provenance), [Executor entry](../../references/implement-spec-execution-contract.md#executor-entry), [Task graph and ready frontier](../../references/implement-spec-execution-contract.md#task-graph-and-ready-frontier), [Adaptive workspace](../../references/implement-spec-execution-contract.md#adaptive-workspace), [Ticket TDD handoff](../../references/implement-spec-execution-contract.md#ticket-tdd-handoff), [Main-only result integration](../../references/implement-spec-execution-contract.md#main-only-result-integration), [Recovery](../../references/implement-spec-execution-contract.md#recovery), [Completion handoff](../../references/implement-spec-execution-contract.md#completion-handoff), and [Forbidden external effects](../../references/implement-spec-execution-contract.md#forbidden-external-effects).
+- [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Result Integration](../../references/subagent-routing-contract.md#result-integration).
 
 ## Conditional Reading
 

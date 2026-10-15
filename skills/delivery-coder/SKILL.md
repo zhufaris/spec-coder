@@ -16,8 +16,7 @@ and retains repair judgment, delivery aggregation and every completion claim.
 On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
-- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Artifact Contract](../../references/workflow-contract.md#artifact-contract), [Verification Layers](../../references/workflow-contract.md#verification-layers).
-- [Completion handoff](../../references/implement-spec-execution-contract.md#completion-handoff), [Forbidden external effects](../../references/implement-spec-execution-contract.md#forbidden-external-effects).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Native implement-spec executor](../../references/workflow-contract.md#native-implement-spec-executor).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery).
 - [Review Execution](../../references/subagent-routing-contract.md#review-execution).
 

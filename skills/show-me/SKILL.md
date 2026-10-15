@@ -17,7 +17,7 @@ On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
 - [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities).
-- [Approval Gates](../../references/workflow-contract.md#approval-gates).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope).
 
 ## Conditional Reading
 

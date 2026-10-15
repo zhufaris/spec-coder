@@ -22,7 +22,7 @@ follow Approval Gates and, when human review is needed, the approval contract.
 On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
-- [Phase Order](../../references/workflow-contract.md#phase-order), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Artifact Contract](../../references/workflow-contract.md#artifact-contract).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Design content and specification mapping](../../references/domain-design-contract.md#design-content-and-specification-mapping).
 - [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
 
