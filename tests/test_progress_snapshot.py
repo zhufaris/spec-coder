@@ -6,7 +6,11 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.spec_coder_checks.progress import build_progress_snapshot
+from scripts.spec_coder_checks.progress import (
+    PROGRESS_PHASES,
+    VERIFICATION_STATES,
+    build_progress_snapshot,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +69,39 @@ class ProgressSnapshotPolicyTests(unittest.TestCase):
             build_progress_snapshot(
                 **arguments, clock=lambda: datetime(2026, 10, 15, 12, 34, 56)
             )
+
+    def test_every_phase_and_verification_state_combination_is_explicit(self) -> None:
+        arguments = {
+            "ticket_or_axis": "T1",
+            "worker_handle": "/root/worker",
+            "active_command": "none",
+            "progress_evidence": "evidence",
+            "blocker": "none",
+            "clock": lambda: datetime(2026, 10, 15, 12, 34, 56, tzinfo=timezone.utc),
+        }
+        for phase in PROGRESS_PHASES:
+            for verification_state in VERIFICATION_STATES:
+                with self.subTest(phase=phase, verification_state=verification_state):
+                    if phase == "completed" and verification_state not in {
+                        "passed",
+                        "failed",
+                    }:
+                        with self.assertRaises(ValueError):
+                            build_progress_snapshot(
+                                **arguments,
+                                phase=phase,
+                                verification_state=verification_state,
+                            )
+                    else:
+                        snapshot = build_progress_snapshot(
+                            **arguments,
+                            phase=phase,
+                            verification_state=verification_state,
+                        )
+                        self.assertEqual(snapshot["phase"], phase)
+                        self.assertEqual(
+                            snapshot["verification_state"], verification_state
+                        )
 
 
 class ProgressSnapshotCLITests(unittest.TestCase):
@@ -131,8 +168,9 @@ class ProgressSnapshotCLITests(unittest.TestCase):
                 self.assertNotEqual(result.stderr, "")
 
     def test_cli_escapes_controls_and_preserves_unicode(self) -> None:
+        evidence = "tab\tcontrol 中文 backslash \\ separators \u0085\u2028\u2029"
         result = subprocess.run(
-            self.command("--progress-evidence", "tab\tcontrol 中文"),
+            self.command("--progress-evidence", evidence),
             cwd="/tmp",
             capture_output=True,
             text=True,
@@ -140,11 +178,13 @@ class ProgressSnapshotCLITests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(len(result.stdout.splitlines()), 1)
         self.assertIn("\\t", result.stdout)
+        for escaped in ("\\\\", "\\u0085", "\\u2028", "\\u2029"):
+            self.assertIn(escaped, result.stdout)
         self.assertEqual(
             json.loads(result.stdout.removeprefix("ProgressSnapshot "))[
                 "progress_evidence"
             ],
-            "tab\tcontrol 中文",
+            evidence,
         )
 
 

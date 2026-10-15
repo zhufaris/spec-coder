@@ -76,7 +76,6 @@ class PublishedWorkflowIntegration(unittest.TestCase):
             relocated_snapshot = subprocess.run(
                 [
                     sys.executable,
-                    "-B",
                     str(bundle / "scripts/progress-snapshot.py"),
                     "--ticket-or-axis",
                     "T1",
@@ -109,6 +108,10 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                     "worker_handle"
                 ],
                 "relocated-worker",
+            )
+            self.assertFalse(
+                any(path.name == "__pycache__" for path in bundle.rglob("*")),
+                "emitter must not write bytecode into its own bundle",
             )
 
             target = base / "project"

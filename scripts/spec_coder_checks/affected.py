@@ -85,6 +85,12 @@ _OWNER_CHECKS = {
         "test_implement_spec_planning",
         "test_workflow_tool_integration",
     ),
+    "references/worker-brief-template.md": (
+        "test_worker_heartbeat",
+        "test_default_subagent_execution",
+        "test_implement_spec_runtime",
+        "test_stage_loading",
+    ),
     "references/verification-contract.md": (
         "test_verification_evidence",
         "test_workflow_tool_integration",

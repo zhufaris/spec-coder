@@ -106,6 +106,18 @@ class AffectedValidationTests(unittest.TestCase):
         keys = [(command["argv"], command["cwd"]) for command in commands]
         self.assertEqual(len(keys), len(set(keys)))
 
+    def test_worker_brief_owner_maps_to_all_direct_consumers(self):
+        commands = self.build("references/worker-brief-template.md")
+        joined = "\n".join(" ".join(command["argv"]) for command in commands)
+        for module in (
+            "test_worker_heartbeat",
+            "test_default_subagent_execution",
+            "test_implement_spec_runtime",
+            "test_stage_loading",
+        ):
+            self.assertIn(module, joined)
+        self.assertEqual(commands[-1]["argv"], ("git", "diff", "--check"))
+
     def test_changed_test_selects_itself_without_full_suite(self):
         commands = self.build("tests/test_worker_heartbeat.py")
         joined = "\n".join(" ".join(command["argv"]) for command in commands)

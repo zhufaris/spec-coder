@@ -8,6 +8,12 @@ from pathlib import Path
 import sys
 
 
+# This script is also executed directly from a relocated bundle.  Disable
+# bytecode generation before loading the bundled helper so that invocation
+# never mutates that bundle with ``__pycache__`` files.
+sys.dont_write_bytecode = True
+
+
 # The public script must work when invoked by absolute path from any directory.
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 if str(SCRIPT_DIRECTORY) not in sys.path:
@@ -51,7 +57,10 @@ def main(argv: list[str] | None = None) -> int:
         argument_parser.error(str(exc))
     print(
         "ProgressSnapshot "
-        + json.dumps(dict(snapshot), ensure_ascii=False, separators=(",", ":"))
+        # ASCII-only JSON escapes every Unicode line separator (including
+        # U+0085, U+2028, and U+2029), keeping this wire record to one
+        # physical line while json.loads preserves the original values.
+        + json.dumps(dict(snapshot), ensure_ascii=True, separators=(",", ":"))
     )
     return 0
 
