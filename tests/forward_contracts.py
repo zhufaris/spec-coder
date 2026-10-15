@@ -393,6 +393,11 @@ def validate_progress_snapshot(snapshot: Mapping[str, object]) -> Mapping[str, o
         raise ValueError("unsupported progress phase")
     if snapshot["verification_state"] not in VERIFICATION_STATES:
         raise ValueError("unsupported verification state")
+    if (
+        snapshot["phase"] == "completed"
+        and snapshot["verification_state"] not in {"passed", "failed"}
+    ):
+        raise ValueError("completed snapshots require passed or failed verification")
 
     observed_at = snapshot["observed_at"]
     try:

@@ -76,6 +76,25 @@ class ProgressSnapshotValidationTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validate_progress_snapshot(candidate)
 
+    def test_completed_snapshot_requires_terminal_verification_state(self) -> None:
+        for verification_state in ("not-started", "running"):
+            with self.subTest(verification_state=verification_state):
+                with self.assertRaises(ValueError):
+                    validate_progress_snapshot(
+                        {
+                            **VALID_SNAPSHOT,
+                            "phase": "completed",
+                            "verification_state": verification_state,
+                        }
+                    )
+        for verification_state in ("passed", "failed"):
+            candidate = {
+                **VALID_SNAPSHOT,
+                "phase": "completed",
+                "verification_state": verification_state,
+            }
+            self.assertEqual(dict(validate_progress_snapshot(candidate)), candidate)
+
 
 class HeartbeatScheduleTests(unittest.TestCase):
     def test_periodic_report_becomes_due_in_the_approved_window(self) -> None:

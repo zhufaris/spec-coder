@@ -1,3 +1,4 @@
+import ast
 import subprocess
 import tempfile
 import unittest
@@ -10,6 +11,67 @@ from scripts.spec_coder_checks.affected import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _imports_forward_contracts(source):
+    """Return whether source contains a direct import of forward_contracts."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return False
+    return any(
+        (
+            isinstance(node, ast.Import)
+            and any(alias.name == "forward_contracts" for alias in node.names)
+        )
+        or (
+            isinstance(node, ast.ImportFrom)
+            and node.module == "forward_contracts"
+        )
+        for node in ast.walk(tree)
+    )
+
+
+def _is_scenarios_fixture_path(node):
+    if isinstance(node, ast.Constant):
+        return node.value == "tests/fixtures/scenarios.md"
+    parts = []
+    while isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        if not isinstance(node.right, ast.Constant) or not isinstance(
+            node.right.value, str
+        ):
+            return False
+        parts.append(node.right.value)
+        node = node.left
+    return isinstance(node, ast.Name) and node.id == "ROOT" and tuple(
+        reversed(parts)
+    ) == ("tests", "fixtures", "scenarios.md")
+
+
+def _reads_scenarios_fixture(source):
+    """Return whether source reads the narrow scenarios fixture through supported shapes."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return False
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if (
+            isinstance(node.func, ast.Name)
+            and node.func.id in {"read", "read_text"}
+            and len(node.args) == 1
+            and _is_scenarios_fixture_path(node.args[0])
+        ):
+            return True
+        if (
+            isinstance(node.func, ast.Attribute)
+            and node.func.attr == "read_text"
+            and _is_scenarios_fixture_path(node.func.value)
+        ):
+            return True
+    return False
 
 
 class AffectedValidationTests(unittest.TestCase):
@@ -60,10 +122,7 @@ class AffectedValidationTests(unittest.TestCase):
         importers = {
             path.stem
             for path in (ROOT / "tests").glob("test_*.py")
-            if any(
-                line.startswith("from forward_contracts import")
-                for line in path.read_text().splitlines()
-            )
+            if _imports_forward_contracts(path.read_text())
         }
         self.assertEqual(selected, importers)
         self.assertEqual(commands[-1]["argv"], ("git", "diff", "--check"))
@@ -75,8 +134,36 @@ class AffectedValidationTests(unittest.TestCase):
             for command in commands
             if command["kind"] == "unittest"
         }
-        self.assertEqual(selected, {"test_autonomous_workflow", "test_contracts"})
+        consumers = {
+            path.stem
+            for path in (ROOT / "tests").glob("test_*.py")
+            if path.name != "test_affected_validation.py"
+            and _reads_scenarios_fixture(path.read_text())
+        }
+        self.assertEqual(selected, consumers)
         self.assertEqual(commands[-1]["argv"], ("git", "diff", "--check"))
+
+    def test_static_consumer_detection_covers_supported_source_shapes(self):
+        self.assertTrue(_imports_forward_contracts("import forward_contracts\n"))
+        self.assertTrue(
+            _imports_forward_contracts("from forward_contracts import READY\n")
+        )
+        self.assertFalse(_imports_forward_contracts("name = 'forward_contracts'\n"))
+        self.assertTrue(
+            _reads_scenarios_fixture(
+                'content = read("tests/fixtures/scenarios.md")\n'
+            )
+        )
+        self.assertTrue(
+            _reads_scenarios_fixture(
+                'content = read_text(ROOT / "tests" / "fixtures" / "scenarios.md")\n'
+            )
+        )
+        self.assertFalse(
+            _reads_scenarios_fixture(
+                'commands = self.build("tests/fixtures/scenarios.md")\n'
+            )
+        )
 
     def test_paths_must_exist_inside_repository(self):
         for path in ("../outside.py", "/etc/passwd", "missing.py"):
