@@ -107,7 +107,13 @@ codex plugin list --json
 
 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 和当前 Matt `implement-spec` 都不是 `0.6.0` 的依赖。当前 Matt `implement-spec` 声明 `disable-model-invocation: true`，因此仅为 provenance，不是 dependency；其他 manual-only skill 也不能由其他 skill 调用。fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板，native implement-spec executor 在 Gate 3 后执行批准的计划。
 
-新任务必须先完成 workspace preflight 并取得 fresh green baseline，再进入 discovery。`grill-coder` 使用可调用的 `grilling` decision-tree frontier rounds：每轮最多三个 dependency-ready、相互独立的问题；scope、domain meaning/ownership、core invariant、architecture、overlapping coupling 或 unknown coupling 保持串行。每题提供稳定 `Qn`、适用选项和独立 recommendation/reason；多题轮次须以 `Qn: default` 接受单题推荐，partial answer 只确认明确 ID，ambiguous answer 先单题澄清并重算 frontier。repository facts 由 agent 检查而非询问用户。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。进入规格写入前，`plan-coder` 会重新验证 prepared workspace。
+新任务先选择安全的 selected workspace，并记录 path、mode、base、initial changes 与
+capabilities；随后才能进行 read-only discovery 和 design。selected-only 状态不得有
+target-project writes。`grill-coder` 使用可调用的 `grilling` decision-tree frontier rounds：每轮最多三个 dependency-ready、相互独立的问题；scope、domain meaning/ownership、core invariant、architecture、overlapping coupling 或 unknown coupling 保持串行。每题提供稳定 `Qn`、适用选项和独立 recommendation/reason；多题轮次须以 `Qn: default` 接受单题推荐，partial answer 只确认明确 ID，ambiguous answer 先单题澄清并重算 frontier。repository facts 由 agent 检查而非询问用户。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。
+
+workspace preparation 负责依赖准备与 fresh green baseline，必须在首次符合条件的
+`GLOSSARY.md`/ADR 写入前完成；也可在 Gate 1 后、进入 `plan-coder` 前完成。进入规格
+写入前，`plan-coder` 会重新验证 prepared workspace。
 
 ### 验证 bundled 工具
 
@@ -134,8 +140,10 @@ plugin root 下脚本绝对路径；不要从 target cwd 猜测 `./scripts/`。
 实际流程参数见 [Verification contract](./references/verification-contract.md#worked-invocation)
 和 [Artifact format](./references/artifact-format.md#command-interface)。首个 baseline
 始终 fresh，capture 可指定未来 active artifact 路径并把 JSON 留在对话中，baseline
-成功后才写文档。同一 uninterrupted request 的 planning 才可比较每条 required
-baseline；main 需确认记录来源及依赖/环境，工具不能验证这些声明的真实性。
+成功后才进行 target-project document writes。Planning reuse interface 对同一 uninterrupted request 保持紧凑：planning
+才可比较每条 required baseline，main 需确认记录来源及依赖/环境，工具不能验证这些声明的
+真实性；仅在 standalone、resume、malformed 或 uncertain evidence，以及 rerun fallback 时
+加载完整 verification 细节。
 查看 child `exit_code` 和 `reasons`，不能把 capture exit 1 一律当成 baseline 失败。
 缺失/不确定证据重跑；resume、integrated checks 与 final full suite 始终 fresh。
 新模板的 spec/plan 在 Gate 2/3 前检查，delivery phase 要求完成与记录字段；旧格式

@@ -148,11 +148,11 @@ minimum_tier = "standard"
 各 stage 在 standalone/resume 入口加载必需的共享规则；main 每次 dispatch 都组装
 [完整 worker brief](./references/worker-brief-template.md#assembly)。
 
-首次 preflight 实际执行每个 baseline command，以 `verification-evidence.py capture`
-保留可观察结果；先把 JSON 留在对话中，green baseline 后才写入现有规格/计划。
-同一 uninterrupted request 的 planning 对每条必需记录运行 `check`，main 确认来源及
-依赖/环境仍有效后才复用，并报告 `record_id`。变更、缺失或未知输入都会要求重跑；
-resume、ticket integration 和最终 full verification 始终 fresh。
+Planning reuse interface 保持紧凑：同一 uninterrupted request 的 planning 对每条必需
+记录运行 `check`，main 确认来源及依赖/环境仍有效后才复用，并报告 `record_id`。只有
+standalone、resume、malformed 或 uncertain evidence，以及 rerun fallback，才加载完整
+verification 细节；变更、缺失或未知输入都会要求重跑。resume、ticket integration 和最终
+full verification 始终 fresh。
 CLI exit 1 也可能表示 baseline 成功但记录不可复用，应分别检查 child `exit_code`
 和 `reasons`。完整参数、声明限制与示例见 [Verification contract](./references/verification-contract.md)。
 
@@ -179,9 +179,16 @@ human wait/`show-me`，但仍生成 design、specification、tickets、durable w
 发布、配置、凭据和 destructive action 仍需 separate authorization。用户明确
 选择 false 或撤销后，后续流程恢复 interactive mode。
 
-Discovery 开始前先完成 workspace preflight，并取得 fresh green baseline。Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动、验证基线并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
+先选择安全的 selected workspace，并记录 path、mode、base、initial changes 与 capabilities，
+然后才进入 read-only discovery 和 design。此 selected-only 状态禁止 target-project writes。
+Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
 
-`grill-coder` 在预检后按 dependency-ready frontier rounds 确认决策：每轮按 decision-tree order 至多提出三个相互独立的问题；会改变 scope、领域含义或 ownership、core invariant、architecture 的问题，以及 coupling 重叠或未知的问题保持串行。每题都有稳定 `Qn`、适用选项和单独 recommendation/reason；多题轮次只能用 `Qn: default` 接受单题推荐，partial answer 只确认明确回答，ambiguous answer 先单题澄清再重算 frontier。Repository facts 始终由 agent 查证，不向用户提问。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
+workspace preparation 负责依赖准备和 fresh green baseline。它必须在首次符合条件的
+`GLOSSARY.md`/ADR 写入前完成；也可以在 Gate 1 后、进入 `plan-coder` 前完成。首次
+workspace preparation 实际执行每个 baseline command，以 `verification-evidence.py capture` 保留可观察
+结果；JSON 先留在对话中，baseline 成功后才进行这些目标项目文档写入。
+
+`grill-coder` 在 selected workspace 建立后按 dependency-ready frontier rounds 确认决策：每轮按 decision-tree order 至多提出三个相互独立的问题；会改变 scope、领域含义或 ownership、core invariant、architecture 的问题，以及 coupling 重叠或未知的问题保持串行。每题都有稳定 `Qn`、适用选项和单独 recommendation/reason；多题轮次只能用 `Qn: default` 接受单题推荐，partial answer 只确认明确回答，ambiguous answer 先单题澄清再重算 frontier。Repository facts 始终由 agent 查证，不向用户提问。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
 
 Interactive Gate 1、Gate 2、Gate 3、重新打开的 human Gate，以及仍需
 separate human authority 的 suite-owned mutation authorization，都会先调用本地

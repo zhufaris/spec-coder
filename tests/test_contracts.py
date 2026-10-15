@@ -779,6 +779,14 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(len(EXPECTED_SKILLS), 9)
         for published_doc in (readme, install_guide, compatibility):
             self.assertIn("0.6.0", published_doc)
+        for phrase in (
+            "selected workspace",
+            "read-only discovery",
+            "workspace preparation",
+            "planning reuse interface",
+        ):
+            for published_doc in (readme, install_guide):
+                self.assertIn(phrase, published_doc.lower())
         published_docs = "\n".join((readme, install_guide, compatibility))
         self.assertNotIn("0.5.0", published_docs)
         self.assertNotIn("0.4.1", published_docs)
