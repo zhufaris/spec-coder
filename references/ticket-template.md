@@ -113,6 +113,18 @@ only as that policy permits, and must not regroup it
 or pull tickets from a later planned wave. Resume reads durable wave membership,
 checkboxes, and committed Git state; it does not invent new waves.
 
+An approved post-Gate-3 change to ownership, dependencies or blockers,
+conflicts, delegation mode, isolation, authoritative workspace or recorded base,
+or durable wave membership or order activates the Reopened Gate 3
+scheduling barrier. Main stops new dispatch, result acceptance, staging or
+commit, and checkbox advancement until it persists the renewed plan and
+approval, reruns `check-artifacts.py --phase plan`, accounts for active and
+returned results, verifies renewed ownership/base/wave compatibility, and then
+reconstructs the frontier. Findings, unsupported or unavailable checking,
+missing renewal evidence, and unaccounted or incompatible results remain
+stopped. Commit-evidence or checkbox updates that do not change scheduling
+inputs bypass this barrier; it is not a fourth gate.
+
 For supported spec-coder paths, main supplies the authoritative repository with
 `--repo` and every attributed task-owned path with a repeated `--path` to the
 bundled `scripts/validate-affected.py`. Arbitrary target repositories use

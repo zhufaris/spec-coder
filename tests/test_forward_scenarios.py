@@ -1,6 +1,8 @@
 import unittest
 from pathlib import Path
 
+import forward_contracts as contracts
+
 from forward_contracts import (
     BLOCKED,
     READY,
@@ -39,6 +41,35 @@ END = b"<!-- spec-coder:end -->"
 CANONICAL = START + b"\nmanaged\n" + END + b"\n"
 ROUTING_FIXTURES = Path(__file__).parent / "fixtures" / "model-routing"
 BUNDLED_ROUTING = Path(__file__).resolve().parents[1] / "config" / "model-routing.toml"
+
+
+class ReopenedGateThreeRevalidationScenarios(unittest.TestCase):
+    def test_scheduling_changes_block_until_plan_and_results_are_revalidated(self) -> None:
+        base = {
+            "scheduling_inputs_changed": True,
+            "plan_updated": True,
+            "renewed_approval_recorded": True,
+            "plan_check_status": "passed",
+            "active_results_accounted": True,
+            "results_compatible": True,
+        }
+        cases = (
+            ({"scheduling_inputs_changed": False}, "not-required"),
+            ({"plan_updated": False}, "stop-plan-update"),
+            ({"renewed_approval_recorded": False}, "stop-renewed-approval"),
+            ({"plan_check_status": "findings"}, "stop-plan-check"),
+            ({"plan_check_status": "unsupported"}, "stop-plan-check"),
+            ({"plan_check_status": "unavailable"}, "stop-plan-check"),
+            ({"active_results_accounted": False}, "stop-result-accounting"),
+            ({"results_compatible": False}, "stop-result-compatibility"),
+            ({}, "resume-frontier"),
+        )
+        for override, expected in cases:
+            with self.subTest(override=override):
+                self.assertEqual(
+                    contracts.revalidate_reopened_gate_three(**(base | override)),
+                    expected,
+                )
 
 
 class SetupForwardScenarios(unittest.TestCase):

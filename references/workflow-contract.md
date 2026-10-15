@@ -88,6 +88,22 @@ approval, changed fact, affected decision and returned gate. Ordinary
 clarification, status, read-only checks and already authorized work create no
 additional approval request.
 
+### Reopened Gate 3 scheduling barrier
+
+After an approved post-Gate-3 change to ownership, dependencies or blockers,
+conflicts, delegation mode, isolation, authoritative workspace or recorded
+base, or durable wave membership or order, main stops new dispatch, result acceptance,
+staging or commit, and checkbox advancement. Persist the renewed
+plan and interactive approval or autonomous selection, then run
+`check-artifacts.py --phase plan` on the actual artifacts.
+
+Account for every active or returned result and verify renewed ownership,
+recorded base, and wave compatibility before reconstructing the earliest
+incomplete frontier. Missing renewal evidence, checker findings or
+unsupported/unavailable results, and unaccounted/incompatible results remain
+stopped. Unchanged-plan commit evidence or checkbox updates do not trigger this
+barrier. Reopened Gate 3 is not a fourth gate.
+
 ## Artifact Contract
 
 Write coding-workflow target-project artifacts only after the workspace is

@@ -123,6 +123,43 @@ def select_executor_workspace(
     return "reopen-gate-3"
 
 
+def revalidate_reopened_gate_three(
+    *,
+    scheduling_inputs_changed: bool,
+    plan_updated: bool,
+    renewed_approval_recorded: bool,
+    plan_check_status: str,
+    active_results_accounted: bool,
+    results_compatible: bool,
+) -> str:
+    """Hold executor progress until a changed Gate-3 schedule is revalidated."""
+    boolean_inputs = {
+        "scheduling_inputs_changed": scheduling_inputs_changed,
+        "plan_updated": plan_updated,
+        "renewed_approval_recorded": renewed_approval_recorded,
+        "active_results_accounted": active_results_accounted,
+        "results_compatible": results_compatible,
+    }
+    if not all(isinstance(value, bool) for value in boolean_inputs.values()):
+        raise ValueError("reopened Gate 3 revalidation inputs must be booleans")
+    if not isinstance(plan_check_status, str):
+        raise ValueError("plan_check_status must be a string")
+
+    if not scheduling_inputs_changed:
+        return "not-required"
+    if not plan_updated:
+        return "stop-plan-update"
+    if not renewed_approval_recorded:
+        return "stop-renewed-approval"
+    if plan_check_status != "passed":
+        return "stop-plan-check"
+    if not active_results_accounted:
+        return "stop-result-accounting"
+    if not results_compatible:
+        return "stop-result-compatibility"
+    return "resume-frontier"
+
+
 def recover_executor_progress(
     *,
     ticket_ids: tuple[str, ...],

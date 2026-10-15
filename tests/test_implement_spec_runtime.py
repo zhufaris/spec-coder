@@ -57,6 +57,33 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         self.assertLess(commit, checkbox)
         self.assertLess(checkbox, return_to_executor)
 
+    def test_reopened_gate_three_revalidates_changed_scheduling_inputs(self):
+        workflow = read("references/workflow-contract.md").lower()
+        orchestrator = read("skills/spec-coder/SKILL.md").lower()
+        ticket = read("references/ticket-template.md").lower()
+
+        for content in (workflow, orchestrator, ticket):
+            with self.subTest(document=content[:30]):
+                self.assertIn("post-gate-3", content)
+                self.assertIn("check-artifacts.py --phase plan", content)
+                self.assertIn("active", content)
+                self.assertIn("returned result", content)
+                self.assertIn("ownership", content)
+                self.assertIn("recorded base", content)
+                self.assertIn("wave", content)
+                self.assertIn("frontier", content)
+                self.assertIn("fourth gate", content)
+
+        for stopped_action in (
+            "dispatch",
+            "result acceptance",
+            "staging",
+            "commit",
+            "checkbox advancement",
+        ):
+            with self.subTest(stopped_action=stopped_action):
+                self.assertIn(stopped_action, workflow)
+
     def test_routing_and_briefs_preserve_frontier_base_and_two_layers(self):
         routing = read("references/subagent-routing-contract.md").lower()
         brief = read("references/worker-brief-template.md").lower()
