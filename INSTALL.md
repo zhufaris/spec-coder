@@ -154,6 +154,8 @@ plugin root 下脚本绝对路径；不要从 target cwd 猜测 `./scripts/`。
 
 Gate 3 前，`plan-coder` 将 ticket 写入 explicit durable planned wave sections；Gate 3 同时审批 ticket set 与 wave membership/order。每次 Gate 3 通过后，计划（包括 singleton）进入同一个 native implement-spec executor，按当前最早未完成 planned wave 调度每个 ticket 的 `tdd-coder` lifecycle。default delegation 会把其中 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。live dispatch batch 可在当前 durable planned wave 内因 Host capacity 缩小，最多 four tickets。
 
+Gate 3 后，已批准的 scheduling input 一旦变化就停止 resume，先完成 durable plan update、renewed approval record，并立即执行 `check-artifacts.py --phase plan`。只有重新完成 active-result accounting 与 compatibility pass 后才可继续；这是 reopened Gate 3 的原审批更新，不增加 fourth Gate。本轮新增的 internal support-path mappings 仅覆盖 `tests/forward_contracts.py` 与 `tests/fixtures/scenarios.md`，其余未知路径必须 fail-closed。
+
 Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，回退须说明具体阻碍，必须并行的要求不可擅自降为串行；不要以共享 workspace 中的文件不相交代替隔离。There is no implement-spec wrapper agent and no merger subagent; runtime must not pull tickets from a later planned wave，亦不得重组已审批 membership；Host handles 保持 conversational，checkbox 与 commits 支持恢复。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
 
 Agent tree 为 at most two layers，only the active main agent 可以 spawn。每个 child brief 都必须包含 `delegation_allowed = false`；child 需要更多协作时返回证据与 blocker，不能自行再委派。
@@ -179,6 +181,8 @@ fallback 权限。snapshot 无法改变 main-only 的 diff acceptance、fresh
 verification 或 completion authority；每个 child 仍是
 `delegation_allowed = false`、不得 stage/commit，delivery reviewer 仍为
 read-only。
+
+每个 direct-child brief 使用 routing schema 所有的一个 canonical ProgressSnapshot envelope；`observed_at` 记录 actual send-time，字段不能使用 aliases。invalid snapshot 没有 execution authority，不能恢复、推进或修改 main-only 授权边界。
 
 Interactive Gate 和其他仍需 separate human authority 的 suite-owned approval
 或 mutation authorization，先通过 `show-me` 提供 two to four 个 grounded

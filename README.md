@@ -64,6 +64,8 @@ Gate 3 之后，每个 dependency-ready 且具备完整输入、边界明确且�
 
 在 Gate 3 前，`plan-coder` 会把 ticket 拆成显式的 durable planned wave，并将 membership/order 一并交 Gate 3 审批。每个 ticket 恰好属于一个 wave；同 wave 不存在依赖或冲突，且 main-local ticket 单独成 wave。每次 Gate 3 通过后，计划（singleton 也一样）都进入同一个 native implement-spec executor：main 每次只维护当前最早未完成的 dependency-aware active execution wave，并为每个 selected ticket 调度一个 `tdd-coder` lifecycle。live dispatch batch 可以因 Host capacity 缩小，parallel mutation 必须具备 real Host/task workspace isolation；没有真实隔离时通过 serialized direct workers 逐个执行；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，再决定是否回退，并说明具体阻碍。用户要求必须并行时，不擅自改为串行。每个 ticket 一个 worker 不限制同 wave 的 sibling workers 并行；main 的整合与提交仍串行。There is no implement-spec wrapper agent and no merger subagent; runtime must not pull later-wave tickets，也不得重新分组；Host handles 仍只保留在对话中，checkbox 与 commits 用于恢复。
 
+Gate 3 之后若已批准的 scheduling input 发生变化，立即停止 resume：先把变更写入 durable plan、取得 renewed approval record，并立即运行 `check-artifacts.py --phase plan`；随后重新计算 active-result accounting 并完成 compatibility pass，才可继续执行。这是 reopened Gate 3 的同一审批记录更新，不引入 fourth Gate。本轮新增的 internal support-path mappings 仅覆盖 `tests/forward_contracts.py` 和 `tests/fixtures/scenarios.md`；其他未知路径一律 fail-closed。
+
 所有 Gate 解释、scope 决策、Red 或结构证据、diff 接受、fresh integration verification、归属、stage、commit、delivery 汇总及 completion claim 都是 main-only。agent tree 固定为 at most two layers，only the active main agent 可以 spawn；每个 direct-child brief 都写明 `delegation_allowed = false`，child 不得直接、间接或借助其他 skill/workflow 再委派。
 
 delivery 默认使用两个相互独立的 read-only direct reviewers：一个执行 Standards axis，一个执行 Spec axis。request-wide opt-out 或 review-specific opt-out 会让 main 在本地完成同样的两条 review；spawn unavailable 且 delegated review 未被明确要求时也如此。若 delegated review was explicitly required，则缺失 spawn 是 blocker。main 检查 reviewer evidence 并对最终结论负责。
@@ -87,6 +89,8 @@ main 在 before or at dispatch 记录消息能力：可用时为 `heartbeat-read
 不能越过 main-only 的 diff acceptance、fresh verification 或 completion
 authority；direct-child 的 `delegation_allowed = false`、不 stage/commit，及
 reviewer read-only 边界保持不变。
+
+每个 direct-child brief 携带由 routing schema 所有的一个 canonical ProgressSnapshot envelope；`observed_at` 使用 actual send-time，字段不使用 aliases。无效 snapshot 没有 execution authority，不能恢复、推进或改变既有 main-only 边界。
 
 每次 suite-owned human approval 或 mutation review 都先由 `show-me` 展示 authoritative artifact、关键决定、风险、授权效果和下一阶段，并提供 two to four 个 grounded、实质不同且带后果说明的选项；`show-me` 只呈现，不代替用户选择或授予权限。
 
