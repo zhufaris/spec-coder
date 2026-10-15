@@ -57,6 +57,8 @@ send-time timezone-aware ISO timestamp; do not copy an example time. Keep the
 exact keys and listed enum literals from the routing contract: no aliases,
 extra fields, or free-text enum values. `active_command` and `blocker` use
 `none` when absent.
+For a terminal snapshot, set phase to `completed` (never `handoff` or `done`)
+and `verification_state` to `passed` or `failed`.
 Message destination/method: {main handle and supported proactive messaging path}.
 If capability is unavailable, preserve delegation and return final evidence.
 Heartbeat is observation only: awaiting-heartbeat is ordinary no-message;

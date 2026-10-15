@@ -37,6 +37,9 @@ class ProgressSnapshotValidationTests(unittest.TestCase):
         self.assertIn("replace every", text.lower())
         self.assertIn("send-time", text.lower())
         self.assertIn("do not copy", text.lower())
+        self.assertIn("terminal snapshot", text.lower())
+        self.assertIn("phase to `completed`", text.lower())
+        self.assertIn("never `handoff`", text.lower())
 
     def test_accepts_complete_immutable_progress_fact(self) -> None:
         original = dict(VALID_SNAPSHOT)
