@@ -258,6 +258,18 @@ class AffectedValidationTests(unittest.TestCase):
                 )
                 self.assertIn(expected, joined)
 
+    def test_progress_snapshot_bundle_selects_its_focused_suite(self):
+        for path in (
+            "scripts/progress-snapshot.py",
+            "scripts/spec_coder_checks/progress.py",
+            "tests/test_progress_snapshot.py",
+        ):
+            with self.subTest(path=path):
+                joined = "\n".join(
+                    " ".join(command["argv"]) for command in self.build(path)
+                )
+                self.assertIn("test_progress_snapshot", joined)
+
     def test_unmapped_existing_path_is_rejected_before_execution(self):
         with tempfile.TemporaryDirectory() as temporary:
             repository = Path(temporary)

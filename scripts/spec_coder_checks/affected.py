@@ -99,6 +99,8 @@ _OWNER_CHECKS = {
     ),
     "scripts/validate-affected.py": ("test_affected_validation",),
     "scripts/spec_coder_checks/affected.py": ("test_affected_validation",),
+    "scripts/progress-snapshot.py": ("test_progress_snapshot",),
+    "scripts/spec_coder_checks/progress.py": ("test_progress_snapshot",),
     "tests/forward_contracts.py": (
         "test_autonomous_workflow",
         "test_discovery_question_batching",

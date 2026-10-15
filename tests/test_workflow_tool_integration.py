@@ -73,6 +73,44 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                 )
             )
 
+            relocated_snapshot = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    str(bundle / "scripts/progress-snapshot.py"),
+                    "--ticket-or-axis",
+                    "T1",
+                    "--worker-handle",
+                    "relocated-worker",
+                    "--phase",
+                    "completed",
+                    "--active-command",
+                    "none",
+                    "--progress-evidence",
+                    "relocation check 中文",
+                    "--verification-state",
+                    "passed",
+                    "--blocker",
+                    "none",
+                ],
+                cwd=base,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(
+                relocated_snapshot.returncode,
+                0,
+                relocated_snapshot.stdout + relocated_snapshot.stderr,
+            )
+            self.assertEqual(relocated_snapshot.stderr, "")
+            self.assertEqual(len(relocated_snapshot.stdout.splitlines()), 1)
+            self.assertEqual(
+                json.loads(relocated_snapshot.stdout.removeprefix("ProgressSnapshot "))[
+                    "worker_handle"
+                ],
+                "relocated-worker",
+            )
+
             target = base / "project"
             target.mkdir()
             def run(arguments):
