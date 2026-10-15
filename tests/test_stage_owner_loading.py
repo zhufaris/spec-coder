@@ -67,6 +67,40 @@ class StageOwnerLoadingTests(unittest.TestCase):
             links("spec-coder"),
         )
 
+    def test_plan_coder_reaches_verification_fallback_owners_conditionally(self):
+        normal = links("plan-coder")
+        compact = "../../references/verification-contract.md#planning-reuse-interface"
+        self.assertIn(compact, normal)
+        detailed = (
+            "cli-and-explicit-observations",
+            "capture-and-record-schema",
+            "comparison-and-exit-behavior",
+            "worked-invocation",
+        )
+        for anchor in detailed:
+            self.assertNotIn("../../references/verification-contract.md#" + anchor, normal)
+
+        fallback = required_links(
+            ROOT / "skills/plan-coder/SKILL.md", {"Verification fallback"}
+        )
+        for anchor in detailed:
+            self.assertIn("../../references/verification-contract.md#" + anchor, fallback)
+
+    def test_spec_coder_reaches_workspace_preparation_owners_conditionally(self):
+        normal = links("spec-coder")
+        prepared = required_links(
+            ROOT / "skills/spec-coder/SKILL.md", {"Workspace preparation"}
+        )
+        for anchor in (
+            "cli-and-explicit-observations",
+            "capture-and-record-schema",
+            "comparison-and-exit-behavior",
+            "worked-invocation",
+        ):
+            link = "../../references/verification-contract.md#" + anchor
+            self.assertNotIn(link, normal)
+            self.assertIn(link, prepared)
+
     def test_affected_guidance_is_bounded_and_handles_deleted_paths(self):
         for relative in (
             "skills/tdd-coder/SKILL.md",

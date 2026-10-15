@@ -591,7 +591,7 @@ class PluginContractTests(unittest.TestCase):
         self.assertLess(spec, tickets)
         self.assertIn("baseline", text.lower())
         self.assertIn("prepared workspace", text.lower())
-        self.assertIn("return to workspace preflight", text.lower())
+        self.assertIn("return to workspace preparation", text.lower())
         self.assertIn("external issue", text.lower())
 
     def test_tdd_coder_contract(self) -> None:

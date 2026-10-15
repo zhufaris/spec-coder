@@ -17,6 +17,29 @@ records fall back to the real project verification command with the reason
 reported. The tool does not dispatch a fallback, approve gates, modify tickets,
 stage, commit or contact a service.
 
+## Planning reuse interface
+
+On normal `plan-coder` entry, main makes an exact, non-executing
+`verification-evidence.py check` for each baseline with command and
+observations. An eligible record was directly observed by main in this request
+and retained in the artifact. Continue only when every check is `reusable` with
+`record_id`; partial success never qualifies.
+
+```text
+python3 /absolute/plugin/scripts/verification-evidence.py check --repo REPO \
+  --cwd CWD --request REQUEST --artifact ARTIFACT \
+  [--exclude-output OUTPUT ...] --toolchain JSON --dependencies JSON \
+  --environment JSON -- COMMAND ...
+```
+
+All values and the command vector after `--` exactly match the established
+baseline; repeat `--exclude-output` for each exact generated output.
+
+The check neither runs a project command nor authorizes retry. For standalone,
+resume, malformed/uncertain record or observation, or `rerun`, load
+**Verification fallback** in `plan-coder` and establish verification freshly
+under the complete CLI, schema, comparison/exit, and invocation owners.
+
 ## CLI and explicit observations
 
 Use Python 3 and Git, with no package installation. Resolve the script from the

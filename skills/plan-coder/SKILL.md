@@ -19,12 +19,13 @@ sections before acting. Links are requirements, not background references.
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Design content and specification mapping](../../references/domain-design-contract.md#design-content-and-specification-mapping), [Ticket decomposition](../../references/domain-design-contract.md#ticket-decomposition).
 - [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
 - [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).
-- [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), [Worked invocation](../../references/verification-contract.md#worked-invocation).
+- [Planning reuse interface](../../references/verification-contract.md#planning-reuse-interface).
 - [Command interface](../../references/artifact-format.md#command-interface), [Findings and compatibility](../../references/artifact-format.md#findings-and-compatibility).
 - [Active Markdown and markers](../../references/artifact-format.md#active-markdown-and-markers), [Specification grammar](../../references/artifact-format.md#specification-grammar), [Plan grammar](../../references/artifact-format.md#plan-grammar).
 
 ## Conditional Reading
 
+- **Verification fallback:** for standalone entry, resume, malformed or uncertain observations/records, or a `rerun` result, load [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), and [Worked invocation](../../references/verification-contract.md#worked-invocation), then establish the required verification freshly.
 - **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
 - **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
 - **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
@@ -51,42 +52,47 @@ implementation.
 
 ## Process
 
-1. Validate the prepared workspace evidence from orchestration: absolute path,
-   mode and rationale, branch, starting revision, relevant initial changes,
-   dependency preparation, and baseline commands/output. Re-inspect Git state,
-   worktrees, ownership, user preference, and concurrent work. If evidence is
-   missing, stale, unsafe, or no longer matches scope, return to workspace
-   preflight rather than silently selecting another workspace. The bundled
-   `using-git-worktrees` remains the isolation mechanic when preflight is
-   re-entered; safe in-place work does not invoke it.
-2. Revalidate dependency/environment readiness and current-request provenance.
-   For the same uninterrupted request only, retain each observed capture record
-   in the active artifact after the first green baseline, then run bundled
-   `scripts/verification-evidence.py check` with its currently expected command
-   and observations. Identify every reused `record_id`; every required baseline
-   command must qualify. Missing, rejected or uncertain evidence reruns that
-   command freshly with the reason recorded. Standalone entry without current
-   evidence and every resume run fresh baselines. Use the verification contract
-   for capture, exits and record replacement; never copy a prior request ID.
-3. Stop with the exact commands and output and return to workspace preflight
-   when ownership is unsafe or the baseline is not green.
-4. Synthesize the approved or autonomously selected design to write the specification at `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` using the local specification template. Preserve selected outcomes, model/architecture decisions and testing seams; do not conduct a new interview or invent missing decisions. Record workspace mode, reason, branch, starting revision and relevant initial changes in the artifact. Keep it local.
+1. Validate orchestration's workspace evidence: absolute path, mode/rationale,
+   branch, starting revision, initial changes, dependency preparation and baseline
+   commands/output. Re-inspect Git state, worktrees, ownership and concurrency.
+   Missing, stale, unsafe or out-of-scope evidence returns to workspace
+   preparation/prepared evidence; `using-git-worktrees` remains its isolation
+   mechanic, while safe in-place work does not invoke it.
+2. Revalidate dependency/environment readiness and current-request provenance
+   with `verification-evidence.py`. Apply Planning reuse interface; its
+   fallback establishes a fresh baseline.
+3. Stop with exact commands/output and return to workspace preparation/prepared
+   evidence when ownership is unsafe or the baseline is not green.
+4. Write the specification by synthesizing the approved or autonomously
+   selected design into `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md` with the local template.
+   Preserve selected outcomes, model/architecture decisions and testing seams;
+   do not conduct a new interview or invent decisions. Record workspace mode,
+   rationale, branch, starting revision and relevant initial changes locally.
 5. Run bundled `scripts/check-artifacts.py --phase spec --spec <absolute-spec>`
-   on the written specification before Gate 2. Resolve findings, or follow the
-   explicit unsupported-format/manual-review path; never call unsupported input
-   a pass. Structural success does not approve decisions. Before Gate 2, reconcile selected scenarios, affected context maps and model responsibilities, invariants, consistency/interaction decisions, dependency rules, and testing seams against their specification locations. Resolve omissions; return new design decisions to `design-coder` rather than inventing entities, services or recovery policies. In the interactive path, present the written specification, invoke `show-me`, and stop at Gate 2 until the user approves it. In the autonomous path, record the unique grounded recommendation and continue without waiting.
-6. After specification approval or autonomous selection, create vertical tickets using the local ticket template: each increment delivers a complete observable capability through the necessary modules and fits one agent context window. Include real blocking edges, acceptance criteria and references to the selected contexts/model elements, rules, interfaces, consistency/interaction constraints and verification. For every ticket, also record dependencies, delegation eligibility, delegation mode and any opt-out, mutation ownership and exclusions, isolation need, concurrency conflicts, an independently inspectable verification seam, Host capacity assumptions, whether real isolation is required, and the mandatory direct-child boundary `delegation_allowed = false`. Do not copy the whole model or split mechanically by layers. A ticket can span business contexts under a selected interaction contract. Store tickets as checkboxes in one plan at `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`, then write explicit durable planned-wave sections before Gate 3 under
-   Execution Waves. Scheduling order is not a functional dependency.
-7. Before Gate 3, compile the nonempty ticket graph for the native
-   implement-spec executor. Alongside ticket ownership, seams and capacity,
-   record the authoritative workspace, recorded wave base, isolation
-   requirement, and permitted integration/isolation preparation. Record durable
-   waves and real blocking edges so the executor can derive its ready frontier;
-   a singleton plan is the one-ticket form of the same graph. Planning records
+   before Gate 2. Resolve findings or follow its unsupported-format/manual-review
+   path; structural success does not approve decisions. Reconcile selected
+   scenarios, context/model responsibilities, invariants, interaction decisions,
+   dependency rules and testing seams against specification locations. Return
+   missing decisions to `design-coder`, never invent entities, services or
+   recovery policy. Interactively present the specification with `show-me` and
+   stop at Gate 2; autonomously record the unique grounded recommendation.
+6. After specification approval or autonomous selection, create vertical tickets
+   with the local template as observable, context-window-sized increments. Include
+   blocking edges, acceptance, selected-context/model/rule/interface/interaction
+   references and verification. Record dependencies, delegation eligibility/mode
+   or opt-out, ownership/exclusions, isolation/concurrency, verification seam,
+   capacity, real-isolation requirement and `delegation_allowed = false`. Do not
+   copy the model or split mechanically; selected interaction can span contexts.
+   Store checkbox tickets in `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md` and
+   durable planned waves under Execution Waves; order is not dependency.
+7. Before Gate 3, compile the nonempty graph for the native implement-spec
+   executor. Record ownership, seams, capacity, authoritative workspace, wave
+   base, isolation and permitted preparation, plus durable waves/blocking edges
+   for its ready frontier. A singleton is the same graph; planning records
    approved inputs only and does not schedule workers.
-8. Validate the plan using Execution Waves and Explicit Parallel Requests:
-   retain one active execution wave, real isolation for parallel mutation,
-   durable membership and recovery from checkboxes plus committed Git state.
+8. Under Execution Waves and Explicit Parallel Requests, retain one active
+   wave, real isolation for parallel mutation, and recovery from checkboxes plus
+   committed Git state.
 9. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
    --plan <absolute-plan>` before Gate 3; resolve findings under the same format
    contract. Before Gate 3, reconcile decision coverage and ticket readiness under the

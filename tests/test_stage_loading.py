@@ -9,7 +9,8 @@ LINK = re.compile(r"\]\(([^)]+)\)")
 TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Setup audit or mutation", "Reopened gate or mutation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
-            "Interactions", "Architecture"}
+            "Interactions", "Architecture", "Verification fallback",
+            "Workspace preparation"}
 
 
 def section(text: str, anchor: str) -> str:
@@ -156,7 +157,7 @@ class StageLoadingTests(unittest.TestCase):
             "spec-coder": 6500,
             "grill-coder": 4000,
             "design-coder": 5000,
-            "plan-coder": 8000,
+            "plan-coder": 5800,
             "tdd-coder": 7000,
             "delivery-coder": 8000,
         }
@@ -166,7 +167,40 @@ class StageLoadingTests(unittest.TestCase):
             counts[stage] = len(instruction_text(path, frozenset()).split())
             with self.subTest(stage=stage):
                 self.assertLessEqual(counts[stage], budget)
-        self.assertLessEqual(sum(counts.values()), 38500)
+        self.assertLess(sum(counts.values()), 22500)
+
+    def test_plan_coder_verification_fallback_owns_detailed_contract(self):
+        path = ROOT / "skills/plan-coder/SKILL.md"
+        normal = required_links(path)
+        compact = "../../references/verification-contract.md#planning-reuse-interface"
+        detailed = (
+            "cli-and-explicit-observations",
+            "capture-and-record-schema",
+            "comparison-and-exit-behavior",
+            "worked-invocation",
+        )
+        self.assertIn(compact, normal)
+        for anchor in detailed:
+            self.assertNotIn("../../references/verification-contract.md#" + anchor, normal)
+
+        fallback = required_links(path, {"Verification fallback"})
+        for anchor in detailed:
+            self.assertIn("../../references/verification-contract.md#" + anchor, fallback)
+
+    def test_spec_coder_loads_detailed_verification_only_for_preparation(self):
+        path = ROOT / "skills/spec-coder/SKILL.md"
+        detailed = (
+            "cli-and-explicit-observations",
+            "capture-and-record-schema",
+            "comparison-and-exit-behavior",
+            "worked-invocation",
+        )
+        normal = required_links(path)
+        prepared = required_links(path, {"Workspace preparation"})
+        for anchor in detailed:
+            link = "../../references/verification-contract.md#" + anchor
+            self.assertNotIn(link, normal)
+            self.assertIn(link, prepared)
 
     def test_redundant_executor_owner_is_absent_from_distribution(self):
         old_owner = ROOT / "references/implement-spec-execution-contract.md"
