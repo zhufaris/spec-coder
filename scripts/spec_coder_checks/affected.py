@@ -1,0 +1,172 @@
+"""Deterministic, explicit-path checks for a narrow spec-coder change.
+
+This module deliberately does not inspect ``git diff`` or the working tree to
+discover ownership. Its caller supplies every owned path, which is validated
+before a stable path-to-check mapping is constructed.
+"""
+from __future__ import annotations
+
+from collections.abc import Iterable
+from pathlib import Path
+import subprocess
+
+
+_SKILL_CHECKS = {
+    "tdd-coder": (
+        "test_contracts",
+        "test_stage_loading",
+        "test_implement_spec_runtime",
+    ),
+}
+_SHARED_ROUTING_CHECKS = (
+    "test_default_subagent_execution",
+    "test_parallel_request_scenarios",
+    "test_implement_spec_runtime",
+)
+_SHARED_ROUTING_SKILLS = ("spec-coder", "tdd-coder", "delivery-coder")
+_ROUTING_PATH = "references/subagent-routing-contract.md"
+
+
+def _physical_repo(repo: Path) -> Path:
+    root = Path(repo).resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError("--repo must be an existing directory")
+    return root
+
+
+def _safe_paths(repo: Path, paths: Iterable[str]) -> tuple[str, ...]:
+    """Validate paths then return normalized repository-relative names."""
+    normalized = set()
+    for raw in paths:
+        if not isinstance(raw, str) or not raw:
+            raise ValueError("paths must be nonempty repository-relative strings")
+        candidate = Path(raw)
+        raw_parts = raw.split("/")
+        if (
+            candidate.is_absolute()
+            or any(part in {"", ".", "..", ".git"} for part in raw_parts)
+            or any(part in {".git"} for part in candidate.parts)
+        ):
+            raise ValueError(
+                "paths must be exact repository-relative paths without traversal"
+            )
+        if any(any(char in part for char in "*?[]") for part in candidate.parts):
+            raise ValueError("paths must not contain glob syntax")
+        location = repo / candidate
+        try:
+            resolved = location.resolve(strict=True)
+            relative = resolved.relative_to(repo)
+        except (OSError, RuntimeError, ValueError) as exc:
+            raise ValueError(
+                "path must exist inside the physical repository: " + raw
+            ) from exc
+        probe = repo
+        for part in candidate.parts:
+            probe = probe / part
+            if probe.is_symlink():
+                raise ValueError("path must not traverse a symlink: " + raw)
+        normalized.add(relative.as_posix())
+    if not normalized:
+        raise ValueError("at least one explicit path is required")
+    return tuple(sorted(normalized))
+
+
+def build_affected_commands(
+    repo: Path, paths: Iterable[str], python_bin: str, validator: str
+) -> tuple[dict, ...]:
+    """Build stable subprocess vectors for explicitly supplied paths only."""
+    root = _physical_repo(repo)
+    safe_paths = _safe_paths(root, paths)
+    modules: set[str] = set()
+    skills: set[str] = set()
+
+    for path in safe_paths:
+        parts = Path(path).parts
+        if len(parts) >= 2 and parts[0] == "skills" and parts[1] in _SKILL_CHECKS:
+            skill = parts[1]
+            modules.update(_SKILL_CHECKS[skill])
+            skills.add(skill)
+        if path == _ROUTING_PATH:
+            modules.update(_SHARED_ROUTING_CHECKS)
+            skills.update(_SHARED_ROUTING_SKILLS)
+        if (
+            len(parts) == 2
+            and parts[0] == "tests"
+            and parts[1].startswith("test_")
+            and parts[1].endswith(".py")
+        ):
+            modules.add(Path(parts[1]).stem)
+
+    commands = [
+        {
+            "argv": (
+                python_bin,
+                "-B",
+                "-m",
+                "unittest",
+                "discover",
+                "-v",
+                "-s",
+                "tests",
+                "-p",
+                module + ".py",
+            ),
+            "cwd": str(root),
+            "kind": "unittest",
+        }
+        for module in sorted(modules)
+    ]
+    commands.extend(
+        {
+            "argv": (python_bin, validator, "skills/" + skill),
+            "cwd": str(root),
+            "kind": "skill-validator",
+        }
+        for skill in sorted(skills)
+    )
+    commands.append(
+        {"argv": ("git", "diff", "--check"), "cwd": str(root), "kind": "diff-check"}
+    )
+    return tuple(commands)
+
+
+def execute_affected_commands(commands, runner=subprocess.run) -> dict:
+    """Run vectors in order, recording each result and stopping on failure."""
+    planned_commands = [
+        {**command, "argv": list(tuple(command["argv"]))} for command in commands
+    ]
+    recorded_commands = []
+    results = []
+    exit_code = 0
+    for command in commands:
+        argv = tuple(command["argv"])
+        cwd = command["cwd"]
+        recorded_commands.append({**command, "argv": list(argv)})
+        try:
+            completed = runner(
+                argv, cwd=cwd, shell=False, capture_output=True, text=True
+            )
+            code = completed.returncode
+            result = {"argv": list(argv), "cwd": cwd, "exit_code": code}
+            if getattr(completed, "stdout", None):
+                result["stdout"] = completed.stdout
+            if getattr(completed, "stderr", None):
+                result["stderr"] = completed.stderr
+        except OSError as exc:
+            code = 1
+            result = {
+                "argv": list(argv),
+                "cwd": cwd,
+                "exit_code": code,
+                "error": str(exc),
+            }
+        results.append(result)
+        if code:
+            exit_code = code
+            break
+    return {
+        "exit_code": exit_code,
+        "planned_commands": planned_commands,
+        "commands": recorded_commands,
+        "results": results,
+    }
