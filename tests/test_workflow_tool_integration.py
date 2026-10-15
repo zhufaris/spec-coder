@@ -41,7 +41,7 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source / relative, destination)
             self.assertFalse((bundle / "docs").exists())
-            self.assertEqual(json.loads((bundle / ".codex-plugin/plugin.json").read_text())["version"], "0.6.0")
+            self.assertEqual(json.loads((bundle / ".codex-plugin/plugin.json").read_text())["version"], "0.7.0")
             self.assertEqual(len(list((bundle / "skills").glob("*/SKILL.md"))), 9)
             subprocess.run(["git", "init", "-q"], cwd=bundle, check=True)
 
