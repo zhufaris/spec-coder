@@ -338,8 +338,7 @@ eligible default delegation optional.
 ## Result Integration
 
 For a parallel wave, every child starts from the recorded wave base and returns
-its base identity, complete task-owned diff, and verification evidence. Main
-integrates one result at a time into the authoritative workspace. Advancement
+its base identity, complete task-owned diff, and verification evidence; main integrates one result at a time into the authoritative workspace. Advancement
 past the recorded base is acceptable only when every intervening change is an
 accepted sibling result with proven disjoint ownership. A base mismatch,
 transfer conflict, ownership overlap, unexplained diff, or failed fresh

@@ -2,6 +2,26 @@
 
 This file is normative for every skill in the plugin. A stage may add stricter safeguards but must not weaken these rules.
 
+## Stage Runtime Envelope
+
+Every stage enters under the current phase and Gate authority, using the
+authoritative workspace, its recorded base, and accounted initial changes.
+Only the artifact contract authorizes workflow artifacts. Main-only authority
+covers acceptance, staging, commits, and completion. Baseline, resume,
+integrated acceptance, and delivery use fresh verification under the
+verification lifecycle; separately authorized external effects remain
+prohibited until authorized. On failure, preserve the evidence and return
+through the applicable failure or recovery rule. The detailed sections below
+elaborate these common invariants.
+
+## Native implement-spec executor
+
+Every Gate 3-approved or autonomously selected nonempty plan, including a
+singleton, enters the native implement-spec executor. It hands each ticket to
+a `tdd-coder` lifecycle and, after the accepted plan is complete, hands off to
+`delivery-coder`. It does not own frontier, integration, or worktree mechanics.
+The executor must not push, must not install, and must not delete worktrees.
+
 ## Phase Order
 
 Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder` in that order. `spec-coder` routes a new request to the first stage and a resumed request to the earliest incomplete stage. After every Gate 3 approval or autonomous selection, every plan enters the native implement-spec executor. The executor schedules the approved task graph as per-ticket `tdd-coder` lifecycles before handing the completed cumulative accepted range to `delivery-coder`; it is orchestration within the fixed five-stage order, not another public stage.
