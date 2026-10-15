@@ -16,9 +16,8 @@ This skill adapts the official
 On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
-- [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Recovery](../../references/workflow-contract.md#recovery).
-- [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests).
-- [Adaptive workspace](../../references/implement-spec-execution-contract.md#adaptive-workspace).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Workspace Selection](../../references/workflow-contract.md#workspace-selection), [Git Safety](../../references/workflow-contract.md#git-safety), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Recovery](../../references/workflow-contract.md#recovery).
+- [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), and [Result Integration](../../references/subagent-routing-contract.md#result-integration).
 
 ## Conditional Reading
 
@@ -98,15 +97,22 @@ managed isolation; do not create another worktree merely to attach it. If the
 superproject command returns a path, this is a submodule, not proof of a linked
 worktree; continue with the normal-repository path.
 
-### 2. Prefer native Host tools
+### 2. Select only a recorded-base-compatible native Host tool
 
-Inspect the live tool definitions rather than guessing their arguments. If
-`enter_worktree` is available, use it before any `git worktree add` fallback and
-retain the corresponding `exit_worktree` cleanup handle/instructions. Native
-tools own placement, branch creation, and harness lifecycle. Do not create
-parallel Git worktree state the Host cannot manage.
+Inspect the live tool definitions and configuration rather than guessing their
+arguments. Native availability and native compatibility are separate facts:
+`enter_worktree` may be selected only when its live interface/config can
+explicitly pin the approved recorded base. Availability alone is insufficient.
+When it cannot prove that capability, mark the native route incompatible and do
+not attempt it; continue to the validated exact-base Git fallback only when it
+is safe. Native tools own placement, branch creation, and harness lifecycle.
+Retain the corresponding `exit_worktree` recovery handle/instructions. Do not
+create parallel Git worktree state the Host cannot manage.
 
-Return the native isolated path to the requesting orchestrator. Do not run
+After native allocation, validate the actual allocated `HEAD` equals the
+recorded base before returning its isolated path to the requesting orchestrator.
+On a mismatch, return a blocker with the actual path, branch/detached state, and
+recovery handle; preserve that evidence and do not continue. Do not run
 dependency setup or tests here.
 
 For a main-requested parallel wave, request one native isolated workspace per
@@ -116,7 +122,12 @@ If the Host cannot prove real per-worker isolation, return that concrete blocker
 so main can apply the explicit parallel request policy; do not treat paths in
 one shared checkout as isolated.
 
-### 3. Use Git fallback only without a native tool
+### 3. Use a safe exact-base Git fallback when native is unavailable or incompatible
+
+Use this fallback only after the native route is unavailable or incompatible,
+and only when location, branch, permissions, and the recorded base are safe and
+approved. If native is incompatible and no safe Git fallback exists, return the
+`blocked-no-compatible-isolation` blocker without attempting native allocation.
 
 Choose a fallback location in this order:
 
@@ -160,9 +171,12 @@ branch.
 
 For a main-requested parallel wave, repeat this validation independently for
 each per-worker fallback and verify that every checkout starts at the recorded
-wave base. Use collision-free branches and paths. Return partial allocation
-results and their recovery handles if a later allocation fails; never erase a
-successfully allocated workspace to hide a partial failure.
+wave base by comparing its actual `HEAD` to the recorded base. A mismatch is a
+blocker: preserve the path, actual base, branch/detached state, and recovery
+handle rather than continuing or cleaning it up. Use collision-free branches
+and paths. Return partial allocation results and their recovery handles if a
+later allocation fails; never erase a successfully allocated workspace to hide
+a partial failure.
 
 ### 4. Return control to the requesting orchestrator
 
@@ -193,8 +207,8 @@ Stop and preserve actual state when:
 - the selected path overlaps an existing worktree or user-owned directory;
 - an existing linked-worktree candidate has unresolved ownership, changes, or
   task overlap;
-- isolation was required but neither native tooling nor a safe Git fallback is
-  available;
+- isolation was required but no native tool can explicitly pin the recorded base
+  and no safe exact-base Git fallback is available;
 - the project-local directory is unignored and the requesting orchestrator has
   not selected a mutation-free location;
 - branch creation would overwrite or conflict with existing state;

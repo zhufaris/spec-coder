@@ -156,6 +156,8 @@ class WorktreeForwardScenarios(unittest.TestCase):
             superproject=False,
             candidate_safe=True,
             native_available=True,
+            native_can_pin_recorded_base=True,
+            git_fallback_safe=True,
             local_ignore_status=0,
         )
         self.assertEqual(route, "reuse-linked")
@@ -166,6 +168,8 @@ class WorktreeForwardScenarios(unittest.TestCase):
             superproject=False,
             candidate_safe=False,
             native_available=True,
+            native_can_pin_recorded_base=True,
+            git_fallback_safe=True,
             local_ignore_status=0,
         )
         self.assertEqual(route, "linked-conflict")
@@ -176,6 +180,8 @@ class WorktreeForwardScenarios(unittest.TestCase):
             superproject=True,
             candidate_safe=True,
             native_available=True,
+            native_can_pin_recorded_base=True,
+            git_fallback_safe=True,
             local_ignore_status=0,
         )
         self.assertEqual(route, "native")
@@ -186,6 +192,8 @@ class WorktreeForwardScenarios(unittest.TestCase):
             superproject=False,
             candidate_safe=False,
             native_available=True,
+            native_can_pin_recorded_base=True,
+            git_fallback_safe=True,
             local_ignore_status=0,
         )
         self.assertEqual(route, "native")
@@ -196,9 +204,35 @@ class WorktreeForwardScenarios(unittest.TestCase):
             superproject=False,
             candidate_safe=False,
             native_available=False,
+            native_can_pin_recorded_base=False,
+            git_fallback_safe=True,
             local_ignore_status=1,
         )
         self.assertEqual(route, "preflight-mutation-free-location")
+
+    def test_incompatible_native_uses_safe_git_fallback(self) -> None:
+        route = choose_isolation_route(
+            linked_candidate=False,
+            superproject=False,
+            candidate_safe=False,
+            native_available=True,
+            native_can_pin_recorded_base=False,
+            git_fallback_safe=True,
+            local_ignore_status=0,
+        )
+        self.assertEqual(route, "git-local")
+
+    def test_incompatible_native_without_safe_fallback_blocks(self) -> None:
+        route = choose_isolation_route(
+            linked_candidate=False,
+            superproject=False,
+            candidate_safe=False,
+            native_available=True,
+            native_can_pin_recorded_base=False,
+            git_fallback_safe=False,
+            local_ignore_status=0,
+        )
+        self.assertEqual(route, "blocked-no-compatible-isolation")
 
     def test_git_fallback_is_anchored_to_the_recorded_wave_base(self) -> None:
         self.assertEqual(

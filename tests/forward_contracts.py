@@ -680,12 +680,16 @@ def choose_isolation_route(
     superproject: bool,
     candidate_safe: bool,
     native_available: bool,
+    native_can_pin_recorded_base: bool,
+    git_fallback_safe: bool,
     local_ignore_status: int,
 ) -> str:
     if linked_candidate and not superproject:
         return "reuse-linked" if candidate_safe else "linked-conflict"
-    if native_available:
+    if native_available and native_can_pin_recorded_base:
         return "native"
+    if not git_fallback_safe:
+        return "blocked-no-compatible-isolation"
     if local_ignore_status == 0:
         return "git-local"
     if local_ignore_status == 1:
