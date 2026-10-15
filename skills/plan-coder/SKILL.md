@@ -58,9 +58,10 @@ implementation.
    Missing, stale, unsafe or out-of-scope evidence returns to workspace
    preparation/prepared evidence; `using-git-worktrees` remains its isolation
    mechanic, while safe in-place work does not invoke it.
-2. Revalidate dependency/environment readiness and current-request provenance
-   with `verification-evidence.py`. Apply Planning reuse interface; its
-   fallback establishes a fresh baseline.
+2. Revalidate dependency/environment readiness, current-request provenance, and
+   that the prepared baseline is green before any target-project write. Keep
+   main-observed capture JSON in conversation at this point; do not run `check`
+   against a nonexistent artifact or weaken the green-baseline write boundary.
 3. Stop with exact commands/output and return to workspace preparation/prepared
    evidence when ownership is unsafe or the baseline is not green.
 4. Write the specification by synthesizing the approved or autonomously
@@ -68,7 +69,15 @@ implementation.
    Preserve selected outcomes, model/architecture decisions and testing seams;
    do not conduct a new interview or invent decisions. Record workspace mode,
    rationale, branch, starting revision and relevant initial changes locally.
-5. Run bundled `scripts/check-artifacts.py --phase spec --spec <absolute-spec>`
+   Include every exact main-observed baseline capture record in the specification.
+5. Apply Planning reuse interface against the written specification: run its
+   compact non-executing `verification-evidence.py check` for every required
+   record, confirm current provenance and dependency/environment observations,
+   and require `reusable` plus the matching `record_id`. Standalone, resume,
+   malformed or uncertain evidence, and `rerun` load Verification fallback and
+   establish fresh verification. Stop and return to workspace preparation when
+   any required baseline is not green.
+6. Run bundled `scripts/check-artifacts.py --phase spec --spec <absolute-spec>`
    before Gate 2. Resolve findings or follow its unsupported-format/manual-review
    path; structural success does not approve decisions. Reconcile selected
    scenarios, context/model responsibilities, invariants, interaction decisions,
@@ -76,7 +85,7 @@ implementation.
    missing decisions to `design-coder`, never invent entities, services or
    recovery policy. Interactively present the specification with `show-me` and
    stop at Gate 2; autonomously record the unique grounded recommendation.
-6. After specification approval or autonomous selection, create vertical tickets
+7. After specification approval or autonomous selection, create vertical tickets
    with the local template as observable, context-window-sized increments. Include
    blocking edges, acceptance, selected-context/model/rule/interface/interaction
    references and verification. Record dependencies, delegation eligibility/mode
@@ -85,15 +94,15 @@ implementation.
    copy the model or split mechanically; selected interaction can span contexts.
    Store checkbox tickets in `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md` and
    durable planned waves under Execution Waves; order is not dependency.
-7. Before Gate 3, compile the nonempty graph for the native implement-spec
+8. Before Gate 3, compile the nonempty graph for the native implement-spec
    executor. Record ownership, seams, capacity, authoritative workspace, wave
    base, isolation and permitted preparation, plus durable waves/blocking edges
    for its ready frontier. A singleton is the same graph; planning records
    approved inputs only and does not schedule workers.
-8. Under Execution Waves and Explicit Parallel Requests, retain one active
+9. Under Execution Waves and Explicit Parallel Requests, retain one active
    wave, real isolation for parallel mutation, and recovery from checkboxes plus
    committed Git state.
-9. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
+10. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
    --plan <absolute-plan>` before Gate 3; resolve findings under the same format
    contract. Before Gate 3, reconcile decision coverage and ticket readiness under the
    domain contract's Ticket decomposition section. Check delegation eligibility,

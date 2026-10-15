@@ -47,10 +47,13 @@ the later specification; persist only qualifying domain language or ADRs.
 
 1. Validate the selected workspace evidence: selected path/mode, branch,
    starting revision, accounted initial changes, and required capabilities.
-   Perform discovery read-only from that state. Before any qualifying document
-   write, prepare dependencies and establish a fresh green baseline, then
-   re-inspect relevant ownership. Missing, failed, or uncertain preparation
-   stops before the write.
+   Perform discovery read-only from that state. Workspace preparation remains
+   owned by `spec-coder` orchestration. When a confirmed decision first requires
+   a qualifying document write and prepared evidence is absent or stale, make
+   no write: return the decision, target, and resume point to orchestration for
+   dependency preparation and a fresh green baseline, then resume `grill-coder`
+   with that prepared evidence. Failed or uncertain preparation also stops
+   before the write and returns its evidence to orchestration for disposition.
 2. Inspect implementation evidence, the applicable glossary map/glossary and
    ADRs before asking what the repository already answers.
 3. Build a private decision tree and work it in dependency-ready frontier
@@ -84,9 +87,12 @@ the later specification; persist only qualifying domain language or ADRs.
    (dependency readiness and a fresh green baseline), then prove that the
    target is task-owned or safely separable from initial/user changes. Create
    glossary or ADR files lazily. Preserve existing definitions and explain
-   compatibility before a confirmed replacement. On failed or uncertain
-   preparation, overlapping ownership, or ambiguous ownership, make no write
-   and stop with the decision, target, conflict, and resume point.
+   compatibility before a confirmed replacement. If preparation evidence is
+   absent or stale, return to `spec-coder` orchestration without owning CLI or
+   capture mechanics; after green preparation, resume at this write. If
+   orchestration reports failed or uncertain preparation, or ownership overlaps
+   or remains ambiguous, make no write and stop with the decision, target,
+   conflict, and resume point.
 9. Challenge fuzzy or conflicting terms, distinguish affected contexts'
    meanings and state owners, and probe relevant transitions, concurrent
    requests, retries and partial failures. Defer detailed entities, services
@@ -112,8 +118,9 @@ Stop and report the current decision state when:
 - the user asks to stop;
 - selected workspace evidence is absent, unsafe, or lacks a required
   capability;
-- preparation required for a qualifying write is absent, stale, failing, or
-  uncertain;
+- preparation required for a qualifying write is absent or stale and has been
+  returned to `spec-coder` orchestration with a resume point, or preparation is
+  failing or uncertain and has been returned without permitting a write;
 - `grilling` or `domain-modeling` is absent, manual-only, or materially
   incompatible;
 - glossary/ADR ownership overlaps user work or cannot be established safely;

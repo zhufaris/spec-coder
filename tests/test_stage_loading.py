@@ -32,10 +32,13 @@ def required_links(path: Path, triggers=frozenset()) -> list[str]:
     text = path.read_text(encoding="utf-8")
     reading = section(text, "required-reading")
     conditional = section(text, "conditional-reading")
-    for line in conditional.splitlines():
-        match = re.match(r"- \*\*(.+?):\*\*", line)
-        if match and match[1] in triggers:
-            reading += "\n" + line
+    blocks = re.finditer(
+        r"(?ms)^- \*\*(.+?):\*\*.*?(?=^- \*\*|^## |\Z)",
+        conditional,
+    )
+    for block in blocks:
+        if block[1] in triggers:
+            reading += "\n" + block[0]
     return LINK.findall(reading)
 
 
@@ -127,6 +130,22 @@ class StageLoadingTests(unittest.TestCase):
             resolved = instruction_text(stage)
             self.assertIn("One rule.", resolved)
             self.assertNotIn("No spawning.", resolved)
+
+    def test_multiline_conditional_links_are_loaded_as_one_trigger_block(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "owner.md").write_text("## Loaded\nPreparation rules.\n")
+            stage = root / "SKILL.md"
+            stage.write_text(
+                "## Required Reading\n\n"
+                "## Conditional Reading\n\n"
+                "- **Workspace preparation:** before a write, load\n"
+                "  [Preparation rules](owner.md#loaded).\n"
+            )
+            self.assertIn(
+                "owner.md#loaded",
+                required_links(stage, {"Workspace preparation"}),
+            )
 
     def test_fresh_context_common_brief_and_role_constraints(self):
         template = (ROOT / "references/worker-brief-template.md").read_text()

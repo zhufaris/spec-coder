@@ -706,12 +706,14 @@ def route_new_discovery(*, workspace_safe: bool, capabilities_ready: bool = True
 
 
 def route_workspace_preparation(
-    *, dependencies_ready: bool, baseline_green: bool
+    *, dependencies_ready: bool, baseline_status: str
 ) -> str:
     """Require preparation before a target-project write, never before read-only discovery."""
+    if baseline_status not in {"green", "failed", "uncertain"}:
+        raise ValueError("unsupported baseline status")
     if not dependencies_ready:
         return "stop-before-mutation"
-    if not baseline_green:
+    if baseline_status != "green":
         return "stop-before-mutation"
     return "prepared-for-mutation"
 
@@ -732,8 +734,6 @@ def route_discovery_document(
     decision_kind: str,
     adr_qualifies: bool,
 ) -> str:
-    if not prepared:
-        return "stop-preflight"
     if not confirmed:
         return "no-document-write"
     destination = None
@@ -743,6 +743,8 @@ def route_discovery_document(
         destination = "update-adr"
     if destination is None:
         return "no-document-write"
+    if not prepared:
+        return "return-for-preparation"
     if not ownership_safe:
         return "stop-ownership"
     return destination

@@ -201,9 +201,10 @@ DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Boun
 `plan-coder` 用本地[规格模板](./references/specification-template.md)保存这些决策，再用[ticket 模板](./references/ticket-template.md)按业务能力切出可验证增量，引用相关模型、规则、接口和测试证据。Gate 2 检查设计信息是否完整，Gate 3 检查场景覆盖与实施条件；实现和交付分别验证行为、规则归属与实际依赖。具体要求见 [Domain Design Contract](./references/domain-design-contract.md)，模型、并发与架构反例见 [Domain Design Examples](./references/domain-design-examples.md)。
 
 ```text
-workspace preflight + fresh green baseline
-    -> grill-coder        [`grilling` + `domain-modeling`; lazy GLOSSARY.md / ADR]
+selected workspace
+    -> grill-coder        [read-only until a qualifying GLOSSARY.md / ADR write]
     -> design-coder        [设计审批]
+    -> workspace preparation [at first qualifying write, or after Gate 1]
     -> plan-coder          [规格审批 + tickets/实施审批]
     -> native implement-spec executor [singleton 与多 ticket 共享；per-ticket tdd-coder lifecycle]
     -> tdd-coder           [dependency-aware waves + delegated Red-Green + main integration]

@@ -19,11 +19,13 @@ stage, commit or contact a service.
 
 ## Planning reuse interface
 
-On normal `plan-coder` entry, main makes an exact, non-executing
-`verification-evidence.py check` for each baseline with command and
-observations. An eligible record was directly observed by main in this request
-and retained in the artifact. Continue only when every check is `reusable` with
-`record_id`; partial success never qualifies.
+On normal `plan-coder` entry, the prepared baseline's exact capture JSON remains
+in conversation until the green baseline permits target-project writes. Main
+first writes the specification with every exact capture record that it directly
+observed in this uninterrupted request. It then makes an exact, non-executing
+`verification-evidence.py check` against that artifact for each baseline with
+the same command and observations. Continue only when every check is `reusable`
+with `record_id`; partial success never qualifies.
 
 ```text
 python3 /absolute/plugin/scripts/verification-evidence.py check --repo REPO \
@@ -35,7 +37,10 @@ python3 /absolute/plugin/scripts/verification-evidence.py check --repo REPO \
 All values and the command vector after `--` exactly match the established
 baseline; repeat `--exclude-output` for each exact generated output.
 
-The check neither runs a project command nor authorizes retry. For standalone,
+Writing the record does not make it eligible: main must still confirm its
+current-request provenance and reaffirm that the declared dependency and
+environment observations remain current. The check neither runs a project
+command nor authorizes retry. For standalone,
 resume, malformed/uncertain record or observation, or `rerun`, load
 **Verification fallback** in `plan-coder` and establish verification freshly
 under the complete CLI, schema, comparison/exit, and invocation owners.

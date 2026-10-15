@@ -586,8 +586,11 @@ class PluginContractTests(unittest.TestCase):
         self.assert_planning_templates_resolve(ROOT)
         worktree = text.lower().index("worktree")
         spec = text.lower().index("write the specification")
+        reuse = text.lower().index("apply planning reuse interface")
         tickets = text.lower().index("vertical tickets")
         self.assertLess(worktree, spec)
+        self.assertLess(spec, reuse)
+        self.assertLess(reuse, tickets)
         self.assertLess(spec, tickets)
         self.assertIn("baseline", text.lower())
         self.assertIn("prepared workspace", text.lower())
@@ -805,6 +808,10 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(phrase, published_docs)
         self.assertIn("九个 skill", readme)
         self.assertIn("九个 skill", install_guide)
+        self.assertNotIn(
+            "workspace preflight + fresh green baseline\n    -> grill-coder",
+            readme.lower(),
+        )
         self.assertNotRegex(readme, r"(?i)trax")
         self.assertNotIn("global-agents-snippet.md", readme + install_guide)
         self.assertIn("codex plugin marketplace add", readme)

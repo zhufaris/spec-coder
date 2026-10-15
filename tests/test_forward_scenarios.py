@@ -269,7 +269,7 @@ class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
     def test_preparation_precedes_a_target_project_write(self) -> None:
         self.assertEqual(
             route_workspace_preparation(
-                dependencies_ready=True, baseline_green=True
+                dependencies_ready=True, baseline_status="green"
             ),
             "prepared-for-mutation",
         )
@@ -277,13 +277,19 @@ class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
     def test_failed_preparation_stops_before_mutation(self) -> None:
         self.assertEqual(
             route_workspace_preparation(
-                dependencies_ready=False, baseline_green=True
+                dependencies_ready=False, baseline_status="green"
             ),
             "stop-before-mutation",
         )
         self.assertEqual(
             route_workspace_preparation(
-                dependencies_ready=True, baseline_green=False
+                dependencies_ready=True, baseline_status="failed"
+            ),
+            "stop-before-mutation",
+        )
+        self.assertEqual(
+            route_workspace_preparation(
+                dependencies_ready=True, baseline_status="uncertain"
             ),
             "stop-before-mutation",
         )
@@ -306,7 +312,7 @@ class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
         )
         self.assertEqual(
             route_workspace_preparation(
-                dependencies_ready=True, baseline_green=True
+                dependencies_ready=True, baseline_status="green"
             ),
             "prepared-for-mutation",
         )
@@ -406,7 +412,7 @@ class WithDocsDiscoveryForwardScenarios(unittest.TestCase):
                 decision_kind="term",
                 adr_qualifies=False,
             ),
-            "stop-preflight",
+            "return-for-preparation",
         )
         self.assertEqual(
             route_discovery_document(
