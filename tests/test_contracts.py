@@ -477,6 +477,10 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn(SUBAGENT_ROUTING_REFERENCE, text)
         self.assertIn('display_name: "Setup Coder"', metadata)
         self.assertIn('$setup-coder', metadata)
+        self.assertIn(
+            "prepend if file lacks final line terminator",
+            " ".join(text.lower().split()),
+        )
 
         routing = read_text(ROOT / "assets" / "agents-snippet.md")
         self.assertIn("<!-- spec-coder:start -->", routing)

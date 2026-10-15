@@ -66,9 +66,10 @@ Do not persist the setup report or create a private state/configuration file.
    label them `discovered`. Do not install dependencies. Do not invent a
    command to make setup appear complete.
 6. For an absent or stale valid block, create an exact diff that preserves all
-   marker-external bytes. Include a concise verification subsection only when
-   durable repository instructions are absent and the command evidence is
-   trustworthy. Present the diff and mutation `ReviewSnapshot` through
+   marker-external bytes. Prepend if file lacks final line terminator; never
+   append into the user-owned final line. Include a concise verification
+   subsection only when durable repository instructions are absent and the
+   command evidence is trustworthy. Present the diff and mutation `ReviewSnapshot` through
    `show-me`, then ask for explicit approval.
 7. Immediately before writing, re-read the target and prove an unchanged base.
    If it changed, invalidate approval and produce a new proposal. Apply only the
