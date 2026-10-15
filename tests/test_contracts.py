@@ -548,7 +548,6 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("recommend", text.lower())
         self.assertIn("original checkout", text.lower())
         for phrase in (
-            "prepared workspace",
             "confirmed decision",
             "glossary.md",
             "hard to reverse",
@@ -662,15 +661,19 @@ class PluginContractTests(unittest.TestCase):
             "git log",
             "fresh verification",
             "three consecutive",
-            "workspace preflight",
-            "prepared workspace",
+            "select a safe workspace",
         ):
             self.assertIn(phrase, text.lower())
         normalized = " ".join(text.lower().split())
-        self.assertLess(
-            normalized.index("complete workspace preflight"),
-            normalized.index("start `grill-coder`"),
-        )
+        self.assertIn("prepared workspace", normalized)
+        selected = normalized.index("select a safe workspace")
+        grill = normalized.index("start `grill-coder`")
+        preparation = normalized.index("prepare dependencies")
+        baseline = normalized.index("establish the fresh green baseline")
+        target_write = normalized.index("target-project write", baseline)
+        self.assertLess(selected, grill)
+        self.assertLess(preparation, target_write)
+        self.assertLess(baseline, target_write)
         self.assertNotIn("state.yaml", text.lower())
 
     def test_required_scenarios_are_documented(self) -> None:
@@ -690,7 +693,7 @@ class PluginContractTests(unittest.TestCase):
             "## Failing in-place baseline",
             "## Overlapping user changes",
             "## Pre-discovery workspace",
-            "## Pre-discovery baseline failure",
+            "## Pre-write preparation failure",
             "## Dependency-aware discovery frontier rounds",
             "## Serial discovery coupling and partial answers",
             "## Planning revalidates prepared workspace",

@@ -26,11 +26,16 @@ The executor must not push, must not install, and must not delete worktrees.
 
 Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder` in that order. `spec-coder` routes a new request to the first stage and a resumed request to the earliest incomplete stage. After every Gate 3 approval or autonomous selection, every plan enters the native implement-spec executor. The executor schedules the approved task graph as per-ticket `tdd-coder` lifecycles before handing the completed cumulative accepted range to `delivery-coder`; it is orchestration within the fixed five-stage order, not another public stage.
 
-For a new request, complete workspace preflight before entering that fixed stage
-order. Select a safe in-place or isolated workspace, account for initial user
-changes, prepare dependencies, and establish a fresh green baseline. Keep the
-resulting prepared workspace evidence in conversation until the specification
-records it. Preflight is orchestration, not a public stage or approval gate.
+For a new request, select a safe in-place or isolated workspace before entering
+that fixed stage order. Account for initial user changes and required
+capabilities, then retain the selected workspace evidence in conversation.
+`grill-coder` and `design-coder` may inspect that selected workspace read-only.
+Prepare dependencies and establish a fresh green baseline before the first
+qualifying `GLOSSARY.md` or ADR write, or after Gate 1 before planning if
+discovery made no qualifying write. Keep the resulting prepared workspace
+evidence in conversation until the specification records it. Failed or
+uncertain preparation stops before target-project writes. Selection and
+preparation are orchestration, not public stages or approval gates.
 
 Each stage may also be invoked independently when its stated input already exists. It must validate that input instead of silently recreating an earlier phase.
 
@@ -85,9 +90,11 @@ additional approval request.
 
 ## Artifact Contract
 
-Write coding-workflow target-project artifacts only after workspace preflight
-selects a safe workspace, accounts for initial changes, and establishes a fresh
-green baseline. The workspace can be the current checkout or a linked worktree:
+Write coding-workflow target-project artifacts only after the workspace is
+prepared: it was safely selected with initial changes accounted for, then had
+its dependencies prepared and fresh green baseline established. A selected
+workspace alone authorizes read-only discovery and design, not a target-project
+write. The workspace can be the current checkout or a linked worktree:
 
 - specification: `docs/spec-coder/specs/YYYY-MM-DD-<slug>.md`;
 - durable ticket plan: `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`;
@@ -151,19 +158,23 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
   do not make worktrees mandatory merely because delegation is used.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
 
-The prepared workspace evidence includes the absolute workspace, mode and
-rationale, branch, starting revision, relevant initial changes, dependency
-preparation, and fresh baseline commands/output. `plan-coder` consumes this
+Selected workspace evidence includes the absolute workspace, mode and
+rationale, branch, starting revision, relevant initial changes, and required
+capability assessment. It authorizes only read-only discovery and design.
+Prepared workspace evidence extends the selected evidence with dependency
+preparation and fresh baseline commands/output. `plan-coder` consumes prepared
 evidence and revalidates ownership, interference, and baseline freshness before
-writing the specification. Missing, stale, or invalid evidence returns to
-workspace preflight; planning does not silently choose a second workspace.
+writing the specification. Missing, stale, failed, or uncertain prepared
+evidence returns to workspace preparation; planning does not silently choose a
+second workspace or write a target-project artifact.
 
 ## Git Safety
 
 - Preserve unrelated changes in the user's original checkout. In-place execution permits only task-owned edits; record existing staged, unstaged and untracked work before editing.
 - Do not clean, stash, reset, change branches over, stage or commit unrelated user work to make a workspace usable. For overlapping edits, establish that they can be safely separated; otherwise isolate or resolve the concrete conflict before editing.
 - If creating a branch, use `feat/<slug>` for features and `fix/<slug>` for fixes. Branch creation is not a prerequisite for safe in-place execution; respect repository branch rules.
-- Establish a green baseline before writing target-project artifacts.
+- Establish a green baseline before writing target-project artifacts; selection
+  alone permits only read-only discovery and design.
 - Stage explicit ticket-owned paths; never use `git add -A`.
 - Inspect the complete proposed commit, not just the latest staging command. If unrelated entries are already staged, use a verified path-scoped commit that preserves them, or isolate the task. Path scoping alone cannot separate user and agent edits to the same file; never include such user hunks without authorization.
 - Create one atomic Conventional Commit per completed ticket.
@@ -174,7 +185,8 @@ workspace preflight; planning does not silently choose a second workspace.
 
 - Diagnose behavior, lint, type, and build failures within the current ticket and return through `tdd-coder`.
 - Return to `design-coder` when evidence invalidates an architectural assumption.
-- Stop before implementation on a failing baseline.
+- Stop before target-project writes on failed or uncertain workspace
+  preparation, preserving the selected workspace and preparation evidence.
 - Stop after the same blocking condition occurs three consecutive times.
 - Preserve the selected workspace, branch, initial user changes, failing command, output, and current ticket state whenever stopping.
 - Never delete tests, weaken assertions, suppress failures, or force a commit to manufacture success.
@@ -201,7 +213,7 @@ For behavior changes, use the Red-Green sequence below. For approved behavior-pr
 5. Run the full applicable repository suite freshly before claiming completion.
 
 [Authority and lifecycle](./verification-contract.md#authority-and-lifecycle)
-owns baseline capture/reuse: first preflight executes, same-request planning may
+owns baseline capture/reuse: first workspace preparation executes, same-request planning may
 reuse every required matching record, and resume, integrated-ticket checks and
 delivery remain fresh. Capture JSON can stay in conversation until the green
 baseline permits artifact writes. Neither tool authenticates main observation

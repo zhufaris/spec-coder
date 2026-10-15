@@ -697,16 +697,23 @@ def choose_isolation_route(
     return "blocked-ignore-verification"
 
 
-def route_new_discovery(
-    *, workspace_safe: bool, baseline_green: bool, capabilities_ready: bool = True
-) -> str:
+def route_new_discovery(*, workspace_safe: bool, capabilities_ready: bool = True) -> str:
     if not capabilities_ready:
         return "stop-capability"
     if not workspace_safe:
         return "stop-workspace"
+    return "start-grill-readonly"
+
+
+def route_workspace_preparation(
+    *, dependencies_ready: bool, baseline_green: bool
+) -> str:
+    """Require preparation before a target-project write, never before read-only discovery."""
+    if not dependencies_ready:
+        return "stop-before-mutation"
     if not baseline_green:
-        return "stop-baseline"
-    return "start-grill"
+        return "stop-before-mutation"
+    return "prepared-for-mutation"
 
 
 def route_planning_workspace(

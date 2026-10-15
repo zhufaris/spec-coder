@@ -29,7 +29,8 @@ sections before acting. Links are requirements, not background references.
 
 ## Input
 
-A coding request plus a prepared workspace, its fresh preflight evidence, the
+A coding request plus a selected workspace (safe path/mode/base, accounted
+initial changes, and required capabilities) for read-only discovery, the
 current repository, existing specifications, applicable `GLOSSARY.md` or
 `GLOSSARY-MAP.md`, ADRs, and relevant implementation evidence.
 
@@ -37,17 +38,19 @@ current repository, existing specifications, applicable `GLOSSARY.md` or
 
 A dependency-ordered set of confirmed decisions covering purpose, users,
 scope, invariants, edge cases, operational constraints, failure behavior, and
-measurable success. Return the prepared workspace evidence, every changed
+measurable success. Return the selected or prepared workspace evidence, every changed
 glossary/ADR path, and unresolved branches to `design-coder`. Keep ordinary
 scope, interface, acceptance, and implementation decisions in conversation for
 the later specification; persist only qualifying domain language or ADRs.
 
 ## Process
 
-1. Validate the prepared workspace evidence: selected path/mode, branch,
-   starting revision, accounted initial changes, dependency readiness, and
-   fresh green baseline. Re-inspect relevant ownership before any document
-   write. Missing or stale evidence returns to workspace preflight.
+1. Validate the selected workspace evidence: selected path/mode, branch,
+   starting revision, accounted initial changes, and required capabilities.
+   Perform discovery read-only from that state. Before any qualifying document
+   write, prepare dependencies and establish a fresh green baseline, then
+   re-inspect relevant ownership. Missing, failed, or uncertain preparation
+   stops before the write.
 2. Inspect implementation evidence, the applicable glossary map/glossary and
    ADRs before asking what the repository already answers.
 3. Build a private decision tree and work it in dependency-ready frontier
@@ -77,10 +80,12 @@ the later specification; persist only qualifying domain language or ADRs.
      hard to reverse, surprising without context, and the result of a real trade-off;
    - scope, interface, acceptance, and ephemeral implementation choices stay in
      conversation for design/specification and produce no document write.
-8. Immediately before a qualifying write, prove that the target is task-owned
-   or safely separable from initial/user changes. Create glossary or ADR files
-   lazily. Preserve existing definitions and explain compatibility before a
-   confirmed replacement. On overlapping or ambiguous ownership, make no write
+8. Immediately before a qualifying write, require prepared workspace evidence
+   (dependency readiness and a fresh green baseline), then prove that the
+   target is task-owned or safely separable from initial/user changes. Create
+   glossary or ADR files lazily. Preserve existing definitions and explain
+   compatibility before a confirmed replacement. On failed or uncertain
+   preparation, overlapping ownership, or ambiguous ownership, make no write
    and stop with the decision, target, conflict, and resume point.
 9. Challenge fuzzy or conflicting terms, distinguish affected contexts'
    meanings and state owners, and probe relevant transitions, concurrent
@@ -93,18 +98,22 @@ the later specification; persist only qualifying domain language or ADRs.
 
 During discovery, apply the contract's [language guidance](../../references/domain-design-contract.md#discover-and-evolve-domain-language). Return the evidence-backed ambiguities, context-specific meanings and compatibility decisions that constrain design; do not select a model merely from database names.
 
-Protect unrelated work in the user's original checkout. A prepared workspace
-may be in place or isolated. Never write before workspace selection and a green
-baseline. Do not write implementation code, create a branch, commit, publish an
-issue, or imply that later approval gates have passed. If no confirmed decision
-qualifies for a glossary or ADR, perform no document write.
+Protect unrelated work in the user's original checkout. A selected or prepared
+workspace may be in place or isolated. A selected workspace permits read-only
+discovery; never write before preparation establishes a green baseline. Do not
+write implementation code, create a branch, commit, publish an issue, or imply
+that later approval gates have passed. If no confirmed decision qualifies for a
+glossary or ADR, perform no document write.
 
 ## Stop Conditions
 
 Stop and report the current decision state when:
 
 - the user asks to stop;
-- prepared workspace evidence is absent, stale, failing, or unsafe;
+- selected workspace evidence is absent, unsafe, or lacks a required
+  capability;
+- preparation required for a qualifying write is absent, stale, failing, or
+  uncertain;
 - `grilling` or `domain-modeling` is absent, manual-only, or materially
   incompatible;
 - glossary/ADR ownership overlaps user work or cannot be established safely;

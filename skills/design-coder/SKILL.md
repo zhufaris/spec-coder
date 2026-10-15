@@ -80,7 +80,13 @@ required. The interactive path remains unchanged.
 
 When the modeling triggers apply, include the decisions required by the contract's [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) sections in the design handed to planning. Keep the stage's output focused on selected decisions and unresolved readiness, not a repeated contract checklist.
 
-Do not write implementation code. During an orchestrated run, use the safe workspace and green baseline prepared before discovery; keep non-domain project artifacts in conversation until `plan-coder` revalidates that evidence. In-place and isolated workspaces are both supported. Return the selected design content for specification synthesis.
+Do not write implementation code. During an orchestrated run, use the selected
+safe workspace read-only through discovery and design. After Gate 1, prepare
+dependencies and establish a green baseline before `plan-coder` writes the
+specification (or earlier when a qualifying glossary/ADR write is needed).
+Keep non-domain project artifacts in conversation until `plan-coder`
+revalidates that prepared evidence. In-place and isolated workspaces are both
+supported. Return the selected design content for specification synthesis.
 
 ## Stop Conditions
 

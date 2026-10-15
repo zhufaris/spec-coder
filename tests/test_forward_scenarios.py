@@ -18,6 +18,7 @@ from forward_contracts import (
     route_discovery_document,
     route_new_discovery,
     route_planning_workspace,
+    route_workspace_preparation,
     parse_repository_routing_policy,
     parse_user_model_mapping,
     prepare_subagent_spawn,
@@ -253,35 +254,62 @@ class WorktreeForwardScenarios(unittest.TestCase):
 
 
 class DiscoveryWorkspaceForwardScenarios(unittest.TestCase):
-    def test_new_request_reaches_grill_only_after_safe_green_preflight(self) -> None:
+    def test_new_request_reaches_read_only_grill_before_baseline(self) -> None:
         self.assertEqual(
-            route_new_discovery(workspace_safe=True, baseline_green=True),
-            "start-grill",
+            route_new_discovery(workspace_safe=True),
+            "start-grill-readonly",
         )
 
     def test_unsafe_workspace_stops_before_discovery(self) -> None:
         self.assertEqual(
-            route_new_discovery(workspace_safe=False, baseline_green=True),
+            route_new_discovery(workspace_safe=False),
             "stop-workspace",
         )
 
-    def test_failing_baseline_stops_before_discovery(self) -> None:
+    def test_preparation_precedes_a_target_project_write(self) -> None:
         self.assertEqual(
-            route_new_discovery(workspace_safe=True, baseline_green=False),
-            "stop-baseline",
+            route_workspace_preparation(
+                dependencies_ready=True, baseline_green=True
+            ),
+            "prepared-for-mutation",
+        )
+
+    def test_failed_preparation_stops_before_mutation(self) -> None:
+        self.assertEqual(
+            route_workspace_preparation(
+                dependencies_ready=False, baseline_green=True
+            ),
+            "stop-before-mutation",
+        )
+        self.assertEqual(
+            route_workspace_preparation(
+                dependencies_ready=True, baseline_green=False
+            ),
+            "stop-before-mutation",
         )
 
     def test_missing_required_capability_stops_before_discovery(self) -> None:
         self.assertEqual(
             route_new_discovery(
                 workspace_safe=True,
-                baseline_green=True,
                 capabilities_ready=False,
             ),
             "stop-capability",
         )
 
-    def test_planning_consumes_only_fresh_valid_prepared_workspace(self) -> None:
+    def test_gate_one_requires_preparation_before_planning(self) -> None:
+        self.assertEqual(
+            route_planning_workspace(
+                prepared=False, ownership_valid=True, baseline_fresh=True
+            ),
+            "return-preflight",
+        )
+        self.assertEqual(
+            route_workspace_preparation(
+                dependencies_ready=True, baseline_green=True
+            ),
+            "prepared-for-mutation",
+        )
         self.assertEqual(
             route_planning_workspace(
                 prepared=True, ownership_valid=True, baseline_fresh=True
