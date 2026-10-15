@@ -97,6 +97,10 @@ _OWNER_CHECKS = {
         "test_verification_evidence",
         "test_workflow_tool_integration",
     ),
+    "scripts/validate-affected.py": ("test_affected_validation",),
+    "scripts/spec_coder_checks/affected.py": ("test_affected_validation",),
+    "README.md": ("test_contracts",),
+    "INSTALL.md": ("test_contracts",),
     "references/domain-design-contract.md": ("test_contracts",),
     "references/domain-design-examples.md": ("test_contracts",),
 }
@@ -164,14 +168,20 @@ def build_affected_commands(
 
     for path in safe_paths:
         parts = Path(path).parts
+        matched = False
         if len(parts) >= 2 and parts[0] == "skills" and parts[1] in _SKILL_CHECKS:
             skill = parts[1]
             modules.update(_SKILL_CHECKS[skill])
             skills.add(skill)
-        modules.update(_OWNER_CHECKS.get(path, ()))
+            matched = True
+        owner_checks = _OWNER_CHECKS.get(path, ())
+        if owner_checks:
+            modules.update(owner_checks)
+            matched = True
         if path == _ROUTING_PATH:
             modules.update(_SHARED_ROUTING_CHECKS)
             skills.update(_SHARED_ROUTING_SKILLS)
+            matched = True
         if (
             len(parts) == 2
             and parts[0] == "tests"
@@ -179,6 +189,9 @@ def build_affected_commands(
             and parts[1].endswith(".py")
         ):
             modules.add(Path(parts[1]).stem)
+            matched = True
+        if not matched:
+            raise ValueError("unmapped affected path: " + path)
 
     commands = [
         {

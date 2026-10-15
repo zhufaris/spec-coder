@@ -61,6 +61,27 @@ class StageOwnerLoadingTests(unittest.TestCase):
                     any("subagent-routing-contract.md" in link for link in links(stage))
                 )
 
+    def test_orchestrator_loads_the_recovery_owner_it_invokes(self):
+        self.assertIn(
+            "../../references/workflow-contract.md#recovery",
+            links("spec-coder"),
+        )
+
+    def test_affected_guidance_is_bounded_and_handles_deleted_paths(self):
+        for relative in (
+            "skills/tdd-coder/SKILL.md",
+            "references/ticket-template.md",
+        ):
+            text = (ROOT / relative).read_text().lower()
+            with self.subTest(path=relative):
+                for phrase in (
+                    "supported spec-coder",
+                    "repository-native",
+                    "deleted",
+                    "existing post-change owner or test path",
+                ):
+                    self.assertIn(phrase, text)
+
 
 if __name__ == "__main__":
     unittest.main()

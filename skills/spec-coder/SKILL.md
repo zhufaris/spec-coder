@@ -13,7 +13,7 @@ Host capabilities before invoking stages or dispatching workers.
 On every entry, including standalone invocation and resume, load these owner
 sections before acting. Links are requirements, not background references.
 
-- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Native implement-spec executor](../../references/workflow-contract.md#native-implement-spec-executor).
+- [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Recovery](../../references/workflow-contract.md#recovery), [Native implement-spec executor](../../references/workflow-contract.md#native-implement-spec-executor).
 - [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
 
 - [Authority and lifecycle](../../references/verification-contract.md#authority-and-lifecycle).

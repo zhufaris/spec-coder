@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -127,6 +128,34 @@ class AffectedValidationTests(unittest.TestCase):
                 ]
                 self.assertEqual(len(validators), 1)
                 self.assertEqual(validators[0]["argv"][-1], f"skills/{stage}")
+
+    def test_mapper_and_public_docs_select_owned_contract_checks(self):
+        cases = {
+            "scripts/validate-affected.py": "test_affected_validation",
+            "scripts/spec_coder_checks/affected.py": "test_affected_validation",
+            "README.md": "test_contracts",
+            "INSTALL.md": "test_contracts",
+        }
+        for path, expected in cases.items():
+            with self.subTest(path=path):
+                joined = "\n".join(
+                    " ".join(command["argv"]) for command in self.build(path)
+                )
+                self.assertIn(expected, joined)
+
+    def test_unmapped_existing_path_is_rejected_before_execution(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            source = repository / "src/app.py"
+            source.parent.mkdir()
+            source.write_text("print('unmapped')\n")
+            with self.assertRaisesRegex(ValueError, "unmapped affected path"):
+                build_affected_commands(
+                    repo=repository,
+                    paths=("src/app.py",),
+                    python_bin="/observed/python3",
+                    validator="/observed/quick_validate.py",
+                )
 
 
 if __name__ == "__main__":
