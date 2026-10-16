@@ -244,6 +244,40 @@ class StageLoadingTests(unittest.TestCase):
                 for token in ("scripts/validate-affected.py", "--repo", "--path"):
                     self.assertIn(token, text)
 
+    def test_exact_plan_checker_commands_name_repository_context(self):
+        required = {
+            ROOT / "references/ticket-template.md",
+            ROOT / "skills/plan-coder/SKILL.md",
+            ROOT / "skills/spec-coder/SKILL.md",
+        }
+        observed = set()
+        sources = list((ROOT / "references").glob("*.md"))
+        sources.extend((ROOT / "skills").glob("*/SKILL.md"))
+        for path in sources:
+            for paragraph in re.split(r"\n\s*\n", path.read_text()):
+                command = re.sub(r"\s+", " ", paragraph.replace("\\\n", " "))
+                if not all(
+                    token in command
+                    for token in (
+                        "check-artifacts.py",
+                        "--phase plan",
+                        "--spec",
+                        "--plan",
+                    )
+                ):
+                    continue
+                observed.add(path)
+                self.assertIn("--repo", command, path.relative_to(ROOT))
+        self.assertTrue(required.issubset(observed), required - observed)
+
+    def test_readme_artifact_summary_names_explicit_target_repository(self):
+        summary = section(
+            (ROOT / "README.md").read_text(),
+            "baseline-evidence-and-artifact-checks",
+        )
+        for token in ("--phase plan", "--phase delivery", "--repo", "explicit target"):
+            self.assertIn(token, summary)
+
     def test_legacy_execution_wave_oracle_is_removed(self):
         oracle = (ROOT / "tests/forward_contracts.py").read_text()
         self.assertNotIn("def select_execution_wave(", oracle)

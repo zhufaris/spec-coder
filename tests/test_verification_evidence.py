@@ -164,6 +164,28 @@ class VerificationEvidenceTests(unittest.TestCase):
         self.assertIn("not Git-ignored", " ".join(payload["reasons"]))
         self.assertFalse(self.counter.exists())
 
+    def test_linked_worktree_uses_physical_root_and_current_branch_cache(self):
+        linked = self.repo / ".linked-worktree"
+        self.git("worktree", "add", "-q", "-b", "feat/linked", str(linked), "HEAD")
+        artifact = linked / "spec.md"
+        artifact.write_text("# Active specification\n")
+        physical_cache = self.repo / ".cache" / "feat" / "linked" / "target"
+        context = self.context.copy()
+        for option, value in (
+            ("--repo", str(linked)),
+            ("--cwd", str(linked)),
+            ("--artifact", str(artifact)),
+            ("--build-cache", str(physical_cache)),
+        ):
+            context[context.index(option) + 1] = value
+
+        result = self.invoke("capture", context=context)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        record = json.loads(result.stdout)
+        self.assertEqual(record["context"]["build_cache"], str(physical_cache))
+        self.assertEqual((linked / "counter.txt").read_text(), "1")
+
     def test_ignored_build_cache_contents_do_not_invalidate_source_evidence(self):
         self.capture()
         self.build_cache.mkdir(parents=True)

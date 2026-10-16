@@ -1,27 +1,53 @@
+import ast
 import json
 import base64
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
-from unittest import mock
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / "scripts" / "workspace-policy.py"
 sys.path.insert(0, str(ROOT / "scripts"))
-from spec_coder_checks import workspace_policy  # noqa: E402
 
 
 class WorkspacePolicyCliTests(unittest.TestCase):
-    def run_cli(self, *arguments, cwd=None):
+    def run_cli(self, *arguments, cwd=None, env=None):
         return subprocess.run(
             [sys.executable, str(CLI), *arguments],
             cwd=cwd,
+            env=env,
             text=True,
             capture_output=True,
         )
+
+    def test_policy_core_has_no_git_or_filesystem_adapters(self):
+        module_path = ROOT / "scripts" / "spec_coder_checks" / "workspace_policy.py"
+        source = module_path.read_text()
+        tree = ast.parse(source)
+        imported = {
+            alias.name.split(".", 1)[0]
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        }
+        imported.update(
+            node.module.split(".", 1)[0]
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module
+        )
+
+        self.assertTrue({"subprocess", "pathlib"}.isdisjoint(imported))
+        self.assertNotIn("read_bytes", source)
+        self.assertNotIn("subprocess.run", source)
+
+        cli = CLI.read_text()
+        self.assertIn("subprocess.run", cli)
+        self.assertIn("read_bytes", cli)
 
     def test_inspect_returns_repository_local_paths_and_ignore_facts(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -57,6 +83,22 @@ class WorkspacePolicyCliTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertEqual(json.loads(result.stdout)["reason"], "invalid-branch")
 
+    def test_missing_repository_is_a_structured_policy_blocker(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            missing = Path(temporary) / "missing"
+            result = self.run_cli(
+                "inspect", "--repo", str(missing), "--branch", "feat/api"
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(json.loads(result.stdout)["reason"], "repository-unavailable")
+
+    def test_argparse_error_exits_two_without_success_json(self):
+        result = self.run_cli("inspect", "--branch", "feat/api")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("usage:", result.stderr)
+        self.assertNotIn('"status":"accepted"', result.stderr)
+
     def test_symlinked_repository_argument_reports_physical_paths(self):
         with tempfile.TemporaryDirectory() as temporary:
             repo = Path(temporary) / "repo"
@@ -69,20 +111,63 @@ class WorkspacePolicyCliTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(json.loads(result.stdout)["repository"], str(repo))
 
-    def test_uncertain_ignore_observation_blocks_inspection(self):
+    def test_generated_workspace_symlinks_cannot_escape_repository(self):
         with tempfile.TemporaryDirectory() as temporary:
-            repo = Path(temporary) / "repo"
+            root = Path(temporary)
+            for generated in (".worktrees", ".cache"):
+                with self.subTest(generated=generated):
+                    repo = root / ("repo-" + generated.removeprefix("."))
+                    repo.mkdir()
+                    (repo / ".gitignore").write_text("/.worktrees/\n/.cache/\n")
+                    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+                    outside = root / ("outside-" + generated.removeprefix("."))
+                    outside.mkdir()
+                    (repo / generated).symlink_to(outside, target_is_directory=True)
+                    result = self.run_cli(
+                        "inspect", "--repo", str(repo), "--branch", "feat/api"
+                    )
+                    self.assertEqual(result.returncode, 1)
+                    self.assertEqual(
+                        json.loads(result.stdout)["reason"],
+                        "workspace-path-escapes-repository",
+                    )
+
+    def test_real_cli_uncertain_git_ignore_observation_blocks_inspection(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repo = root / "repo"
             repo.mkdir()
+            (repo / ".gitignore").write_text("/.worktrees/\n/.cache/\n")
             subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
-            with mock.patch.object(
-                workspace_policy,
-                "ignore_observations",
-                return_value={".worktrees/": "uncertain", ".cache/": "ignored"},
-            ):
-                with self.assertRaisesRegex(workspace_policy.PolicyBlocker, "uncertain") as raised:
-                    workspace_policy.inspect(repo, "feat/api")
-            self.assertEqual(raised.exception.as_json()["status"], "blocked")
-            self.assertEqual(raised.exception.as_json()["reason"], "ignore-observation-uncertain")
+            adapter_dir = root / "bin"
+            adapter_dir.mkdir()
+            adapter = adapter_dir / "git"
+            real_git = shutil.which("git")
+            self.assertIsNotNone(real_git)
+            adapter.write_text(
+                "#!/usr/bin/env python3\n"
+                "import os, sys\n"
+                f"real_git = {real_git!r}\n"
+                "if 'check-ignore' in sys.argv[1:]:\n"
+                "    raise SystemExit(128)\n"
+                "os.execv(real_git, [real_git, *sys.argv[1:]])\n"
+            )
+            adapter.chmod(0o755)
+            env = dict(os.environ)
+            env["PATH"] = str(adapter_dir) + os.pathsep + env["PATH"]
+            result = self.run_cli(
+                "inspect",
+                "--repo",
+                str(repo),
+                "--branch",
+                "feat/api",
+                env=env,
+            )
+            self.assertEqual(result.returncode, 1, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["status"], "blocked")
+            self.assertEqual(payload["reason"], "ignore-observation-uncertain")
+            self.assertEqual(payload["ignore"][".worktrees/"], "uncertain")
 
     def test_proposal_prepends_when_existing_bytes_lack_a_terminator(self):
         with tempfile.TemporaryDirectory() as temporary:

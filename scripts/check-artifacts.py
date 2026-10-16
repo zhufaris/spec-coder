@@ -16,9 +16,14 @@ def main():
     parser.add_argument("--phase", required=True, choices=("spec", "plan", "delivery"))
     parser.add_argument("--spec", required=True, help="path to supported specification")
     parser.add_argument("--plan", help="path to supported plan; required for plan/delivery")
-    parser.add_argument("--repo", default=".", help="local Git repository for delivery commits (default: cwd)")
+    parser.add_argument(
+        "--repo",
+        help="target physical Git repository; required for plan/delivery policy and commits",
+    )
     parser.add_argument("--json", action="store_true", help="emit status, phase and source-located findings as JSON")
     args = parser.parse_args()
+    if args.phase in {"plan", "delivery"} and args.repo is None:
+        parser.error("--repo is required for plan and delivery phases")
     code, report = check_artifacts(args.spec, args.plan, args.phase, args.repo)
     if args.json:
         print(json.dumps(report, ensure_ascii=False))

@@ -18,16 +18,18 @@ python3 /path/to/spec-coder/scripts/check-artifacts.py \
   --phase spec --spec docs/spec-coder/specs/example.md
 python3 /path/to/spec-coder/scripts/check-artifacts.py \
   --phase plan --spec docs/spec-coder/specs/example.md \
-  --plan docs/spec-coder/plans/example.md --json
+  --plan docs/spec-coder/plans/example.md --repo /path/to/project --json
 python3 /path/to/spec-coder/scripts/check-artifacts.py \
   --phase delivery --spec docs/spec-coder/specs/example.md \
   --plan docs/spec-coder/plans/example.md --repo /path/to/project --json
 ```
 
 `--phase` and `--spec` are required. `--plan` is required for plan and delivery.
-`--repo` defaults to the current working directory and is used only to inspect
-local commit references during delivery. It does not select a document or execute
-a test. Omit `--json` for `path:line: rule: message` findings.
+`--repo` is also required for plan and delivery so cache policy and local commit
+inspection target the intended physical repository even when the checker runs
+from another working directory. The spec phase may omit it. Document paths still
+resolve against the caller's working directory; `--repo` does not select a
+document or execute a test. Omit `--json` for `path:line: rule: message` findings.
 
 | Exit | Status | Meaning |
 | --- | --- | --- |

@@ -103,7 +103,7 @@ implementation.
    wave, real isolation for parallel mutation, and recovery from checkboxes plus
    committed Git state.
 10. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
-   --plan <absolute-plan>` before Gate 3; resolve findings under the same format
+   --plan <absolute-plan> --repo <absolute-workspace>` before Gate 3; resolve findings under the same format
    contract. Before Gate 3, reconcile decision coverage and ticket readiness under the
    domain contract's Ticket decomposition section. Check delegation eligibility,
    mutation ownership, exclusions, dependencies, isolation, concurrency conflicts,

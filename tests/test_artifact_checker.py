@@ -33,7 +33,7 @@ class ArtifactCheckerCLI(unittest.TestCase):
         args = [sys.executable, str(CLI), "--phase", phase,
                 "--spec", str(self.spec), "--json"]
         if phase != "spec":
-            args += ["--plan", str(self.plan)]
+            args += ["--plan", str(self.plan), "--repo", str(self.cwd)]
         result = subprocess.run(args + list(extra), cwd=self.cwd,
                                 capture_output=True, text=True)
         self.assertNotIn("Traceback", result.stderr)
@@ -317,12 +317,12 @@ class ArtifactCheckerCLI(unittest.TestCase):
         package = plugin / "spec_coder_checks"
         package.mkdir(parents=True)
         (plugin / "check-artifacts.py").write_bytes(CLI.read_bytes())
-        for name in ("artifacts.py", "evidence.py", "waves.py"):
+        for name in ("artifacts.py", "evidence.py", "waves.py", "workspace_policy.py"):
             (package / name).write_bytes((ROOT / "scripts/spec_coder_checks" / name).read_bytes())
         before = {str(p.relative_to(plugin)): p.read_bytes() for p in plugin.rglob("*") if p.is_file()}
         env = dict(os.environ)
         env.pop("PYTHONDONTWRITEBYTECODE", None)
-        result = subprocess.run([sys.executable, str(plugin / "check-artifacts.py"), "--phase", "plan", "--spec", str(self.spec), "--plan", str(self.plan)], cwd=self.cwd, env=env, capture_output=True, text=True)
+        result = subprocess.run([sys.executable, str(plugin / "check-artifacts.py"), "--phase", "plan", "--spec", str(self.spec), "--plan", str(self.plan), "--repo", str(self.cwd)], cwd=self.cwd, env=env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         after = {str(p.relative_to(plugin)): p.read_bytes() for p in plugin.rglob("*") if p.is_file()}
         self.assertEqual(before, after)
@@ -338,6 +338,47 @@ class ArtifactCheckerCLI(unittest.TestCase):
         result = subprocess.run([sys.executable, str(CLI), "--phase", "spec", "--spec", str(self.spec)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 2)
         self.assertIn(str(self.spec) + ":1: input.unusable:", result.stdout)
+
+    def test_plan_and_delivery_require_explicit_repository_context(self):
+        for phase in ("plan", "delivery"):
+            with self.subTest(phase=phase):
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(CLI),
+                        "--phase",
+                        phase,
+                        "--spec",
+                        str(self.spec),
+                        "--plan",
+                        str(self.plan),
+                        "--json",
+                    ],
+                    cwd=self.cwd,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(result.stdout, "")
+                self.assertIn("--repo is required", result.stderr)
+                self.assertNotIn('"status": "passed"', result.stderr)
+
+        spec_only = subprocess.run(
+            [
+                sys.executable,
+                str(CLI),
+                "--phase",
+                "spec",
+                "--spec",
+                str(self.spec),
+                "--json",
+            ],
+            cwd=self.cwd,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(spec_only.returncode, 0, spec_only.stderr)
+        self.assertEqual(json.loads(spec_only.stdout)["status"], "passed")
 
     def test_delivery_requires_completion_and_recorded_evidence(self):
         self.assert_rule("delivery.incomplete", "delivery")

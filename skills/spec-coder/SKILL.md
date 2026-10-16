@@ -81,14 +81,15 @@ evidence, and a final delivery report produced through `delivery-coder`.
 6. Reopen the relevant gate for scope or architecture changes and return to
    `design-coder` when evidence invalidates an assumption. Follow Approval Gates
    for in-scope autonomous reconsideration; scope expansion needs human review.
-   An approved post-Gate-3 scheduling-input change activates the Reopened Gate
+   Approved post-Gate-3 scheduling-input changes activate the Reopened Gate
    3 barrier: stop dispatch, result acceptance, staging/commit, and checkbox
-   advancement; persist the renewed plan and approval; run
-   `check-artifacts.py --phase plan`; account for active and returned results;
-   and verify ownership, recorded base, and wave compatibility before rebuilding
+   advancement; persist renewed plan and approval; run
+   `check-artifacts.py --phase plan --spec <absolute-spec> --plan
+   <absolute-plan> --repo <absolute-workspace>`; account for active and returned results;
+   verify ownership, recorded base, and wave compatibility before rebuilding
    the frontier. Missing renewal evidence, failed/unsupported/unavailable
    checking, or unaccounted/incompatible results remain stopped. Unchanged
-   scheduling inputs bypass the barrier; no fourth gate is created.
+   inputs bypass the barrier; no fourth gate is created.
 7. Stop after the same blocking condition occurs three consecutive times and
    preserve exact evidence and the resume point.
 

@@ -1,10 +1,13 @@
 """Versioned observations, build-cache policy, and baseline comparison."""
 from datetime import datetime
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
+
+from . import workspace_policy
 
 
 def parse_json(text):
@@ -82,12 +85,20 @@ def _git(repository, *arguments):
         raise ValueError("build cache Git observation unavailable: " + str(error))
 
 
-def _cache_observation(repository, value):
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError("Build cache must be an explicit absolute path")
-    cache = Path(value)
-    if not cache.is_absolute() or value != os.fspath(cache):
-        raise ValueError("Build cache must be a canonical absolute path")
+@dataclass(frozen=True)
+class CacheObservations:
+    repository: str
+    build_cache: str
+    resolved_build_cache: str
+    branch_returncode: int
+    branch_stdout: str
+    ignore_returncode: int
+    current_branch_returncode: int | None = None
+    current_branch_stdout: str | None = None
+
+
+def observe_cache_reservation(repository, value, *, current_branch=False):
+    """Collect physical/Git observations without deciding cache policy."""
     try:
         worktree = Path(repository).resolve(strict=True)
     except (OSError, RuntimeError) as error:
@@ -104,45 +115,86 @@ def _cache_observation(repository, value):
     if worktree != top_path:
         raise ValueError("repository must name the Git worktree root")
     physical = common_path.parent if common_path.name == ".git" else top_path
-    resolved = cache.resolve(strict=False)
-    if cache != resolved:
-        raise ValueError("Build cache must not contain symlinks or non-canonical components")
     try:
-        relative = cache.relative_to(physical)
-    except ValueError:
-        raise ValueError("Build cache must stay inside the physical repository")
-    return cache, top_path, physical, relative
+        branch_name = workspace_policy.cache_branch(str(physical), value)
+        resolved = Path(value).resolve(strict=False)
+        relative = Path(value).relative_to(physical)
+    except (OSError, RuntimeError) as error:
+        raise ValueError("Build cache physical path is unavailable: " + str(error))
+    except workspace_policy.PolicyBlocker as blocker:
+        raise ValueError(cache_policy_error(blocker))
+    branch = _git(top_path, "check-ref-format", "--branch", branch_name)
+    ignored = _git(top_path, "check-ignore", "-q", "--", os.fspath(relative))
+    current = (
+        _git(top_path, "symbolic-ref", "--quiet", "--short", "HEAD")
+        if current_branch
+        else None
+    )
+    return CacheObservations(
+        str(physical),
+        value,
+        str(resolved),
+        branch.returncode,
+        branch.stdout,
+        ignored.returncode,
+        current.returncode if current is not None else None,
+        current.stdout if current is not None else None,
+    )
+
+
+def cache_policy_error(blocker):
+    messages = {
+        "build-cache-missing": "Build cache must be an explicit absolute path",
+        "build-cache-noncanonical": (
+            "Build cache must be canonical and must not contain symlinks or "
+            "non-canonical components"
+        ),
+        "build-cache-outside-repository": (
+            "Build cache must stay inside the physical repository"
+        ),
+        "build-cache-shape": (
+            "Build cache must match <physical-repo>/.cache/<branch>/target"
+        ),
+        "invalid-branch": "Build cache branch is not a valid Git branch",
+        "unsafe-branch-path": "Build cache branch is not a safe path",
+        "build-cache-path-mismatch": (
+            "Build cache must match <physical-repo>/.cache/<branch>/target"
+        ),
+        "build-cache-not-ignored": "Build cache reservation is not Git-ignored",
+        "build-cache-ignore-uncertain": "Build cache ignore status is unavailable",
+        "current-branch-unavailable": "current workspace branch identity is unavailable",
+    }
+    if blocker.reason == "build-cache-current-branch-mismatch":
+        return "Build cache must equal " + dict(blocker.details)["expected_build_cache"]
+    return messages.get(blocker.reason, blocker.reason)
+
+
+def apply_cache_policy(observations):
+    try:
+        return workspace_policy.validate_cache_reservation(
+            observations.repository,
+            observations.build_cache,
+            observations.resolved_build_cache,
+            observations.branch_returncode,
+            observations.branch_stdout,
+            observations.ignore_returncode,
+            current_branch_returncode=observations.current_branch_returncode,
+            current_branch_stdout=observations.current_branch_stdout,
+        )
+    except workspace_policy.PolicyBlocker as blocker:
+        raise ValueError(cache_policy_error(blocker))
 
 
 def validate_plan_build_cache(repository, value):
     """Accept any canonical ignored reservation for a Git-valid ticket branch."""
-    cache, top_path, physical, relative = _cache_observation(repository, value)
-    parts = relative.parts
-    if len(parts) < 3 or parts[0] != ".cache" or parts[-1] != "target":
-        raise ValueError("Build cache must match <physical-repo>/.cache/<branch>/target")
-    branch_name = "/".join(parts[1:-1])
-    branch = _git(top_path, "check-ref-format", "--branch", branch_name)
-    if branch.returncode or branch.stdout.strip() != branch_name:
-        raise ValueError("Build cache branch is not a valid Git branch")
-    ignored = _git(top_path, "check-ignore", "-q", "--", os.fspath(relative))
-    if ignored.returncode == 1:
-        raise ValueError("Build cache reservation is not Git-ignored")
-    if ignored.returncode != 0:
-        raise ValueError("Build cache ignore status is unavailable")
-    return value
+    return apply_cache_policy(observe_cache_reservation(repository, value))
 
 
 def validate_build_cache(repository, value):
     """Accept only the current workspace branch's safe cache reservation."""
-    validated = validate_plan_build_cache(repository, value)
-    cache, top_path, physical, _ = _cache_observation(repository, validated)
-    branch = _git(top_path, "symbolic-ref", "--quiet", "--short", "HEAD")
-    if branch.returncode:
-        raise ValueError("current workspace branch identity is unavailable")
-    expected = physical.joinpath(".cache", *branch.stdout.strip().split("/"), "target")
-    if cache != expected:
-        raise ValueError("Build cache must equal " + str(expected))
-    return validated
+    return apply_cache_policy(
+        observe_cache_reservation(repository, value, current_branch=True)
+    )
 
 
 def context_reasons(context):

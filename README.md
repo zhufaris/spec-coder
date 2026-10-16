@@ -174,7 +174,8 @@ CLI exit 1 也可能表示 baseline 成功但记录不可复用，应分别检�
 [ticket 计划](./references/ticket-template.md#copyable-v1-skeleton)使用 v1 Markdown。
 `check-artifacts.py` 在 Gate 2 前运行 `--phase spec`，Gate 3 前运行 `--phase plan`，
 交付运行 `--phase delivery`，检查实际文件中的引用、coverage、dependencies、waves、
-ownership 和记录字段。旧的无标记文档明确返回 unsupported，可在范围内规范格式或
+ownership 和记录字段。`--phase plan` and `--phase delivery` require an explicit target
+`--repo`; `--phase spec` may omit it. 旧的无标记文档明确返回 unsupported，可在范围内规范格式或
 人工 review，不能称为 checker pass。结构通过不证明业务正确性、命令实际执行或
 批准；Markdown 仍是唯一权威。参数和 exit codes 见 [Artifact format](./references/artifact-format.md)。
 

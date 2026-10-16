@@ -153,7 +153,7 @@ For relevant domain changes, references and acceptance preserve the approved bus
 ## Gate 3 review
 
 Run bundled `check-artifacts.py --phase plan --spec <absolute-spec> --plan
-<absolute-plan>` and resolve findings under [Findings and compatibility](./artifact-format.md#findings-and-compatibility).
+<absolute-plan> --repo <absolute-workspace>` and resolve findings under [Findings and compatibility](./artifact-format.md#findings-and-compatibility).
 Check coverage in both directions: every in-scope scenario/invariant has a responsible ticket, and every ticket traces to approved behavior and architecture. Resolve invalid blockers, excessive size and missing verification. Check every ticket's delegation eligibility and mode, mutation ownership and exclusions, dependencies, isolation need, concurrency conflicts, verification seam, Host-capacity requirement, real-isolation requirement, and `delegation_allowed = false` child boundary. Name unresolved load-bearing decisions and affected tickets; do not mark them implementation-ready. Independent approved slices need not wait on unrelated open decisions.
 
 Before Gate 3, resolve each ticket branch's exact ignored `Build cache`;

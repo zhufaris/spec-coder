@@ -209,9 +209,36 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                 "| Verification results | Exit 0; " + final.stdout.strip() + " |\n"
                 "| Commits | " + commit + " |\n\n## Final delivery checks"))
             plan.write_text(completed)
-            result = run([sys.executable, "-B", str(bundle / "scripts/check-artifacts.py"),
-                          "--phase", "delivery", "--spec", str(spec), "--plan", str(plan),
-                          "--repo", str(target), "--json"])
+            foreign_cwd = base / "foreign-cwd"
+            foreign_cwd.mkdir()
+            draft = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    str(bundle / "scripts/check-artifacts.py"),
+                    "--phase",
+                    "plan",
+                    "--spec",
+                    str(spec),
+                    "--plan",
+                    str(plan),
+                    "--repo",
+                    str(target),
+                    "--json",
+                ],
+                cwd=foreign_cwd,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(draft.returncode, 0, draft.stdout + draft.stderr)
+            result = subprocess.run(
+                [sys.executable, "-B", str(bundle / "scripts/check-artifacts.py"),
+                 "--phase", "delivery", "--spec", str(spec), "--plan", str(plan),
+                 "--repo", str(target), "--json"],
+                cwd=foreign_cwd,
+                capture_output=True,
+                text=True,
+            )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout)["status"], "passed")
             self.assertEqual(count(), 5, "structural delivery checking never executes recorded commands")

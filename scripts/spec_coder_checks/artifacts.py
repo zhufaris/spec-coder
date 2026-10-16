@@ -5,7 +5,8 @@ import re
 import subprocess
 
 from .waves import inspect_waves
-from .evidence import validate_plan_build_cache
+from .evidence import cache_policy_error, observe_cache_reservation
+from .workspace_policy import PolicyBlocker, validate_cache_reservation
 
 DECISION = r"(?:SCN|INV|ARCH)-[1-9][0-9]*"
 TICKET_ID = r"T[1-9][0-9]*"
@@ -242,6 +243,22 @@ def ownership_paths(doc, value, line):
     return paths
 
 
+def validate_plan_build_cache(repository, value):
+    """Apply pure Workspace Policy rules to artifact-adapter observations."""
+    observations = observe_cache_reservation(repository, value)
+    try:
+        return validate_cache_reservation(
+            observations.repository,
+            observations.build_cache,
+            observations.resolved_build_cache,
+            observations.branch_returncode,
+            observations.branch_stdout,
+            observations.ignore_returncode,
+        )
+    except PolicyBlocker as blocker:
+        raise ValueError(cache_policy_error(blocker))
+
+
 def check_plan(doc, decisions, repo):
     tickets, waves = parse_plan(doc)
     normalized = []
@@ -339,11 +356,19 @@ def check_delivery(doc, tickets, repo):
                     doc.add("delivery.unknown-commit", line, f"{commit} does not resolve to a local commit in {repo}")
 
 
-def check_artifacts(spec_path, plan_path=None, phase="spec", repo="."):
+def check_artifacts(spec_path, plan_path=None, phase="spec", repo=None):
     """Return (exit status, JSON-ready report); do not execute artifact commands."""
     findings = []
     documents = []
     failures = []
+    if phase != "spec" and repo is None:
+        return 2, {
+            "status": "unusable",
+            "phase": phase,
+            "findings": [
+                asdict(Finding("input.required", "", 1, "repository path is required"))
+            ],
+        }
     for path, kind in [(spec_path, "spec")] + ([(plan_path, "plan")] if phase != "spec" else []):
         if path is None:
             failures.append("unusable")
