@@ -51,9 +51,8 @@ isolated; autonomous selection does not relax ticket readiness or verification.
 
 ## Output
 
-Red-Green or structural evidence, passing affected checks, one ticket-only
-Conventional Commit with recorded evidence, and synchronized durable/runtime
-plan state.
+Red-Green/structural evidence, affected checks, one ticket-only Conventional
+Commit, and synchronized plan state.
 
 ## Process
 
@@ -70,7 +69,7 @@ plan state.
    integration, fresh verification, commits, and plan advancement. A direct
    implementer brief states `delegation_allowed = false` and cannot delegate or
    integrate sibling work.
-2. Re-read the relevant specification, domain language, ADRs, ticket acceptance
+2. Re-read the specification, domain language, ADRs, ticket acceptance
    and tests. Resolve referenced decisions, owners, boundaries, consistency and
    recovery semantics before implementation. Structural-only work uses its path
    below; mixed tickets still require Red-Green for changed outcomes.
@@ -92,10 +91,10 @@ plan state.
    scenarios/invariants have evidence. Cover relevant concurrency, duplicates
    and partial failures; sequential fakes do not prove concurrency guarantees.
    Use `scripts/validate-affected.py --repo <authoritative-repository> --path
-   <task-owned-path>` only for supported paths, repeating every supplied path;
+   <task-owned-path>` only for supported spec-coder paths, repeating every supplied path;
    arbitrary repositories use native checks. The mapper rejects missing or
-   unmapped paths. Attribute deleted/pre-rename paths while passing an existing
-   covering path. Record commands/results. Affected verification remains
+   unmapped paths. For a deleted/pre-rename path, pass an
+   existing post-change owner or test path. Record commands/results. Affected verification remains
    separate from the fresh full suite and grants no acceptance or completion.
 7. Main inspects the complete task-owned diff, attributes every change, and
    freshly verifies the focused behavior or structural evidence plus all
