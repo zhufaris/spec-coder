@@ -9,6 +9,7 @@ from forward_contracts import (
     WARNING,
     aggregate_status,
     apply_approved_setup,
+    apply_approved_setup_targets,
     classify_managed_block,
     choose_isolation_route,
     choose_delivery_review_mode,
@@ -74,6 +75,198 @@ class ReopenedGateThreeRevalidationScenarios(unittest.TestCase):
 
 
 class SetupForwardScenarios(unittest.TestCase):
+    def test_multi_target_drift_blocks_before_any_write(self) -> None:
+        proposals = {
+            "AGENTS.md": (b"agents-base", b"agents-after"),
+            ".gitignore": (b"ignore-base", b"ignore-after"),
+        }
+        writes = []
+
+        result = apply_approved_setup_targets(
+            proposals,
+            {"AGENTS.md": b"agents-base", ".gitignore": b"drifted"},
+            lambda target, content: writes.append((target, content)),
+        )
+
+        self.assertEqual(result["status"], BLOCKED)
+        self.assertEqual(result["reason"], "approved-target-drift")
+        self.assertEqual(writes, [])
+
+    def test_incomplete_target_set_blocks_before_any_write(self) -> None:
+        proposals = {
+            "AGENTS.md": (b"agents-base", b"agents-after"),
+            ".gitignore": (b"ignore-base", b"ignore-after"),
+        }
+        writes = []
+
+        result = apply_approved_setup_targets(
+            proposals,
+            {"AGENTS.md": b"agents-base"},
+            lambda target, content: writes.append((target, content)),
+        )
+
+        self.assertEqual(result["status"], BLOCKED)
+        self.assertEqual(result["reason"], "approved-target-drift")
+        self.assertEqual(result["applied"], ())
+        self.assertEqual(result["unapplied"], ("AGENTS.md", ".gitignore"))
+
+        self.assertEqual(writes, [])
+
+    def test_partial_apply_reports_changed_and_unapplied_targets(self) -> None:
+        proposals = {
+            "AGENTS.md": (b"agents-base", b"agents-after"),
+            ".gitignore": (b"ignore-base", b"ignore-after"),
+        }
+
+        stored = {target: before for target, (before, _after) in proposals.items()}
+        calls = []
+
+        def writer(target, content):
+            calls.append((target, content))
+            if target == ".gitignore":
+                raise OSError("simulated write failure")
+            stored[target] = content
+
+        result = apply_approved_setup_targets(
+            proposals,
+            {target: before for target, (before, _after) in proposals.items()},
+            writer,
+        )
+
+        self.assertEqual(result["status"], BLOCKED)
+        self.assertEqual(result["reason"], "partial-apply")
+        self.assertEqual(result["applied"], ("AGENTS.md",))
+        self.assertEqual(result["unapplied"], (".gitignore",))
+        self.assertEqual(result["failed_target"], ".gitignore")
+        self.assertEqual(
+            result["failure_detail"], "OSError: simulated write failure"
+        )
+        self.assertIn("idempotent", result["recovery"])
+
+        def recovery_writer(target, content):
+            calls.append((target, content))
+            stored[target] = content
+
+        recovery = apply_approved_setup_targets(
+            {".gitignore": proposals[".gitignore"]},
+            {".gitignore": stored[".gitignore"]},
+            recovery_writer,
+        )
+
+        self.assertEqual(recovery["status"], READY)
+        self.assertEqual(recovery["applied"], (".gitignore",))
+        self.assertEqual(
+            calls,
+            [
+                ("AGENTS.md", b"agents-after"),
+                (".gitignore", b"ignore-after"),
+                (".gitignore", b"ignore-after"),
+            ],
+        )
+        self.assertEqual(
+            stored,
+            {"AGENTS.md": b"agents-after", ".gitignore": b"ignore-after"},
+        )
+
+    def test_multi_target_apply_is_ordered_and_reports_complete_evidence(self) -> None:
+        proposals = {
+            "AGENTS.md": (b"agents-base", b"agents-after"),
+            ".gitignore": (b"ignore-base", b"ignore-after"),
+        }
+        writes = []
+
+        result = apply_approved_setup_targets(
+            proposals,
+            {target: before for target, (before, _after) in proposals.items()},
+            lambda target, content: writes.append((target, content)),
+        )
+
+        self.assertEqual(result["status"], READY)
+        self.assertEqual(result["applied"], ("AGENTS.md", ".gitignore"))
+        self.assertEqual(result["unapplied"], ())
+        self.assertEqual(
+            writes,
+            [
+                ("AGENTS.md", b"agents-after"),
+                (".gitignore", b"ignore-after"),
+            ],
+        )
+
+    def test_writer_false_reports_failure_without_rollback(self) -> None:
+        proposals = {
+            "AGENTS.md": (b"agents-base", b"agents-after"),
+            ".gitignore": (b"ignore-base", b"ignore-after"),
+        }
+        calls = []
+
+        def writer(target, content):
+            calls.append((target, content))
+            return target != ".gitignore"
+
+        result = apply_approved_setup_targets(
+            proposals,
+            {target: before for target, (before, _after) in proposals.items()},
+            writer,
+        )
+
+        self.assertEqual(result["status"], BLOCKED)
+        self.assertEqual(result["reason"], "partial-apply")
+        self.assertEqual(result["applied"], ("AGENTS.md",))
+        self.assertEqual(result["unapplied"], (".gitignore",))
+        self.assertEqual(
+            calls,
+            [
+                ("AGENTS.md", b"agents-after"),
+                (".gitignore", b"ignore-after"),
+            ],
+        )
+        self.assertEqual(
+            result["failure_detail"], "writer returned false for .gitignore"
+        )
+
+    def test_malformed_multi_target_inputs_fail_closed_before_writes(self) -> None:
+        writes = []
+        invalid_cases = (
+            ({}, {}),
+            ({"AGENTS.md": (b"same", b"same")}, {"AGENTS.md": b"same"}),
+            ({"AGENTS.md": ("text", b"after")}, {"AGENTS.md": b"base"}),
+            ({"AGENTS.md": (b"base", b"after")}, {"AGENTS.md": "text"}),
+        )
+
+        for proposals, current in invalid_cases:
+            with self.subTest(proposals=proposals, current=current):
+                with self.assertRaises(ValueError):
+                    apply_approved_setup_targets(
+                        proposals,
+                        current,
+                        lambda target, content: writes.append((target, content)),
+                    )
+
+        self.assertEqual(writes, [])
+
+    def test_unauthorized_target_fails_closed_before_writes(self) -> None:
+        writes = []
+
+        for proposals, current in (
+            (
+                {"config.toml": (b"config-base", b"config-after")},
+                {"config.toml": b"config-base"},
+            ),
+            (
+                {"AGENTS.md": (b"agents-base", b"agents-after")},
+                {"AGENTS.md": b"agents-base", "config.toml": b"config-base"},
+            ),
+        ):
+            with self.subTest(proposals=proposals, current=current):
+                with self.assertRaisesRegex(ValueError, "approved authority"):
+                    apply_approved_setup_targets(
+                        proposals,
+                        current,
+                        lambda target, content: writes.append((target, content)),
+                    )
+
+        self.assertEqual(writes, [])
+
     def test_first_setup_then_no_op_rerun_preserves_existing_bytes(self) -> None:
         original = b"# Existing\r\n\r\nKeep this.\r\n"
         proposal = propose_setup(original, CANONICAL)

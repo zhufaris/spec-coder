@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from types import MappingProxyType
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Callable, Dict, Iterable, Optional, Tuple
 
 
 READY = "READY"
@@ -558,6 +558,98 @@ def apply_approved_setup(
     if current != before:
         return BLOCKED, None
     return READY, after
+
+
+def apply_approved_setup_targets(
+    proposals: Mapping[str, Tuple[bytes, bytes]],
+    current: Mapping[str, bytes],
+    writer: Callable[[str, bytes], object],
+) -> Dict[str, object]:
+    """Revalidate every approved target before applying any of them.
+
+    The writer is deliberately one-way: a failed write reports the applied
+    prefix and unapplied suffix so recovery can regenerate proposals from
+    fresh bases.  It is never used to roll back an already-applied target.
+    """
+    if not isinstance(proposals, Mapping) or not proposals:
+        raise ValueError("setup proposals must be a nonempty mapping")
+    if not isinstance(current, Mapping):
+        raise ValueError("current setup targets must be a mapping")
+    if not callable(writer):
+        raise ValueError("setup writer must be callable")
+
+    allowed_targets = {"AGENTS.md", ".gitignore"}
+    ordered_proposals: list[tuple[str, bytes, bytes]] = []
+    for target, proposal in proposals.items():
+        if not isinstance(target, str) or not target:
+            raise ValueError("setup proposal targets must be nonempty strings")
+        if target not in allowed_targets:
+            raise ValueError("setup proposal target is outside approved authority")
+        if (
+            not isinstance(proposal, tuple)
+            or len(proposal) != 2
+            or not all(isinstance(content, bytes) for content in proposal)
+        ):
+            raise ValueError("setup proposals must be exact before/after byte pairs")
+        before, after = proposal
+        if before == after:
+            raise ValueError("setup proposals must describe a byte change")
+        ordered_proposals.append((target, before, after))
+
+    current_items = tuple(current.items())
+    if not all(
+        isinstance(target, str) and target and isinstance(content, bytes)
+        for target, content in current_items
+    ):
+        raise ValueError("current setup targets require nonempty names and byte content")
+    if any(target not in allowed_targets for target, _content in current_items):
+        raise ValueError("current setup target is outside approved authority")
+
+    targets = tuple(target for target, _before, _after in ordered_proposals)
+    proposal_keys = set(targets)
+    current_keys = {target for target, _content in current_items}
+    current_by_target = dict(current_items)
+    drifted = tuple(
+        target
+        for target, before, _after in ordered_proposals
+        if target not in current_by_target or current_by_target[target] != before
+    )
+    unexpected = tuple(sorted(current_keys - proposal_keys))
+    if current_keys != proposal_keys or drifted:
+        return {
+            "status": BLOCKED,
+            "reason": "approved-target-drift",
+            "applied": (),
+            "unapplied": targets,
+            "drifted": drifted + unexpected,
+        }
+
+    applied: list[str] = []
+    for index, (target, _before, after) in enumerate(ordered_proposals):
+        failure_detail = None
+        try:
+            if writer(target, after) is False:
+                failure_detail = f"writer returned false for {target}"
+        except Exception as error:  # The failure is evidence, not rollback authority.
+            failure_detail = f"{type(error).__name__}: {error}"
+        if failure_detail is not None:
+            return {
+                "status": BLOCKED,
+                "reason": "partial-apply",
+                "applied": tuple(applied),
+                "unapplied": targets[index:],
+                "failed_target": target,
+                "failure_detail": failure_detail,
+                "recovery": "Regenerate proposals from fresh bases and perform an idempotent rerun.",
+            }
+        applied.append(target)
+
+    return {
+        "status": READY,
+        "reason": "applied",
+        "applied": tuple(applied),
+        "unapplied": (),
+    }
 
 
 def aggregate_status(statuses: Iterable[str]) -> str:
