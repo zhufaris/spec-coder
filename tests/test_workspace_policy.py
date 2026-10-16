@@ -25,6 +25,33 @@ class WorkspacePolicyCliTests(unittest.TestCase):
             capture_output=True,
         )
 
+    def repository_snapshot(self, repo):
+        index = repo / ".git" / "index"
+        return {
+            "status": subprocess.run(
+                ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+                cwd=repo,
+                check=True,
+                text=True,
+                capture_output=True,
+            ).stdout,
+            "index": index.read_bytes() if index.exists() else None,
+            "gitignore": (
+                (repo / ".gitignore").read_bytes()
+                if (repo / ".gitignore").exists()
+                else None
+            ),
+            "tracked": (
+                (repo / "tracked").read_bytes()
+                if (repo / "tracked").exists()
+                else None
+            ),
+            "generated": tuple(
+                (name, (repo / name).exists(), (repo / name).is_symlink())
+                for name in (".worktrees", ".cache")
+            ),
+        }
+
     def test_policy_core_has_no_git_or_filesystem_adapters(self):
         module_path = ROOT / "scripts" / "spec_coder_checks" / "workspace_policy.py"
         source = module_path.read_text()
@@ -185,6 +212,104 @@ class WorkspacePolicyCliTests(unittest.TestCase):
             )
             self.assertEqual((repo / ".gitignore").read_bytes(), original)
 
+    def test_proposal_for_absent_gitignore_returns_bytes_without_creating_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            before = self.repository_snapshot(repo)
+
+            result = self.run_cli("propose-ignore", "--repo", str(repo))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            proposal = json.loads(result.stdout)
+            self.assertFalse(proposal["gitignore_exists"])
+            self.assertEqual(
+                proposal["missing_entries"], ["/.worktrees/\n", "/.cache/\n"]
+            )
+            self.assertTrue(proposal["changed"])
+            self.assertEqual(
+                base64.b64decode(proposal["proposed_bytes_base64"]),
+                b"/.worktrees/\n/.cache/\n",
+            )
+            self.assertFalse((repo / ".gitignore").exists())
+            self.assertEqual(self.repository_snapshot(repo), before)
+
+    def test_proposal_with_current_exact_entries_is_a_byte_exact_noop(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            original = b"user-pattern\n/.worktrees/\r\n/.cache/\n"
+            (repo / ".gitignore").write_bytes(original)
+
+            result = self.run_cli("propose-ignore", "--repo", str(repo))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            proposal = json.loads(result.stdout)
+            self.assertTrue(proposal["gitignore_exists"])
+            self.assertEqual(proposal["missing_entries"], [])
+            self.assertFalse(proposal["changed"])
+            self.assertEqual(
+                base64.b64decode(proposal["proposed_bytes_base64"]), original
+            )
+            self.assertEqual((repo / ".gitignore").read_bytes(), original)
+
+    def test_partial_exact_entry_appends_missing_root_after_lf_or_crlf(self):
+        cases = (
+            (b"/.worktrees/\n", b"/.worktrees/\n/.cache/\n", ["/.cache/\n"]),
+            (
+                b"/.cache/\r\n",
+                b"/.cache/\r\n/.worktrees/\n",
+                ["/.worktrees/\n"],
+            ),
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            for original, expected, missing in cases:
+                with self.subTest(original=original):
+                    (repo / ".gitignore").write_bytes(original)
+
+                    result = self.run_cli("propose-ignore", "--repo", str(repo))
+
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    proposal = json.loads(result.stdout)
+                    self.assertEqual(proposal["missing_entries"], missing)
+                    self.assertEqual(
+                        base64.b64decode(proposal["proposed_bytes_base64"]),
+                        expected,
+                    )
+                    self.assertEqual((repo / ".gitignore").read_bytes(), original)
+
+    def test_nonexact_equivalent_patterns_remain_owned_and_exact_roots_are_added(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            original = (
+                b".worktrees/\n"
+                b".worktrees/\n"
+                b"/.worktrees/**\n"
+                b"/.cache\n"
+                b"/.cache\n"
+                b"/.cache//\n"
+            )
+            (repo / ".gitignore").write_bytes(original)
+
+            result = self.run_cli("propose-ignore", "--repo", str(repo))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            proposal = json.loads(result.stdout)
+            self.assertEqual(
+                proposal["missing_entries"], ["/.worktrees/\n", "/.cache/\n"]
+            )
+            proposed = base64.b64decode(proposal["proposed_bytes_base64"])
+            self.assertEqual(proposed, original + b"/.worktrees/\n/.cache/\n")
+            self.assertTrue(proposed.startswith(original))
+            self.assertEqual((repo / ".gitignore").read_bytes(), original)
+
     def test_proposal_blocks_outside_and_dangling_gitignore_symlinks(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -223,6 +348,112 @@ class WorkspacePolicyCliTests(unittest.TestCase):
             blocked = self.run_cli("validate-allocation", "--repo", str(repo), "--branch", "feat/api", "--workspace", str(workspace), "--recorded-base", "not-the-head")
             self.assertEqual(blocked.returncode, 1)
             self.assertEqual(json.loads(blocked.stdout)["reason"], "allocation-base-mismatch")
+
+    def test_validate_allocation_rejects_unrelated_repository_at_canonical_path(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            (repo / ".gitignore").write_text("/.worktrees/\n/.cache/\n")
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            workspace = repo / ".worktrees" / "feat" / "api"
+            workspace.mkdir(parents=True)
+            subprocess.run(["git", "init", "-q"], cwd=workspace, check=True)
+            subprocess.run(
+                ["git", "config", "user.email", "other@example.invalid"],
+                cwd=workspace,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Other"], cwd=workspace, check=True
+            )
+            (workspace / "tracked").write_text("unrelated\n")
+            subprocess.run(["git", "add", "tracked"], cwd=workspace, check=True)
+            subprocess.run(
+                ["git", "commit", "-qm", "unrelated"], cwd=workspace, check=True
+            )
+            unrelated_head = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=workspace,
+                check=True,
+                text=True,
+                capture_output=True,
+            ).stdout.strip()
+            before_repo = self.repository_snapshot(repo)
+            before_workspace = self.repository_snapshot(workspace)
+
+            result = self.run_cli(
+                "validate-allocation",
+                "--repo",
+                str(repo),
+                "--branch",
+                "feat/api",
+                "--workspace",
+                str(workspace),
+                "--recorded-base",
+                unrelated_head,
+            )
+
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertEqual(
+                json.loads(result.stdout)["reason"], "allocation-repository-mismatch"
+            )
+            self.assertEqual(self.repository_snapshot(repo), before_repo)
+            self.assertEqual(self.repository_snapshot(workspace), before_workspace)
+
+    def test_read_only_commands_preserve_status_bytes_and_generated_paths(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            (repo / ".gitignore").write_bytes(b"/.worktrees/\n/.cache/\n")
+            (repo / "tracked").write_bytes(b"tracked\n")
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            subprocess.run(
+                ["git", "config", "user.email", "policy@example.invalid"],
+                cwd=repo,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Policy"], cwd=repo, check=True
+            )
+            subprocess.run(["git", "add", ".gitignore", "tracked"], cwd=repo, check=True)
+            subprocess.run(["git", "commit", "-qm", "fixture"], cwd=repo, check=True)
+            head = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=repo,
+                check=True,
+                text=True,
+                capture_output=True,
+            ).stdout.strip()
+            before = self.repository_snapshot(repo)
+
+            inspect = self.run_cli(
+                "inspect", "--repo", str(repo), "--branch", "feat/api"
+            )
+            self.assertEqual(inspect.returncode, 0, inspect.stderr)
+            self.assertEqual(self.repository_snapshot(repo), before)
+
+            proposal = self.run_cli("propose-ignore", "--repo", str(repo))
+            self.assertEqual(proposal.returncode, 0, proposal.stderr)
+            self.assertFalse(json.loads(proposal.stdout)["changed"])
+            self.assertEqual(self.repository_snapshot(repo), before)
+
+            blocked = self.run_cli(
+                "validate-allocation",
+                "--repo",
+                str(repo),
+                "--branch",
+                "feat/api",
+                "--workspace",
+                str(repo / ".worktrees" / "feat" / "api"),
+                "--recorded-base",
+                head,
+            )
+            self.assertEqual(blocked.returncode, 1)
+            self.assertEqual(
+                json.loads(blocked.stdout)["reason"],
+                "allocation-workspace-unavailable",
+            )
+            self.assertEqual(self.repository_snapshot(repo), before)
 
 
 if __name__ == "__main__":
