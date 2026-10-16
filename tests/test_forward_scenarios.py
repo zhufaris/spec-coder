@@ -1,7 +1,10 @@
+import base64
+import hashlib
 import unittest
 from pathlib import Path
 
 import forward_contracts as contracts
+from scripts.spec_coder_checks.workspace_policy import propose_ignore
 
 from forward_contracts import (
     BLOCKED,
@@ -41,8 +44,22 @@ from forward_contracts import (
 START = b"<!-- spec-coder:start -->"
 END = b"<!-- spec-coder:end -->"
 CANONICAL = START + b"\nmanaged\n" + END + b"\n"
+AGENTS_BASE = b"# Existing agents\n"
+IGNORE_BASE = b"user-pattern\n"
 ROUTING_FIXTURES = Path(__file__).parent / "fixtures" / "model-routing"
 BUNDLED_ROUTING = Path(__file__).resolve().parents[1] / "config" / "model-routing.toml"
+
+
+def authorized_ignore_proposal(before):
+    proposal = propose_ignore(before)
+    return before, base64.b64decode(proposal.proposed_bytes_base64)
+
+
+def authorized_setup_proposals():
+    return {
+        "AGENTS.md": propose_setup(AGENTS_BASE, CANONICAL),
+        ".gitignore": authorized_ignore_proposal(IGNORE_BASE),
+    }
 
 
 class ReopenedGateThreeRevalidationScenarios(unittest.TestCase):
@@ -76,16 +93,15 @@ class ReopenedGateThreeRevalidationScenarios(unittest.TestCase):
 
 class SetupForwardScenarios(unittest.TestCase):
     def test_multi_target_drift_blocks_before_any_write(self) -> None:
-        proposals = {
-            "AGENTS.md": (b"agents-base", b"agents-after"),
-            ".gitignore": (b"ignore-base", b"ignore-after"),
-        }
+        proposals = authorized_setup_proposals()
         writes = []
 
         result = apply_approved_setup_targets(
             proposals,
-            {"AGENTS.md": b"agents-base", ".gitignore": b"drifted"},
+            {"AGENTS.md": AGENTS_BASE, ".gitignore": b"drifted"},
             lambda target, content: writes.append((target, content)),
+            lambda target: b"must-not-read",
+            CANONICAL,
         )
 
         self.assertEqual(result["status"], BLOCKED)
@@ -93,16 +109,15 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(writes, [])
 
     def test_incomplete_target_set_blocks_before_any_write(self) -> None:
-        proposals = {
-            "AGENTS.md": (b"agents-base", b"agents-after"),
-            ".gitignore": (b"ignore-base", b"ignore-after"),
-        }
+        proposals = authorized_setup_proposals()
         writes = []
 
         result = apply_approved_setup_targets(
             proposals,
-            {"AGENTS.md": b"agents-base"},
+            {"AGENTS.md": AGENTS_BASE},
             lambda target, content: writes.append((target, content)),
+            lambda target: b"must-not-read",
+            CANONICAL,
         )
 
         self.assertEqual(result["status"], BLOCKED)
@@ -113,10 +128,7 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(writes, [])
 
     def test_partial_apply_reports_changed_and_unapplied_targets(self) -> None:
-        proposals = {
-            "AGENTS.md": (b"agents-base", b"agents-after"),
-            ".gitignore": (b"ignore-base", b"ignore-after"),
-        }
+        proposals = authorized_setup_proposals()
 
         stored = {target: before for target, (before, _after) in proposals.items()}
         calls = []
@@ -131,6 +143,8 @@ class SetupForwardScenarios(unittest.TestCase):
             proposals,
             {target: before for target, (before, _after) in proposals.items()},
             writer,
+            stored.__getitem__,
+            CANONICAL,
         )
 
         self.assertEqual(result["status"], BLOCKED)
@@ -142,6 +156,10 @@ class SetupForwardScenarios(unittest.TestCase):
             result["failure_detail"], "OSError: simulated write failure"
         )
         self.assertIn("idempotent", result["recovery"])
+        self.assertEqual(
+            dict(result["observed_digests"])["AGENTS.md"],
+            hashlib.sha256(proposals["AGENTS.md"][1]).hexdigest(),
+        )
 
         def recovery_writer(target, content):
             calls.append((target, content))
@@ -151,6 +169,8 @@ class SetupForwardScenarios(unittest.TestCase):
             {".gitignore": proposals[".gitignore"]},
             {".gitignore": stored[".gitignore"]},
             recovery_writer,
+            stored.__getitem__,
+            CANONICAL,
         )
 
         self.assertEqual(recovery["status"], READY)
@@ -158,27 +178,34 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(
             calls,
             [
-                ("AGENTS.md", b"agents-after"),
-                (".gitignore", b"ignore-after"),
-                (".gitignore", b"ignore-after"),
+                ("AGENTS.md", proposals["AGENTS.md"][1]),
+                (".gitignore", proposals[".gitignore"][1]),
+                (".gitignore", proposals[".gitignore"][1]),
             ],
         )
         self.assertEqual(
             stored,
-            {"AGENTS.md": b"agents-after", ".gitignore": b"ignore-after"},
+            {
+                "AGENTS.md": proposals["AGENTS.md"][1],
+                ".gitignore": proposals[".gitignore"][1],
+            },
         )
 
     def test_multi_target_apply_is_ordered_and_reports_complete_evidence(self) -> None:
-        proposals = {
-            "AGENTS.md": (b"agents-base", b"agents-after"),
-            ".gitignore": (b"ignore-base", b"ignore-after"),
-        }
+        proposals = authorized_setup_proposals()
         writes = []
+        stored = {target: before for target, (before, _after) in proposals.items()}
+
+        def writer(target, content):
+            writes.append((target, content))
+            stored[target] = content
 
         result = apply_approved_setup_targets(
             proposals,
             {target: before for target, (before, _after) in proposals.items()},
-            lambda target, content: writes.append((target, content)),
+            writer,
+            stored.__getitem__,
+            CANONICAL,
         )
 
         self.assertEqual(result["status"], READY)
@@ -187,26 +214,35 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(
             writes,
             [
-                ("AGENTS.md", b"agents-after"),
-                (".gitignore", b"ignore-after"),
+                ("AGENTS.md", proposals["AGENTS.md"][1]),
+                (".gitignore", proposals[".gitignore"][1]),
             ],
+        )
+        self.assertEqual(
+            result["observed_digests"],
+            tuple(
+                (target, hashlib.sha256(after).hexdigest())
+                for target, (_before, after) in proposals.items()
+            ),
         )
 
     def test_writer_false_reports_failure_without_rollback(self) -> None:
-        proposals = {
-            "AGENTS.md": (b"agents-base", b"agents-after"),
-            ".gitignore": (b"ignore-base", b"ignore-after"),
-        }
+        proposals = authorized_setup_proposals()
         calls = []
+        stored = {target: before for target, (before, _after) in proposals.items()}
 
         def writer(target, content):
             calls.append((target, content))
-            return target != ".gitignore"
+            if target == ".gitignore":
+                return False
+            stored[target] = content
 
         result = apply_approved_setup_targets(
             proposals,
             {target: before for target, (before, _after) in proposals.items()},
             writer,
+            stored.__getitem__,
+            CANONICAL,
         )
 
         self.assertEqual(result["status"], BLOCKED)
@@ -216,8 +252,8 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(
             calls,
             [
-                ("AGENTS.md", b"agents-after"),
-                (".gitignore", b"ignore-after"),
+                ("AGENTS.md", proposals["AGENTS.md"][1]),
+                (".gitignore", proposals[".gitignore"][1]),
             ],
         )
         self.assertEqual(
@@ -240,6 +276,8 @@ class SetupForwardScenarios(unittest.TestCase):
                         proposals,
                         current,
                         lambda target, content: writes.append((target, content)),
+                        lambda target: b"must-not-read",
+                        CANONICAL,
                     )
 
         self.assertEqual(writes, [])
@@ -263,9 +301,59 @@ class SetupForwardScenarios(unittest.TestCase):
                         proposals,
                         current,
                         lambda target, content: writes.append((target, content)),
+                        lambda target: b"must-not-read",
+                        CANONICAL,
                     )
 
         self.assertEqual(writes, [])
+
+    def test_gitignore_proposal_cannot_replace_user_owned_bytes(self) -> None:
+        writes = []
+        with self.assertRaisesRegex(ValueError, "authorized bytes"):
+            apply_approved_setup_targets(
+                {".gitignore": (b"user-pattern\n", b"replacement\n")},
+                {".gitignore": b"user-pattern\n"},
+                lambda target, content: writes.append((target, content)),
+                lambda target: b"must-not-read",
+                CANONICAL,
+            )
+        self.assertEqual(writes, [])
+
+    def test_agents_proposal_must_match_the_explicit_canonical_block(self) -> None:
+        writes = []
+        with self.assertRaisesRegex(ValueError, "authorized bytes"):
+            apply_approved_setup_targets(
+                {"AGENTS.md": (AGENTS_BASE, b"replacement\n")},
+                {"AGENTS.md": AGENTS_BASE},
+                lambda target, content: writes.append((target, content)),
+                lambda target: b"must-not-read",
+                CANONICAL,
+            )
+        self.assertEqual(writes, [])
+
+    def test_post_write_observation_must_match_approved_bytes(self) -> None:
+        proposal = propose_setup(AGENTS_BASE, CANONICAL)
+        writes = []
+        stored = {"AGENTS.md": AGENTS_BASE}
+
+        result = apply_approved_setup_targets(
+            {"AGENTS.md": proposal},
+            {"AGENTS.md": AGENTS_BASE},
+            lambda target, content: writes.append((target, content)),
+            stored.__getitem__,
+            CANONICAL,
+        )
+
+        self.assertEqual(result["status"], BLOCKED)
+        self.assertEqual(result["reason"], "partial-apply")
+        self.assertEqual(result["applied"], ())
+        self.assertEqual(result["unapplied"], ("AGENTS.md",))
+        self.assertIn("did not match approved bytes", result["failure_detail"])
+        self.assertEqual(
+            result["observed_digests"],
+            (("AGENTS.md", hashlib.sha256(AGENTS_BASE).hexdigest()),),
+        )
+        self.assertEqual(writes, [("AGENTS.md", proposal[1])])
 
     def test_first_setup_then_no_op_rerun_preserves_existing_bytes(self) -> None:
         original = b"# Existing\r\n\r\nKeep this.\r\n"
