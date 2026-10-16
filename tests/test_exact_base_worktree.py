@@ -159,7 +159,7 @@ class ExactBaseWorktreeTests(unittest.TestCase):
             skill,
         )
         for phrase in (
-            "native availability",
+            "native allocation",
             "recorded base",
             "validate",
             "actual",

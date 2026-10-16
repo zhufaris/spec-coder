@@ -17,7 +17,7 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
         ticket_template = read("references/ticket-template.md").lower()
         routing = read("references/subagent-routing-contract.md").lower()
 
-        for text in (workflow, planner, ticket_template, routing):
+        for text in (workflow, ticket_template, routing):
             self.assertIn("one active execution wave", text)
             self.assertNotIn("at most one active ticket", text)
             self.assertNotIn("at most one item in progress", text)
@@ -80,7 +80,7 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
         ticket_template = read("references/ticket-template.md").lower()
         routing = read("references/subagent-routing-contract.md").lower()
 
-        for text in (workflow, planner, ticket_template, routing):
+        for text in (workflow, ticket_template):
             for phrase in (
                 "every ticket exactly once",
                 "planned wave",
@@ -89,6 +89,10 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
             ):
                 with self.subTest(document=text[:30], phrase=phrase):
                     self.assertIn(phrase, text)
+        for phrase in ("planned wave", "durable", "gate 3"):
+            with self.subTest(document="planner", phrase=phrase):
+                self.assertIn(phrase, planner)
+        self.assertIn("every\nticket exactly once", routing)
 
         self.assertIn("## wave w1", ticket_template)
         self.assertIn("scheduling order is not a functional dependency", ticket_template)

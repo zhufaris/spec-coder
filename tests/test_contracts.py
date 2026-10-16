@@ -398,8 +398,6 @@ class PluginContractTests(unittest.TestCase):
             "workspace preflight owns dependency preparation and baseline verification",
             "do not create a commit",
             "linked-worktree candidate",
-            "`0` means ignored",
-            "`1` means definitively not ignored",
             "mutation-free location",
             "sibling",
             "return the conflict to workspace preflight",
@@ -410,10 +408,9 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, normalized)
         self.assertNotIn("new sibling location outside the repository", normalized)
-        self.assertIn("git -C <repo> check-ignore -q .worktrees/", text)
-        self.assertIn("git -C <repo> check-ignore -q .cache/", text)
-        self.assertNotIn("git check-ignore -q /.worktrees/", text)
-        self.assertNotIn("git check-ignore -q /.cache/", text)
+        self.assertIn("workspace-policy.py inspect", text)
+        self.assertIn("workspace-policy.py validate-allocation", text)
+        self.assertIn("do not restate", normalized)
         self.assertIn("every native or Git allocation", text)
         self.assertIn("actual `HEAD`", text)
         ignored = read_text(ROOT / ".gitignore")
@@ -422,6 +419,23 @@ class PluginContractTests(unittest.TestCase):
         self.assertLess(normalized.index("enter_worktree"), normalized.index("git worktree add"))
         self.assertIn('$using-git-worktrees', metadata)
         self.assertIn('display_name: "Using Git Worktrees"', metadata)
+
+    def test_runtime_compaction_surface_budgets_and_document_roles(self) -> None:
+        worktree_skill = read_text(ROOT / "skills" / "using-git-worktrees" / "SKILL.md")
+        ticket_template = read_text(ROOT / "references" / "ticket-template.md")
+        readme = read_text(ROOT / "README.md")
+        install = read_text(ROOT / "INSTALL.md")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+
+        self.assertLessEqual(len(worktree_skill.split()), 1000)
+        self.assertLessEqual(len(ticket_template.split()), 1300)
+        self.assertIn("## Workflow", readme)
+        self.assertIn("## Skills", readme)
+        self.assertIn("## 故障排查", install)
+        self.assertIn("README.md", install)
+        self.assertIn("subagent-routing-contract.md", install)
+        self.assertNotIn("### 默认委派与执行边界", install)
+        self.assertNotIn("### Worker Progress Heartbeat", install)
 
         capability_map = compatibility.split("## Capability Map\n", 1)[1].split(
             "\n## ", 1
@@ -512,6 +526,7 @@ class PluginContractTests(unittest.TestCase):
         setup = read_text(ROOT / "skills" / "setup-coder" / "SKILL.md")
         contract = read_text(ROOT / "references" / "setup-contract.md")
         workflow = read_text(ROOT / "references" / "workflow-contract.md")
+        install_guide = read_text(ROOT / "INSTALL.md")
         combined = " ".join((setup + "\n" + contract).lower().split())
 
         for phrase in (
@@ -535,6 +550,10 @@ class PluginContractTests(unittest.TestCase):
         ):
             with self.subTest(workflow_phrase=phrase):
                 self.assertIn(phrase, workflow_normalized)
+
+        for phrase in ("AGENTS.md", "根 `.gitignore`", "`/.worktrees/`", "`/.cache/`", "exact-diff review"):
+            with self.subTest(public_setup_phrase=phrase):
+                self.assertIn(phrase, install_guide)
 
     def test_maintainer_docs_are_repository_ignored(self) -> None:
         ignore_rules = read_text(ROOT / ".gitignore").splitlines()
@@ -863,14 +882,14 @@ class PluginContractTests(unittest.TestCase):
             "tests/forward_contracts.py",
             "tests/fixtures/scenarios.md",
         ):
-            for published_doc in (readme, install_guide):
-                self.assertIn(phrase, published_doc.lower())
+            self.assertIn(phrase, readme.lower())
+        self.assertIn("README.md", install_guide)
+        self.assertIn("subagent-routing-contract.md", install_guide)
         for phrase in (
             "progress-snapshot.py",
             "heartbeat-emitter-unavailable",
         ):
-            for published_doc in (readme, install_guide):
-                self.assertIn(phrase, published_doc.lower())
+            self.assertIn(phrase, readme.lower())
         published_docs = "\n".join((readme, install_guide, compatibility))
         self.assertNotIn("0.5.0", published_docs)
         self.assertNotIn("0.4.1", published_docs)
@@ -1054,22 +1073,23 @@ class PluginContractTests(unittest.TestCase):
         readme = read_text(ROOT / "README.md").lower()
         install_guide = read_text(ROOT / "INSTALL.md").lower()
 
-        for document in (readme, install_guide):
-            for phrase in (
-                "progresssnapshot",
-                "45-60 seconds",
-                "phase change",
-                "long command",
-                "heartbeat-capability-unavailable",
-                "heartbeat-overdue",
-                "awaiting-heartbeat",
-                "before or at dispatch",
-                "missed interval",
-                "wait timeout",
-                "main-only",
-            ):
-                with self.subTest(document=document[:30], phrase=phrase):
-                    self.assertIn(phrase, document)
+        for phrase in (
+            "progresssnapshot",
+            "45-60 seconds",
+            "phase change",
+            "long command",
+            "heartbeat-capability-unavailable",
+            "heartbeat-overdue",
+            "awaiting-heartbeat",
+            "before or at dispatch",
+            "missed interval",
+            "wait timeout",
+            "main-only",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, readme)
+        self.assertIn("subagent-routing-contract.md#worker-progress-heartbeat", install_guide)
+        self.assertNotIn("### worker progress heartbeat", install_guide)
 
 
 if __name__ == "__main__":

@@ -154,50 +154,17 @@ plugin root 下脚本绝对路径；不要从 target cwd 猜测 `./scripts/`。
 明确 unsupported，走人工 review 或范围内格式规范化。工具不会执行文档命令、
 批准 gate、改 checkbox 或证明记录真实。
 
-### 默认委派与执行边界
+### 运行时工作流契约
 
-Gate 3 前，`plan-coder` 将 ticket 写入 explicit durable planned wave sections；Gate 3 同时审批 ticket set 与 wave membership/order。每次 Gate 3 通过后，计划（包括 singleton）进入同一个 native implement-spec executor，按当前最早未完成 planned wave 调度每个 ticket 的 `tdd-coder` lifecycle。default delegation 会把其中 dependency-ready、输入完整、scope 有界可逆、可独立验证且不携带 main-only 权限的 eligible ticket 交给一个 direct worker。可以使用 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 将指定范围留给 main；这些 opt-out 不写入配置。live dispatch batch 可在当前 durable planned wave 内因 Host capacity 缩小，最多 four tickets。
-
-Gate 3 后，已批准的 scheduling input 一旦变化就停止 resume，先完成 durable plan update、renewed approval record，并立即执行 `check-artifacts.py --phase plan`。只有重新完成 active-result accounting 与 compatibility pass 后才可继续；这是 reopened Gate 3 的原审批更新，不增加 fourth Gate。本轮新增的 internal support-path mappings 仅覆盖 `tests/forward_contracts.py` 与 `tests/fixtures/scenarios.md`，其余未知路径必须 fail-closed。
-
-Parallel mutation 只有在 real Host/task workspace isolation 存在时才安全。若无真实隔离，使用 serialized direct workers；用户明确要求并行时，先按[并行请求规则](references/subagent-routing-contract.md#explicit-parallel-requests)检查可行性并尝试准备隔离，回退须说明具体阻碍，必须并行的要求不可擅自降为串行；不要以共享 workspace 中的文件不相交代替隔离。There is no implement-spec wrapper agent and no merger subagent; runtime must not pull tickets from a later planned wave，亦不得重组已审批 membership；Host handles 保持 conversational，checkbox 与 commits 支持恢复。spawn unavailable 时 main 记录原因并本地执行；用户明确要求 delegated execution 时则报告 blocker。所有审批解释、diff acceptance、fresh verification、归属、stage、commit 和 completion claim 都是 main-only。
-
-Agent tree 为 at most two layers，only the active main agent 可以 spawn。每个 child brief 都必须包含 `delegation_allowed = false`；child 需要更多协作时返回证据与 blocker，不能自行再委派。
-
-delivery 默认创建两个独立、只读 direct reviewers，分别检查 Standards axis 和 Spec axis。review-specific opt-out 或 request-wide opt-out 会改为 main-local 两轴 review；spawn unavailable 且 delegated review was explicitly required 时必须阻塞，否则 main 执行相同的本地 review。
-
-### Worker Progress Heartbeat
-
-若 live Host 有 proactive child-to-main messaging，每个 suite-owned direct
-child（implementation worker、Standards reviewer、Spec reviewer，以及由 main
-创建的 promotion sibling）都遵循共享 `ProgressSnapshot`：在开始时、active
-期间每 45-60 seconds、发生 phase change、long command 前后，以及 blocker、
-failure 或 completion 时立即报告。它只提供对话中的 observation evidence；短
-任务只发起始和终态，不伪造周期心跳。安装器不实现、配置或承诺任何 Host 消息
-适配器。
-
-main 在 before or at dispatch 记录消息能力：可用时为 `heartbeat-ready`，不可用
-时为 `heartbeat-capability-unavailable`；后者仍保留 delegation 与最终 evidence
-return。普通无消息观察是 `awaiting-heartbeat`；只有 missed interval 或 Host
-wait timeout 才记录为 `heartbeat-overdue`。两者都只表示该窗口没有 message，
-不是 failure 或 blocker，且不给予 interrupt、takeover、promotion 或 local
-fallback 权限。snapshot 无法改变 main-only 的 diff acceptance、fresh
-verification 或 completion authority；每个 child 仍是
-`delegation_allowed = false`、不得 stage/commit，delivery reviewer 仍为
-read-only。
-
-每个 direct-child brief 使用 routing schema 所有的一个 canonical ProgressSnapshot envelope；`observed_at` 记录 actual send-time，字段不能使用 aliases。invalid snapshot 没有 execution authority，不能恢复、推进或修改 main-only 授权边界。
-
-Heartbeat emitter：当 capability 为 `heartbeat-ready` 时，brief 必须包含
-main 提供的绝对 `scripts/progress-snapshot.py` 命令。Worker 必须使用
-`python3`、该绝对路径及七个 required field flags 作为 argument vector 调用，
-并立即把唯一 stdout 行 unchanged 转发给 main；manual JSON 不得作为 primary
-path。调用失败时才记录 `heartbeat-emitter-unavailable` 并回退到 canonical
-manual envelope，且不改变 delegation 或 authority。
-
-Interactive Gate 和其他仍需 separate human authority 的 suite-owned approval
-或 mutation authorization，先通过 `show-me` 提供 two to four 个 grounded
-choices 及各自后果，再请求选择。Autonomous selection does not invoke `show-me`。
+安装成功后，能力与日常 workflow map 见 [README.md](./README.md)。委派、durable
+waves、并行隔离、main-only authority、`ProgressSnapshot` heartbeat emitter 和
+reopened Gate 3 的完整规范只在
+[Subagent routing contract](./references/subagent-routing-contract.md) 中维护；安装器
+不实现或配置 Host 消息适配器。需要执行该路径时，按
+[Explicit Parallel Requests](./references/subagent-routing-contract.md#explicit-parallel-requests)
+和 [Worker Progress Heartbeat](./references/subagent-routing-contract.md#worker-progress-heartbeat)
+读取当前规则。Interactive Gate 仍先用 `show-me`；autonomous selection does not
+invoke `show-me`。
 
 ### 可选：覆盖 bundled model defaults
 
@@ -243,7 +210,7 @@ Agent tree 固定为两层：只有 active main 可以创建第 2 层 direct sub
 
 ## 6. 初始化目标仓库
 
-安装后在新的 Codex 会话中，用户可以显式要求“使用 `setup-coder` 初始化当前仓库”。它默认只检查并提议维护 repository-local `AGENTS.md`，同时报告 Host capabilities 和仓库验证命令。任何写入前都必须展示精确 diff；不要仅因执行 setup 创建 worktree、规格、tickets、提交或安装依赖。
+安装后在新的 Codex 会话中，用户可以显式要求“使用 `setup-coder` 初始化当前仓库”。它默认检查并提议维护 repository-local `AGENTS.md` 受管理区块，以及根 `.gitignore` 的精确 `/.worktrees/` 和 `/.cache/` 条目，同时报告 Host capabilities 和仓库验证命令；三项在同一次 exact-diff review 中确认。不要仅因执行 setup 创建 worktree、规格、tickets、提交或安装依赖。
 
 ## 7. 可选：启用全局默认路由
 
