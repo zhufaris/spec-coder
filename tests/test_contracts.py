@@ -401,9 +401,6 @@ class PluginContractTests(unittest.TestCase):
             "mutation-free location",
             "sibling",
             "return the conflict to workspace preflight",
-            ".worktrees/<branch>",
-            ".cache/<branch>/target",
-            "exact repository-local source path",
             "disposable small files",
         ):
             self.assertIn(phrase, normalized)
@@ -459,6 +456,16 @@ class PluginContractTests(unittest.TestCase):
         workflow = read_text(ROOT / "references" / "workflow-contract.md").lower()
 
         self.assertIn("workflow-contract.md#workspace-selection", skill)
+        self.assertIn("source_worktree", skill)
+        self.assertIn("build_cache", skill)
+        self.assertIn("git worktree add <source-worktree>", skill)
+        self.assertLess(
+            skill.index("workspace-policy.py inspect"),
+            skill.index("`enter_worktree` is compatible"),
+        )
+        self.assertNotIn("<repo>/.worktrees/<branch>", skill)
+        self.assertNotIn("<repo>/.cache/<branch>/target", skill)
+        self.assertNotIn("git worktree add <repo>/.worktrees/<branch>", skill)
         for phrase in (
             "blocked-local-policy-unignored",
             "blocked-ignore-verification",

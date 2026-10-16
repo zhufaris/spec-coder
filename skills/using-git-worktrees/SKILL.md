@@ -35,8 +35,9 @@ An explicit preflight isolation selection, or a main request for Gate-3-approved
 integration/per-worker isolation at the recorded wave base; repository, branch,
 current state, user location constraints, and live native-worktree definitions.
 Do not invoke for an in-place workspace or merely because serial delegation is
-selected. A selected mutating parallel wave is the exception: every worker
-needs distinct real isolation; read-only workers do not.
+selected. A selected parallel execution wave requires real isolation. Treat it
+as a selected parallel-wave isolation request: every worker needs distinct real
+isolation; read-only workers do not.
 
 ## Output
 
@@ -71,37 +72,40 @@ normal; report detached HEAD as externally managed isolation. A superproject
 path indicates a submodule, not a linked worktree. For parallel allocation,
 never assign the main workspace or one candidate to two mutating workers.
 
-### 2. Prefer a compatible native allocation
+### 2. Inspect workspace policy
 
-Inspect live definitions rather than guessing. `enter_worktree` is compatible
-only when it pins both the recorded base and exact repository-local source path
-`<repo>/.worktrees/<branch>`; otherwise it is incompatible. Retain the
-`exit_worktree` recovery handle. For a parallel wave, validate and report each
-worker independently; paths in one shared checkout are not isolation.
-
-### 3. Fall back to exact-base Git
-
-Only when native allocation is unavailable or incompatible, ask the policy
-adapter for allocation facts from any caller cwd:
+Before choosing native or Git allocation, ask the policy adapter for allocation
+facts from any caller cwd:
 
 ```bash
 python3 <repo>/scripts/workspace-policy.py inspect --repo <repo> --branch <branch-name>
 ```
 
 Proceed only on `status: accepted`; consume its physical repository,
-`source_worktree`, `build_cache` (`<repo>/.cache/<branch>/target`), branch/path
-validity, and ignore facts. On any other status, preserve the observed policy
-result and return the conflict to workspace preflight without reclassifying it.
+`source_worktree`, `build_cache`, branch/path validity, and ignore facts. On any
+other status, preserve the observed policy result and return the conflict to
+workspace preflight without reclassifying it.
 Do not restate, invoke, or reinterpret the policy's raw Git probe/exit
 algorithm; do not propose an `.gitignore` mutation, a
 sibling or mutation-free location, or `/tmp`. `/tmp` is only disposable small
 files, never durable source, cache, workflow artifacts, verification evidence,
 or recovery state.
 
-When the accepted facts and approved location/branch/permissions permit it:
+### 3. Prefer a compatible native allocation
+
+Inspect live definitions rather than guessing. `enter_worktree` is compatible
+only when it pins both the recorded base and policy-returned `source_worktree`;
+otherwise it is incompatible. Retain the `exit_worktree` recovery handle. For a
+parallel wave, validate and report each worker independently; paths in one
+shared checkout are not isolation.
+
+### 4. Fall back to exact-base Git
+
+Only when native allocation is unavailable or incompatible and the approved
+branch/location/permissions permit it, use the accepted policy facts:
 
 ```bash
-git worktree add <repo>/.worktrees/<branch> -b <branch-name> <wave-base>
+git worktree add <source-worktree> -b <branch-name> <wave-base>
 ```
 
 Never interpolate an unvalidated variable, glob, or substitution. Preserve
@@ -117,7 +121,7 @@ blocker, return the allocated path, actual state when supplied, recorded base,
 and recovery handle without cleanup. If no safe exact-base fallback exists,
 return `blocked-no-compatible-isolation`.
 
-### 4. Return recovery control
+### 5. Return recovery control
 
 Return the facts to the requester, which decides continuation, safe
 serialization, capacity wait, or stop under the routing contract. Retain an

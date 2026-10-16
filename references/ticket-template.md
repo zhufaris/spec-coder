@@ -1,7 +1,6 @@
 # Local Vertical-Ticket Template
 
-`plan-coder` uses this local v1 template after specification approval or
-autonomous Gate 2 selection. Write the plan at
+`plan-coder` uses this local v1 template after specification approval or autonomous Gate 2 selection. Write the plan at
 `docs/spec-coder/plans/YYYY-MM-DD-<slug>.md`; use the [domain design
 contract](./domain-design-contract.md), not an external planner or tracker.
 
@@ -78,7 +77,7 @@ table below groups related descriptions only; it does not change artifact gramma
 | Delegation eligibility; Delegation mode | Grounded bounded/reversible scope and inspectable seam; state main-only/credential limits, required delegation, or request/ticket opt-out. |
 | Ownership and implementation path; Mutation ownership; Exclusions | Relevant context/interface/constraints, repository-relative owned files or directories (no globs), and out-of-scope files/responsibilities/authority. |
 | Isolation; Concurrency conflicts; Host capacity | Read-only/serial/real Host-task-or-Git isolation, recorded wave base when applicable, conflicting IDs, and live-capacity assumption. |
-| Verification seam | Inspectable focused evidence. For supported paths use `scripts/validate-affected.py --repo <repository> --path <task-owned-path>` for every supplied path; arbitrary projects use native affected tests/lint/type/build. For deletion/rename, attribute it and pass a surviving owner or test path plus preservation evidence. |
+| Verification seam | Inspectable focused evidence. For supported spec-coder paths use `scripts/validate-affected.py --repo <repository> --path <task-owned-path>` for every supplied path; arbitrary projects use repository-native affected tests/lint/type/build. For deleted or renamed paths, attribute the change and pass an existing post-change owner or test path plus preservation evidence. |
 | Build cache | Scheduling input: every mutating ticket gets canonical `<physical-repo>/.cache/<branch>/target`, configured repository-native; `Mutation ownership: None` requires `Build cache: None`. Unsafe values remain located checker findings. Before Gate 3 resolve each ticket branch's exact ignored cache; read-only work requires `None`. |
 | Direct-child boundary | `delegation_allowed = false`; main assembles [common brief](./worker-brief-template.md#common-brief) and role additions, including no indirect delegation/staging/commits and the routing-owned [Worker Progress Heartbeat](./subagent-routing-contract.md#worker-progress-heartbeat) / [Worker Brief Assembly](./subagent-routing-contract.md#worker-brief-assembly). |
 | Acceptance criteria and verification | Success, refusal/bypass, concurrency/duplicate/recovery outcomes and the seam proving them. |

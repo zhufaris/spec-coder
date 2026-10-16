@@ -163,8 +163,7 @@ reopened Gate 3 的完整规范只在
 不实现或配置 Host 消息适配器。需要执行该路径时，按
 [Explicit Parallel Requests](./references/subagent-routing-contract.md#explicit-parallel-requests)
 和 [Worker Progress Heartbeat](./references/subagent-routing-contract.md#worker-progress-heartbeat)
-读取当前规则。Interactive Gate 仍先用 `show-me`；autonomous selection does not
-invoke `show-me`。
+读取当前规则。Interactive Gate 仍先用 `show-me`。Autonomous selection does not invoke `show-me`。
 
 ### 可选：覆盖 bundled model defaults
 
