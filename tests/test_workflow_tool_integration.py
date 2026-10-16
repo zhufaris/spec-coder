@@ -43,7 +43,7 @@ class PublishedWorkflowIntegration(unittest.TestCase):
             self.assertFalse((bundle / "docs").exists())
             self.assertEqual(json.loads((bundle / ".codex-plugin/plugin.json").read_text())["version"], "0.7.0")
             self.assertEqual(len(list((bundle / "skills").glob("*/SKILL.md"))), 9)
-            subprocess.run(["git", "init", "-q"], cwd=bundle, check=True)
+            subprocess.run(["git", "init", "-q", "-b", "feat/cache-tests"], cwd=bundle, check=True)
 
             relocated_affected = subprocess.run(
                 [
@@ -125,8 +125,8 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 return result.stdout.strip()
 
-            git("init", "-q")
-            (target / ".gitignore").write_text("/docs/\n")
+            git("init", "-q", "-b", "feat/cache-tests")
+            (target / ".gitignore").write_text("/docs/\n/.cache/\n")
             (target / "status.py").write_text('print("ready")\n')
             shutil.copy2(ROOT / "tests/fixtures/artifacts/verify_status.py", target / "verify.py")
             git("add", ".gitignore", "status.py", "verify.py")
@@ -139,7 +139,9 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                        "--exclude-output", "verification-count.txt",
                        "--toolchain", json.dumps({"python": sys.executable + " " + sys.version}),
                        "--dependencies", '{"installed":"stdlib-only fixture","external":"none"}',
-                       "--environment", "{}", "--", *command]
+                       "--environment", "{}",
+                       "--build-cache", str(target / ".cache" / "feat" / "cache-tests" / "target"),
+                       "--", *command]
             evidence_cli = [sys.executable, "-B", str(bundle / "scripts/verification-evidence.py")]
             count = lambda: int((target / "verification-count.txt").read_text())
 
@@ -198,6 +200,10 @@ class PublishedWorkflowIntegration(unittest.TestCase):
             self.assertEqual(final.returncode, 0, final.stderr)
             self.assertEqual(count(), 5)
             completed = template_document("ticket-template.md", "plan", bundle).replace("[ ] T1:", "[x] T1:")
+            completed = completed.replace(
+                "/absolute/physical/repository/.cache/feat/status-command/target",
+                str(target / ".cache" / "feat" / "cache-tests" / "target"),
+            )
             completed = completed.replace("## Final delivery checks", (
                 "| Verification commands | " + " ".join(command) + " |\n"
                 "| Verification results | Exit 0; " + final.stdout.strip() + " |\n"
@@ -233,10 +239,15 @@ class PublishedWorkflowIntegration(unittest.TestCase):
     def test_published_templates_pass_draft_cli_and_reject_unfinished_delivery(self):
         with tempfile.TemporaryDirectory() as temporary:
             target = Path(temporary)
+            subprocess.run(["git", "-C", str(target), "init", "-q", "-b", "feat/cache-tests"], check=True)
+            (target / ".gitignore").write_text("/.cache/\n")
             spec = target / "spec.md"
             plan = target / "plan.md"
             spec.write_text(template_document("specification-template.md", "spec"))
-            plan.write_text(template_document("ticket-template.md", "plan"))
+            plan.write_text(template_document("ticket-template.md", "plan").replace(
+                "/absolute/physical/repository/.cache/feat/status-command/target",
+                str(target / ".cache" / "feat" / "cache-tests" / "target"),
+            ))
             for phase, expected_exit in (("spec", 0), ("plan", 0), ("delivery", 1)):
                 with self.subTest(phase=phase):
                     result = subprocess.run(

@@ -51,7 +51,9 @@ isolated; autonomous selection does not relax ticket readiness or verification.
 
 ## Output
 
-Observed Red and Green evidence for behavior changes, preservation and dependency evidence for structural work, passing affected checks, one atomic Conventional Commit containing only that ticket's files, its recorded commit evidence, and then a checked-off durable ticket with a synchronized runtime plan.
+Red-Green or structural evidence, passing affected checks, one ticket-only
+Conventional Commit with recorded evidence, and synchronized durable/runtime
+plan state.
 
 ## Process
 
@@ -68,7 +70,14 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    integration, fresh verification, commits, and plan advancement. A direct
    implementer brief states `delegation_allowed = false` and cannot delegate or
    integrate sibling work.
-2. Re-read the relevant specification, domain language, ADRs, ticket acceptance criteria, and existing test patterns. Resolve scenario/invariant and architecture references, affected contexts/model elements, enforcing owners, boundary data, atomicity/conflict and recovery semantics. Resolve missing decisions before implementation. If acceptance requires only structural preservation or dependency repair, use the structural path below instead of steps 3-6; mixed tickets still require behavior Red-Green for changed outcomes.
+2. Re-read the relevant specification, domain language, ADRs, ticket acceptance
+   and tests. Resolve referenced decisions, owners, boundaries, consistency and
+   recovery semantics before implementation. Structural-only work uses its path
+   below; mixed tickets still require Red-Green for changed outcomes.
+   Confirm the ticket and brief share this workspace's approved `Build cache`.
+   Main-local work keeps the authoritative reservation; an isolated worker keeps
+   its approved branch reservation. Configure it repository-natively or block
+   with evidence, never substitute `/tmp`.
 3. Write one behavior-focused test through a selected public seam for an applicable scenario or invariant.
 4. Run that focused test and have main observe the expected failure as behavior
    Red. If it passes unexpectedly or fails for an unrelated reason, correct the
@@ -79,10 +88,19 @@ Observed Red and Green evidence for behavior changes, preservation and dependenc
    and Execution Mode, then assemble the worker brief with the implementation
    role. The child writes the minimum implementation for Green at the selected
    domain/application/adapter boundaries. Do not anticipate later tickets.
-6. Run the focused test. Repeat steps 3-6 one behavior at a time until all applicable ticket scenarios and invariants have test evidence, including existing tests where sufficient. Include selected concurrent interleavings, duplicates and partial failures when relevant; a sequential fake alone does not prove a persistence concurrency guarantee. Use the bundled `scripts/validate-affected.py --repo <authoritative-repository> --path <task-owned-path>` only for supported spec-coder paths, repeating `--path` for every main-supplied task-owned path. For an arbitrary target repository, use its repository-native affected tests, lint, type, and build checks instead. The bundled mapper rejects missing or unmapped paths. For a deleted or pre-rename path, record that path in attribution and pass an existing post-change owner or test path that covers the removal. Record the exact focused and affected commands and results. Keep this ticket-level affected verification separate from the fresh full suite required at baseline and delivery; it never grants acceptance, commit, or completion authority.
+6. Run the focused test and repeat one behavior at a time until applicable
+   scenarios/invariants have evidence. Cover relevant concurrency, duplicates
+   and partial failures; sequential fakes do not prove concurrency guarantees.
+   Use `scripts/validate-affected.py --repo <authoritative-repository> --path
+   <task-owned-path>` only for supported paths, repeating every supplied path;
+   arbitrary repositories use native checks. The mapper rejects missing or
+   unmapped paths. Attribute deleted/pre-rename paths while passing an existing
+   covering path. Record commands/results. Affected verification remains
+   separate from the fresh full suite and grants no acceptance or completion.
 7. Main inspects the complete task-owned diff, attributes every change, and
    freshly verifies the focused behavior or structural evidence plus all
-   affected checks in the authoritative integrated state. Then perform a
+   affected checks in the authoritative integrated state using that workspace's
+   approved build-cache reservation. Then perform a
    lightweight self-review for scope, duplication, naming, domain consistency,
    and accidental architecture violations. Check rule ownership across entry
    points and verify source dependencies, exposed boundary types and assembly

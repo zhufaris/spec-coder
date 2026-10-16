@@ -8,7 +8,8 @@ This example pairs with the specification template's status-command example.
 Replace illustrative content with actual selected decisions and ownership; keep
 [Plan grammar](./artifact-format.md#plan-grammar), one checkbox heading per ticket
 and explicit wave membership. It passes draft checking without fabricated
-execution or commit evidence. Draft success is not implementation authorization.
+execution or commit evidence after replacing its cache placeholder. Draft
+success is not implementation authorization.
 
 ```markdown
 # Status command plan
@@ -36,7 +37,7 @@ blocking edges, and Gate 2/3 decisions here before implementation.
 | Mutation ownership | status.py, tests/test_status.py |
 | Exclusions | Remote health probes and automatic repairs. |
 | Isolation | Serial worker; main validates the authoritative workspace, recorded wave base, and isolation requirement before dispatch. |
-| Build cache | Scheduling input: mutating work receives main-resolved `<repo>/.cache/<branch>/target` and uses a repository-native environment/flag; read-only work may state none. Failure to honor it is a blocker; no `/tmp` fallback. |
+| Build cache | /absolute/physical/repository/.cache/feat/status-command/target |
 | Concurrency conflicts | None |
 | Verification seam | Public command output, exit status and unchanged project files. |
 | Host capacity | One direct-child slot; recheck live capacity before dispatch. |
@@ -98,7 +99,7 @@ For each ticket, include:
 | Concurrency conflicts | Comma-separated IDs of tickets with ownership overlap or semantic conflicts that cannot share a wave; otherwise None |
 | Verification seam | Independently inspectable focused evidence plus the bundled `scripts/validate-affected.py --repo <repository> --path <task-owned-path>` only for supported spec-coder paths (repeat `--path` for every main-supplied task-owned path); arbitrary target repositories use repository-native affected tests, lint, type, and build checks. For a deleted or pre-rename path, record it in attribution and pass an existing post-change owner or test path covering the removal, with separate dependency/preservation evidence |
 | Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
-| Build cache | Scheduling input: main supplies the absolute `<repo>/.cache/<branch>/target` path for mutating work; workers report a blocker if repository-native build configuration cannot honor it. |
+| Build cache | Required scheduling input: main supplies each mutating ticket's canonical `<physical-repo>/.cache/<branch>/target`; `Mutation ownership: None` requires `Build cache: None`. Workers keep their approved branch path or block. |
 | Direct-child boundary | `delegation_allowed = false`; main assembles the [common brief](./worker-brief-template.md#common-brief) and applicable role additions as actual outgoing content, including ownership, no indirect delegation/staging/commits and the shared heartbeat contract. |
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |
@@ -154,6 +155,9 @@ For relevant domain changes, references and acceptance preserve the approved bus
 Run bundled `check-artifacts.py --phase plan --spec <absolute-spec> --plan
 <absolute-plan>` and resolve findings under [Findings and compatibility](./artifact-format.md#findings-and-compatibility).
 Check coverage in both directions: every in-scope scenario/invariant has a responsible ticket, and every ticket traces to approved behavior and architecture. Resolve invalid blockers, excessive size and missing verification. Check every ticket's delegation eligibility and mode, mutation ownership and exclusions, dependencies, isolation need, concurrency conflicts, verification seam, Host-capacity requirement, real-isolation requirement, and `delegation_allowed = false` child boundary. Name unresolved load-bearing decisions and affected tickets; do not mark them implementation-ready. Independent approved slices need not wait on unrelated open decisions.
+
+Before Gate 3, resolve each ticket branch's exact ignored `Build cache`;
+read-only work requires `None`. Unsafe values remain located checker findings.
 
 For every dispatch, main loads [Worker Progress Heartbeat](./subagent-routing-contract.md#worker-progress-heartbeat)
 and [Worker Brief Assembly](./subagent-routing-contract.md#worker-brief-assembly),

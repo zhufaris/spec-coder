@@ -6,8 +6,9 @@ Baseline evidence is an observation, not an approval, a completion claim or a
 replacement for review. Main runs the first preflight baseline and observes its
 actual command/result. During that same uninterrupted request, planning may
 reuse each required command's matching record. Main identifies the reused
-`record_id` and confirms the declared dependency/environment observations remain
-current. A successful subset never substitutes for all required commands.
+`record_id` and confirms the declared build-cache, dependency and environment
+observations remain current. A successful subset never substitutes for all
+required commands.
 
 Resume/new execution contexts run their baseline freshly. Integrated-ticket
 checks run freshly on the accepted integrated state. Delivery runs the full
@@ -31,7 +32,7 @@ with `record_id`; partial success never qualifies.
 python3 /absolute/plugin/scripts/verification-evidence.py check --repo REPO \
   --cwd CWD --request REQUEST --artifact ARTIFACT \
   [--exclude-output OUTPUT ...] --toolchain JSON --dependencies JSON \
-  --environment JSON -- COMMAND ...
+  --environment JSON --build-cache ABSOLUTE_CACHE -- COMMAND ...
 ```
 
 All values and the command vector after `--` exactly match the established
@@ -61,6 +62,7 @@ python3 /absolute/plugin/scripts/verification-evidence.py capture|check \
   --toolchain '{"python":"observed executable and version"}' \
   --dependencies '{"installed":"observed installed state","external":"none"}' \
   --environment '{"RELEVANT_NONSECRET_VARIABLE":"observed value"}' \
+  --build-cache /absolute/physical/repository/.cache/branch/target \
   -- command argument ...
 ```
 
@@ -74,6 +76,7 @@ python3 /absolute/plugin/scripts/verification-evidence.py capture|check \
 | `--toolchain` | Nonempty JSON object of nonempty observed identity strings, such as executable path and version. |
 | `--dependencies` | JSON object with nonempty `installed` and `external` strings. Identify the confirmed installed state and relevant external state, or use `external: "none"` when no external state is relevant. Extra non-secret observation strings are allowed. |
 | `--environment` | JSON object of relevant non-secret observed strings. `{}` explicitly declares that no additional environment inputs are relevant; it is not an automatic environment inspection. Empty variable values are allowed. |
+| `--build-cache` | Canonical, ignored `<physical-repo>/.cache/<current-branch>/target`; capture and check require exact equality. |
 | After `--` | The complete, currently expected command argument vector, supplied explicitly for both operations. |
 
 Main obtains these observations from the established project verification
@@ -98,7 +101,8 @@ variable values remain valid; whitespace-only observations are uncertain.
 Capture can still run an explicitly supplied baseline when these observations
 are uncertain; it emits a nonreusable record even if the child exits zero.
 Check returns `rerun` without executing the command. Malformed JSON,
-invalid paths or unsafe exclusions are rejected before command execution.
+invalid paths, unsafe exclusions or an unsafe/unignored/incompatible build cache
+are rejected before command execution.
 
 ## Capture and record schema
 
@@ -114,7 +118,7 @@ Each version 1 record contains:
 | --- | --- |
 | `version` | Integer `1`. |
 | `record_id` | Unique 32-character lowercase hexadecimal observation identity. |
-| `context` | Request identity, exact command argument list, exact exclusion paths, and declared toolchain/dependencies/environment. |
+| `context` | Request identity, exact command argument list, exact exclusion paths, exact build-cache reservation, and declared toolchain/dependencies/environment. |
 | `before`, `after` | Workspace observations taken before and after command execution, each with `inputs` and an `uncertainty` list. |
 | `exit_code` | Actual child exit status; negative statuses represent signals. `null` means execution could not start. |
 | `observed_at` | Timezone-qualified UTC observation time after the attempt; it is not a TTL. |
@@ -126,6 +130,7 @@ filesystem identities, Git-directory identity, HEAD, semantic index entries and
 flags, tracked files, and nonignored untracked files. File content uses SHA-256;
 file modes and symlink identity are included. Manifests, lockfiles and test/build
 configuration in that tracked/nonignored set are ordinary content inputs.
+The cache path is context; ignored cache contents are not source evidence.
 Internal file symlinks include resolved target content/mode. Broken/external
 symlinks, nonregular files, submodules (including absent working trees), Git/read
 failures or unreadable files produce uncertainty and never a cache hit.
@@ -163,7 +168,7 @@ duplicate JSON keys, malformed/unclosed evidence fences, missing/invalid fields,
 failed records or uncertainty return `rerun`. The supported syntax is a standalone
 labeled fence, not arbitrary Markdown/HTML embeddings.
 
-Comparison requires the same explicit context and stable matching workspace
+Comparison requires exact build-cache equality, the same remaining explicit context, and stable matching workspace
 observations. Output JSON contains `status: "reusable"` or `status: "rerun"`,
 `reasons`, and the matching `record_id` when available. The tool never executes
 commands read from a document or the command supplied to `check`. It never edits
@@ -195,6 +200,7 @@ python3 /absolute/plugin/scripts/verification-evidence.py capture \
   --toolchain '{"python":"/usr/bin/python3; observed version 3.11"}' \
   --dependencies '{"installed":"stdlib-only; confirmed by main","external":"none"}' \
   --environment '{"PYTHONDONTWRITEBYTECODE":"1"}' \
+  --build-cache /absolute/project/.cache/feat/example/target \
   -- /usr/bin/python3 -B -m unittest discover -s tests
 ```
 

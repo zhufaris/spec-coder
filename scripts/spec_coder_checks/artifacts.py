@@ -5,6 +5,7 @@ import re
 import subprocess
 
 from .waves import inspect_waves
+from .evidence import validate_plan_build_cache
 
 DECISION = r"(?:SCN|INV|ARCH)-[1-9][0-9]*"
 TICKET_ID = r"T[1-9][0-9]*"
@@ -241,7 +242,7 @@ def ownership_paths(doc, value, line):
     return paths
 
 
-def check_plan(doc, decisions):
+def check_plan(doc, decisions, repo):
     tickets, waves = parse_plan(doc)
     normalized = []
     covered = set()
@@ -268,6 +269,22 @@ def check_plan(doc, decisions):
         if mode not in aliases:
             doc.add("ticket.invalid-mode", mode_line, "unknown delegation mode; use Default direct worker, required delegation, main-local, local, delegate or opt-out")
         paths, paths_line = required_field(doc, ticket, "mutation ownership")
+        ownership = ownership_paths(doc, paths, paths_line)
+        cache, cache_line = required_field(doc, ticket, "build cache")
+        if cache.strip():
+            cache_value = unquote(cache)
+            read_only = paths.strip().lower() == "none"
+            if read_only and cache_value != "None":
+                doc.add("field.invalid-build-cache", cache_line,
+                        f"{ticket.id}: Mutation ownership None requires Build cache None")
+            elif not read_only and cache_value == "None":
+                doc.add("field.invalid-build-cache", cache_line,
+                        f"{ticket.id}: mutating work cannot use Build cache None")
+            elif not read_only:
+                try:
+                    validate_plan_build_cache(repo, cache_value)
+                except ValueError as error:
+                    doc.add("field.invalid-build-cache", cache_line, f"{ticket.id}: {error}")
         conflicts, conflicts_line = required_field(doc, ticket, "concurrency conflicts")
         conflict_ids = split_ids(doc, conflicts, conflicts_line, TICKET_ID, "Concurrency conflicts")
         if "acceptance criteria and verification" in ticket.fields:
@@ -280,7 +297,7 @@ def check_plan(doc, decisions):
                 if value.lower() == "none":
                     doc.add("field.required", line, f"{ticket.id} requires {name} content")
         normalized.append(dict(id=ticket.id, mode=aliases.get(mode), dependencies=dependencies,
-                               conflicts=conflict_ids, ownership=ownership_paths(doc, paths, paths_line)))
+                               conflicts=conflict_ids, ownership=ownership))
     by_id = {ticket.id: ticket for ticket in tickets}
     for finding in inspect_waves(normalized, [members for _, members in waves]):
         if finding.wave_index is not None:
@@ -345,7 +362,7 @@ def check_artifacts(spec_path, plan_path=None, phase="spec", repo="."):
     decisions = check_spec(spec)
     if phase != "spec":
         plan = documents[1]
-        tickets, covered = check_plan(plan, decisions)
+        tickets, covered = check_plan(plan, decisions, repo)
         for decision in decisions.keys() - covered:
             spec.add("coverage.uncovered", decisions[decision], f"{decision} has no implementing ticket")
         if phase == "delivery":

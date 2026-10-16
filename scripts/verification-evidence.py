@@ -9,7 +9,7 @@ import sys
 import uuid
 
 sys.dont_write_bytecode = True
-from spec_coder_checks.evidence import compare, parse_json, read_records
+from spec_coder_checks.evidence import compare, parse_json, read_records, validate_build_cache
 from spec_coder_checks.workspace import paths, snapshot
 
 
@@ -18,6 +18,7 @@ def main():
     parser.add_argument("operation", choices=["capture", "check"])
     for name in ["repo", "cwd", "request", "artifact", "toolchain", "dependencies", "environment"]:
         parser.add_argument("--" + name, required=True)
+    parser.add_argument("--build-cache", required=True)
     parser.add_argument("--exclude-output", action="append", default=[])
     argv = sys.argv[1:]
     separator = argv.index("--") if "--" in argv else len(argv)
@@ -27,7 +28,9 @@ def main():
         if not command:
             raise ValueError("an explicit command argument vector is required after --")
         repo, cwd, exclusions = paths(args.repo, args.cwd, args.artifact, args.exclude_output)
-        context = {"request": args.request, "command": command, "exclusions": exclusions}
+        build_cache = validate_build_cache(repo, args.build_cache)
+        context = {"request": args.request, "command": command, "exclusions": exclusions,
+                   "build_cache": build_cache}
         for name in ["toolchain", "dependencies", "environment"]:
             value = parse_json(getattr(args, name))
             if not isinstance(value, dict):

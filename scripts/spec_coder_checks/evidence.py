@@ -1,7 +1,10 @@
-"""Versioned observations and pure baseline comparison; no command execution."""
+"""Versioned observations, build-cache policy, and baseline comparison."""
 from datetime import datetime
 import json
+import os
+from pathlib import Path
 import re
+import subprocess
 
 
 def parse_json(text):
@@ -66,6 +69,80 @@ def read_records(text):
 
 def unknown(value):
     return not isinstance(value, str) or not value.strip() or value.strip() == "?" or bool(re.search(r"\b(unknown|unconfirmed|unavailable)\b", value, re.IGNORECASE))
+
+
+def _git(repository, *arguments):
+    try:
+        return subprocess.run(
+            ["git", "--no-optional-locks", "-C", os.fspath(repository), *arguments],
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ValueError("build cache Git observation unavailable: " + str(error))
+
+
+def _cache_observation(repository, value):
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("Build cache must be an explicit absolute path")
+    cache = Path(value)
+    if not cache.is_absolute() or value != os.fspath(cache):
+        raise ValueError("Build cache must be a canonical absolute path")
+    try:
+        worktree = Path(repository).resolve(strict=True)
+    except (OSError, RuntimeError) as error:
+        raise ValueError("physical repository is unavailable: " + str(error))
+    top = _git(worktree, "rev-parse", "--show-toplevel")
+    common = _git(worktree, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if top.returncode or common.returncode:
+        raise ValueError("physical repository identity is unavailable")
+    try:
+        top_path = Path(top.stdout.strip()).resolve(strict=True)
+        common_path = Path(common.stdout.strip()).resolve(strict=True)
+    except (OSError, RuntimeError) as error:
+        raise ValueError("physical repository identity is unavailable: " + str(error))
+    if worktree != top_path:
+        raise ValueError("repository must name the Git worktree root")
+    physical = common_path.parent if common_path.name == ".git" else top_path
+    resolved = cache.resolve(strict=False)
+    if cache != resolved:
+        raise ValueError("Build cache must not contain symlinks or non-canonical components")
+    try:
+        relative = cache.relative_to(physical)
+    except ValueError:
+        raise ValueError("Build cache must stay inside the physical repository")
+    return cache, top_path, physical, relative
+
+
+def validate_plan_build_cache(repository, value):
+    """Accept any canonical ignored reservation for a Git-valid ticket branch."""
+    cache, top_path, physical, relative = _cache_observation(repository, value)
+    parts = relative.parts
+    if len(parts) < 3 or parts[0] != ".cache" or parts[-1] != "target":
+        raise ValueError("Build cache must match <physical-repo>/.cache/<branch>/target")
+    branch_name = "/".join(parts[1:-1])
+    branch = _git(top_path, "check-ref-format", "--branch", branch_name)
+    if branch.returncode or branch.stdout.strip() != branch_name:
+        raise ValueError("Build cache branch is not a valid Git branch")
+    ignored = _git(top_path, "check-ignore", "-q", "--", os.fspath(relative))
+    if ignored.returncode == 1:
+        raise ValueError("Build cache reservation is not Git-ignored")
+    if ignored.returncode != 0:
+        raise ValueError("Build cache ignore status is unavailable")
+    return value
+
+
+def validate_build_cache(repository, value):
+    """Accept only the current workspace branch's safe cache reservation."""
+    validated = validate_plan_build_cache(repository, value)
+    cache, top_path, physical, _ = _cache_observation(repository, validated)
+    branch = _git(top_path, "symbolic-ref", "--quiet", "--short", "HEAD")
+    if branch.returncode:
+        raise ValueError("current workspace branch identity is unavailable")
+    expected = physical.joinpath(".cache", *branch.stdout.strip().split("/"), "target")
+    if cache != expected:
+        raise ValueError("Build cache must equal " + str(expected))
+    return validated
 
 
 def context_reasons(context):

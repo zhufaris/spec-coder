@@ -17,15 +17,17 @@ class VerificationEvidenceTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.repo = Path(self.temp.name)
-        self.git("init", "-q")
+        self.git("init", "-q", "-b", "feat/cache-tests")
         self.git("config", "user.email", "test@example.invalid")
         self.git("config", "user.name", "Evidence Test")
+        (self.repo / ".gitignore").write_text("/.cache/\n")
         (self.repo / "source.py").write_text("value = 1\n")
-        self.git("add", "source.py")
+        self.git("add", ".gitignore", "source.py")
         self.git("commit", "-qm", "fixture")
         self.artifact = self.repo / "spec.md"
         self.artifact.write_text("# Active specification\n")
         self.counter = self.repo / "counter.txt"
+        self.build_cache = self.repo / ".cache" / "feat" / "cache-tests" / "target"
         self.command = [sys.executable, "-c", "from pathlib import Path; p=Path('counter.txt'); p.write_text(str(int(p.read_text())+1) if p.exists() else '1'); print('BASELINE VISIBLE')"]
         self.context = [
             "--repo", str(self.repo), "--cwd", str(self.repo),
@@ -34,6 +36,7 @@ class VerificationEvidenceTests(unittest.TestCase):
             "--toolchain", json.dumps({"python": sys.version}),
             "--dependencies", json.dumps({"installed": "stdlib-only", "external": "none"}),
             "--environment", "{}",
+            "--build-cache", str(self.build_cache),
         ]
 
     def git(self, *args):
@@ -120,6 +123,55 @@ class VerificationEvidenceTests(unittest.TestCase):
                 self.assertEqual(checked.returncode, 0, checked.stderr)
                 self.assertEqual(json.loads(checked.stdout)["status"], "reusable")
                 self.assertEqual(self.counter.read_text(), str(count), "check must not run the baseline")
+
+    def test_build_cache_is_recorded_exactly_and_drift_requires_rerun(self):
+        record, _ = self.capture()
+        self.assertEqual(record["context"]["build_cache"], str(self.build_cache))
+        record["context"]["build_cache"] += "-drifted"
+        self.embed(record)
+        payload = self.assert_rerun(self.invoke("check"))
+        self.assertIn("declared execution context changed: build_cache", payload["reasons"])
+        self.assertEqual(self.counter.read_text(), "1")
+
+    def test_invalid_build_cache_blocks_before_command_execution(self):
+        invalid = [
+            "None",
+            "relative/target",
+            str(self.repo.parent / "escaped" / "target"),
+            str(self.repo / ".cache" / "other-branch" / "target"),
+        ]
+        for value in invalid:
+            with self.subTest(value=value):
+                self.counter.unlink(missing_ok=True)
+                payload = self.assert_rerun(
+                    self.invoke("capture", context=self.changed_context("--build-cache", value))
+                )
+                self.assertTrue(any("Build cache" in reason for reason in payload["reasons"]))
+                self.assertFalse(self.counter.exists())
+
+    def test_build_cache_requires_ignored_physical_reservation(self):
+        outside = self.repo / "outside"
+        outside.mkdir()
+        cache_root = self.repo / ".cache"
+        cache_root.symlink_to(outside, target_is_directory=True)
+        payload = self.assert_rerun(self.invoke("capture"))
+        self.assertIn("symlinks", " ".join(payload["reasons"]))
+        self.assertFalse(self.counter.exists())
+        cache_root.unlink()
+
+        (self.repo / ".gitignore").write_text("")
+        payload = self.assert_rerun(self.invoke("capture"))
+        self.assertIn("not Git-ignored", " ".join(payload["reasons"]))
+        self.assertFalse(self.counter.exists())
+
+    def test_ignored_build_cache_contents_do_not_invalidate_source_evidence(self):
+        self.capture()
+        self.build_cache.mkdir(parents=True)
+        (self.build_cache / "compiler-output.bin").write_bytes(b"first")
+        self.assertEqual(self.invoke("check").returncode, 0)
+        (self.build_cache / "compiler-output.bin").write_bytes(b"second")
+        self.assertEqual(self.invoke("check").returncode, 0)
+        self.assertEqual(self.counter.read_text(), "1")
 
     def test_malformed_or_incomplete_records_are_never_reusable(self):
         record, _ = self.capture()

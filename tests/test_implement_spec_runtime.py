@@ -34,6 +34,14 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         self.assertIn("one selected ticket", tdd)
         self.assertIn("main", tdd)
         self.assertIn("delegation_allowed = false", tdd)
+        self.assertIn("this workspace's approved `build cache`", tdd)
+        self.assertIn("isolated worker", tdd)
+
+    def test_delivery_preserves_the_approved_build_cache(self):
+        delivery = read("skills/delivery-coder/SKILL.md").lower()
+        self.assertIn("that workspace's approved canonical cache", delivery)
+        self.assertIn("baseline and integration", delivery)
+        self.assertIn("never falls back to `/tmp`", delivery)
 
     def test_tdd_entry_and_exit_cannot_bypass_the_executor(self):
         tdd = read("skills/tdd-coder/SKILL.md").lower()

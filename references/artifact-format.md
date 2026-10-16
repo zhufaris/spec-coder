@@ -147,6 +147,7 @@ membership in ordered level-two sections:
 | Dependencies | None |
 | Delegation mode | Default direct worker |
 | Mutation ownership | src/check.py, tests/test_check.py |
+| Build cache | /absolute/physical/repository/.cache/feat/example/target |
 | Concurrency conflicts | None |
 | Acceptance criteria and verification | Valid input passes; assert CLI exits and findings with temporary Markdown fixtures. |
 
@@ -157,7 +158,8 @@ membership in ordered level-two sections:
 | Spec references | SCN-1 |
 | Dependencies | None |
 | Delegation mode | Default direct worker |
-| Mutation ownership | src/other/ |
+| Mutation ownership | None |
+| Build cache | None |
 | Concurrency conflicts | None |
 | Acceptance criteria | Invalid input produces a source-located finding. |
 | Verification | Run the focused CLI fixture test. |
@@ -183,6 +185,7 @@ exclusions, isolation and verification seams are allowed. Required fields are:
 | Dependencies | Comma-separated ticket IDs, or `None`; IDs must exist, dependencies must be acyclic and in earlier waves. |
 | Delegation mode | `Default direct worker`, `required delegation`, or `delegate` map to delegate; `main-local`, `local`, or `opt-out` require a singleton wave. An optional reason follows a semicolon. |
 | Mutation ownership | Comma-separated exact repository-relative file/module-directory paths, or `None` for no mutation. |
+| Build cache | Required. Mutating work uses canonical, ignored `<physical-repo>/.cache/<git-valid-branch>/target`; read-only ownership requires `None`. Traversal and symlinks are invalid. |
 | Concurrency conflicts | Comma-separated ticket IDs, or `None`; referenced IDs must exist and cannot share a wave, even if declared in only one direction. |
 | Acceptance criteria and verification | Nonempty acceptance and verification prose; alternatively supply both `Acceptance criteria` and `Verification`. `None` is not accepted. |
 
@@ -204,6 +207,9 @@ conflict. The checker does not discover symlink aliases, case-insensitive
 filesystem aliases, undeclared ownership or semantic business conflicts; review
 those independently. An ambiguous declaration is a finding even in a singleton
 wave, not evidence of disjoint ownership.
+
+Invalid cache values produce located `field.invalid-build-cache` findings before
+execution. The checker neither creates caches nor selects build configuration.
 
 ## Delivery evidence
 

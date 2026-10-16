@@ -24,7 +24,7 @@ Task: {ticket ID or review axis; exact requested bounded outcome}
 Role: {implementation | reviewer | promotion; promotion retains original role}
 Workspace: {absolute validated authoritative workspace; always use this path, not an inherited cwd}
 Base: {recorded wave base revision and relevant initial user changes}
-Build cache: {for mutating work, main-resolved absolute `<repo>/.cache/<branch>/target`; read-only work may state none}
+Build cache: {main-resolved canonical `<physical-repo>/.cache/<branch>/target` for this workspace; read-only `Mutation ownership: None` requires `None`}
 Inputs: {approved/autonomously selected decisions and authority, acceptance
          criteria, relevant source/artifact contents and exact paths}
 Mutation ownership: {explicit allowed files/modules; none for reviewer}

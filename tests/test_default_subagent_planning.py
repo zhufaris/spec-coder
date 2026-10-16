@@ -51,9 +51,15 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
             "scheduling input",
             "repository-native",
             "blocker",
+            "mutation ownership: none",
         ):
             with self.subTest(cache_phrase=phrase):
                 self.assertIn(phrase, template)
+
+        self.assertIn("unsafe values", template)
+        self.assertIn("located checker findings", template)
+        self.assertIn("each ticket branch's exact ignored", template)
+        self.assertIn("read-only work requires `none`", template)
 
     def test_planner_checks_wave_coverage_and_safe_parallel_ownership(self) -> None:
         planner = read("skills/plan-coder/SKILL.md").lower()

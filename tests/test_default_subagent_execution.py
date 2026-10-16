@@ -45,6 +45,28 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
                 with self.subTest(document=document, durable=durable):
                     self.assertIn(durable, published)
 
+    def test_build_cache_continuity_is_explicit_across_runtime_phases(self) -> None:
+        routing = " ".join(read("references/subagent-routing-contract.md").split())
+        tdd = " ".join(read("skills/tdd-coder/SKILL.md").split())
+        delivery = " ".join(read("skills/delivery-coder/SKILL.md").split())
+
+        for phrase in (
+            "baseline",
+            "resume",
+            "main-local tdd",
+            "integration",
+            "delivery",
+            "authoritative workspace's approved reservation",
+            "each isolated worker keeps its own approved branch reservation",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, routing)
+        self.assertIn("this workspace's approved `build cache`", tdd)
+        self.assertIn("that workspace's approved canonical cache", delivery)
+        for text in (tdd, delivery):
+            self.assertIn("never", text)
+            self.assertIn("/tmp", text)
+
     def test_explicit_parallel_request_prepares_isolation_before_fallback(self) -> None:
         routing = " ".join(read("references/subagent-routing-contract.md").split())
         self.assertIn("## explicit parallel requests", routing)

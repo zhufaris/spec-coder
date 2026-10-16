@@ -17,10 +17,17 @@ class ArtifactCheckerCLI(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.cwd = Path(self.tmp.name)
+        subprocess.run(["git", "-C", str(self.cwd), "init", "-q", "-b", "feat/cache-tests"], check=True)
+        (self.cwd / ".gitignore").write_text("/.cache/\n")
         self.spec = self.cwd / "spec.md"
         self.plan = self.cwd / "plan.md"
         self.spec.write_text((FIXTURES / "spec.md").read_text())
-        self.plan.write_text((FIXTURES / "plan.md").read_text())
+        plan = (FIXTURES / "plan.md").read_text()
+        cache = self.cwd / ".cache" / "feat" / "cache-tests" / "target"
+        self.plan.write_text(plan.replace(
+            "| Mutation ownership | scripts/check.py |",
+            "| Mutation ownership | scripts/check.py |\n| Build cache | %s |" % cache,
+        ))
 
     def run_cli(self, phase="plan", *extra):
         args = [sys.executable, str(CLI), "--phase", phase,
@@ -77,6 +84,12 @@ class ArtifactCheckerCLI(unittest.TestCase):
 
     def add_ticket(self, number=2, same_wave=True):
         source = (FIXTURES / "plan.md").read_text().split("### - [ ] T1:", 1)[1]
+        source = source.replace(
+            "| Mutation ownership | scripts/check.py |",
+            "| Mutation ownership | scripts/check.py |\n| Build cache | %s |" % (
+                self.cwd / ".cache" / "feat" / "cache-tests" / "target"
+            ),
+        )
         ticket = "### - [ ] T%d:" % number + source.replace("scripts/check.py", "scripts/other%d.py" % number)
         content = self.plan.read_text()
         if same_wave:
@@ -142,6 +155,60 @@ class ArtifactCheckerCLI(unittest.TestCase):
         self.assert_rule("ticket.invalid-definition")
         self.plan.write_text(original + original.split("## Wave W1: `T1`", 1)[1])
         self.assert_rule("ticket.duplicate-id")
+
+    def test_mutating_ticket_requires_a_build_cache_field(self):
+        lines = [
+            line
+            for line in self.plan.read_text().splitlines()
+            if not line.startswith("| Build cache |")
+        ]
+        self.plan.write_text("\n".join(lines) + "\n")
+
+        self.assert_rule("field.required")
+
+    def test_build_cache_matches_mutation_ownership_and_repository_policy(self):
+        original = self.plan.read_text()
+        self.edit_field("Build cache", "None")
+        self.assert_rule("field.invalid-build-cache")
+
+        self.plan.write_text(original)
+        self.edit_field("Mutation ownership", "None")
+        self.edit_field("Build cache", "None")
+        self.assertEqual(self.run_cli()[0], 0)
+
+        self.plan.write_text(original)
+        self.edit_field("Mutation ownership", "None")
+        self.assert_rule("field.invalid-build-cache")
+
+        self.plan.write_text(original)
+        self.edit_field(
+            "Build cache", str(self.cwd / ".cache" / "worker" / "other-branch" / "target")
+        )
+        self.assertEqual(self.run_cli()[0], 0)
+
+        for value in (
+            "relative/.cache/target",
+            "/tmp/escaped/target",
+            str(self.cwd / ".cache" / "invalid..branch" / "target"),
+            str(self.cwd / ".cache" / "feat" / ".." / "escaped" / "target"),
+        ):
+            with self.subTest(value=value):
+                self.plan.write_text(original)
+                self.edit_field("Build cache", value)
+                self.assert_rule("field.invalid-build-cache")
+
+    def test_build_cache_rejects_symlinked_or_unignored_reservations(self):
+        original = self.plan.read_text()
+        outside = self.cwd / "outside"
+        outside.mkdir()
+        cache_root = self.cwd / ".cache"
+        cache_root.symlink_to(outside, target_is_directory=True)
+        self.assert_rule("field.invalid-build-cache")
+        cache_root.unlink()
+
+        self.plan.write_text(original)
+        (self.cwd / ".gitignore").write_text("")
+        self.assert_rule("field.invalid-build-cache")
 
     def test_malformed_table_rows_and_unbalanced_id_quotes_are_not_silently_skipped(self):
         original = self.plan.read_text()
@@ -250,7 +317,7 @@ class ArtifactCheckerCLI(unittest.TestCase):
         package = plugin / "spec_coder_checks"
         package.mkdir(parents=True)
         (plugin / "check-artifacts.py").write_bytes(CLI.read_bytes())
-        for name in ("artifacts.py", "waves.py"):
+        for name in ("artifacts.py", "evidence.py", "waves.py"):
             (package / name).write_bytes((ROOT / "scripts/spec_coder_checks" / name).read_bytes())
         before = {str(p.relative_to(plugin)): p.read_bytes() for p in plugin.rglob("*") if p.is_file()}
         env = dict(os.environ)

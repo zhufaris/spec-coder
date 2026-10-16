@@ -43,7 +43,8 @@ selection does not reduce review scope or fresh-verification requirements.
 
 ## Output
 
-Findings ordered by severity, TDD-backed repair commits when needed, fresh evidence from the full applicable suite, and a completion report that identifies commits, checks, and any residual risks.
+Severity-ordered findings, TDD-backed repairs, fresh full-suite evidence, and a
+completion report naming commits, checks and residual risks.
 
 ## Review Execution
 
@@ -60,7 +61,7 @@ the selected mode and child limits.
 3. Check acceptance criteria, domain language, public contracts, dependency direction, Clean Architecture boundaries, error handling, security, and unintended scope. Map each in-scope scenario/invariant to completed tickets and actual test evidence. Verify context/model ownership, shared rule placement, and applicable atomicity/conflict, idempotency and recovery guarantees. Verify architecture separately with dependency checks or documented imports, exposed types and assembly; plan checkboxes and green sequential tests alone are insufficient. Check that simple CRUD/query work has not acquired unjustified abstractions or lost access controls.
 4. Route behavior defects through `tdd-coder`: add or correct a failing test, observe Red, implement the minimum repair, run affected checks, and create a separate atomic commit. Perform structural refactoring only while behavior tests remain green.
 5. Repeat review until no unresolved blocking findings remain. Do not conceal accepted residual risks.
-6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command against the authoritative workspace and cumulative accepted range. Do not rely on earlier output or a ticket-level subset.
+6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command against the authoritative workspace and cumulative accepted range. Keep that workspace's approved canonical cache from baseline and integration; repository-native configuration failure blocks, never falls back to `/tmp`. Do not rely on earlier output or a ticket-level subset.
 7. Run bundled `scripts/check-artifacts.py --phase delivery --spec <absolute-spec>
    --plan <absolute-plan> --repo <absolute-workspace>` against actual artifacts.
    Resolve findings or explicitly report unsupported historical format and
