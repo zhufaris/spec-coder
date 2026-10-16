@@ -769,7 +769,7 @@ def repository_workspace_paths(repo_root: str, branch_name: str) -> tuple[str, s
     ):
         raise ValueError("branch_name contains an unsafe path segment")
 
-    root = Path(repo_root)
+    root = Path(repo_root).resolve(strict=False)
     source = root.joinpath(".worktrees", *segments).resolve(strict=False)
     cache = root.joinpath(".cache", *segments, "target").resolve(strict=False)
     try:
@@ -778,6 +778,19 @@ def repository_workspace_paths(repo_root: str, branch_name: str) -> tuple[str, s
     except ValueError as error:
         raise ValueError("branch_name escapes repository root") from error
     return str(source), str(cache)
+
+
+def validate_worktree_allocation(*, actual_head: str, recorded_base: str) -> str:
+    """Accept only an allocated worktree at its exact recorded base."""
+    if (
+        isinstance(actual_head, str)
+        and isinstance(recorded_base, str)
+        and actual_head
+        and recorded_base
+        and actual_head == recorded_base
+    ):
+        return "accept"
+    return "blocked-base-mismatch"
 
 
 def route_new_discovery(*, workspace_safe: bool, capabilities_ready: bool = True) -> str:

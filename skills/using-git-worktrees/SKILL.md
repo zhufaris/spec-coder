@@ -106,12 +106,6 @@ approved recorded base and exact repository-local source path
 exact-base Git fallback. Retain its `exit_worktree` recovery handle; do not
 create parallel Git state the Host cannot manage.
 
-After native allocation, validate the actual allocated `HEAD` equals the
-recorded base before returning its isolated path to the requesting orchestrator.
-On a mismatch, return a blocker with the actual path, branch/detached state, and
-recovery handle; preserve that evidence and do not continue. Do not run
-dependency setup or tests here.
-
 For a main-requested parallel wave, request one native isolated workspace per
 worker from the same recorded wave base. Validate and return each worker's
 actual path, branch/detached state, mechanism, and recovery handle separately.
@@ -141,8 +135,8 @@ Before creating any new durable worktree, verify both generated roots are
 ignored:
 
 ```bash
-git check-ignore -q .worktrees/
-git check-ignore -q .cache/
+git -C <repo> check-ignore -q .worktrees/
+git -C <repo> check-ignore -q .cache/
 ```
 
 `0` means ignored; `1` means definitively not ignored. Require `0` for both
@@ -164,14 +158,10 @@ Never interpolate an unvalidated environment variable, glob, or command
 substitution into the target path. Preserve every existing worktree and user
 branch.
 
-For a main-requested parallel wave, repeat this validation independently for
-each per-worker fallback and verify that every checkout starts at the recorded
-wave base by comparing its actual `HEAD` to the recorded base. A mismatch is a
-blocker: preserve the path, actual base, branch/detached state, and recovery
-handle rather than continuing or cleaning it up. Use collision-free branches
-and paths. Return partial allocation results and their recovery handles if a
-later allocation fails; never erase a successfully allocated workspace to hide
-a partial failure.
+For every native or Git allocation, serial or parallel, compare actual `HEAD` to
+the recorded base before acceptance. On mismatch, return blocker evidence with
+allocated path, actual `HEAD`, recorded base, and recovery handle; do not
+continue or clean up. Use collision-free paths and preserve partial results.
 
 ### 4. Return control to the requesting orchestrator
 

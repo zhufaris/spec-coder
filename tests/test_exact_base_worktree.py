@@ -1,10 +1,13 @@
 import unittest
+import subprocess
+import tempfile
 from pathlib import Path
 
 from forward_contracts import (
     choose_isolation_route,
     git_worktree_add_args,
     repository_workspace_paths,
+    validate_worktree_allocation,
 )
 
 
@@ -71,6 +74,53 @@ class ExactBaseWorktreeTests(unittest.TestCase):
         for repo_root in ("", "relative/repo", "~user/repo"):
             with self.subTest(repo_root=repo_root), self.assertRaises(ValueError):
                 repository_workspace_paths(repo_root, "feat/api")
+
+    def test_repository_paths_normalize_a_symlinked_physical_root(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            physical = Path(temporary) / "repo"
+            physical.mkdir()
+            linked = Path(temporary) / "repo-link"
+            linked.symlink_to(physical, target_is_directory=True)
+
+            self.assertEqual(
+                repository_workspace_paths(str(linked), "feat/api"),
+                (
+                    str(physical / ".worktrees/feat/api"),
+                    str(physical / ".cache/feat/api/target"),
+                ),
+            )
+
+    def test_ignore_probes_are_anchored_when_called_from_a_subdirectory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "repo"
+            repo.mkdir()
+            (repo / ".gitignore").write_text("/.worktrees/\n/.cache/\n")
+            (repo / "tests").mkdir()
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+
+            for generated_root in (".worktrees/", ".cache/"):
+                with self.subTest(generated_root=generated_root):
+                    result = subprocess.run(
+                        ["git", "-C", str(repo), "check-ignore", "-q", generated_root],
+                        cwd=repo / "tests",
+                    )
+                    self.assertEqual(result.returncode, 0)
+
+    def test_every_allocation_validates_actual_head_before_acceptance(self):
+        self.assertEqual(
+            validate_worktree_allocation(
+                actual_head="recorded-base-123",
+                recorded_base="recorded-base-123",
+            ),
+            "accept",
+        )
+        self.assertEqual(
+            validate_worktree_allocation(
+                actual_head="unexpected-head",
+                recorded_base="recorded-base-123",
+            ),
+            "blocked-base-mismatch",
+        )
 
     def test_native_must_pin_the_repository_local_source_path(self):
         self.assertEqual(
