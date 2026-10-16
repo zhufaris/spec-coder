@@ -97,17 +97,14 @@ managed isolation; do not create another worktree merely to attach it. If the
 superproject command returns a path, this is a submodule, not proof of a linked
 worktree; continue with the normal-repository path.
 
-### 2. Select only a recorded-base-compatible native Host tool
+### 2. Select only a recorded-base- and path-compatible native Host tool
 
-Inspect the live tool definitions and configuration rather than guessing their
-arguments. Native availability and native compatibility are separate facts:
-`enter_worktree` may be selected only when its live interface/config can
-explicitly pin the approved recorded base. Availability alone is insufficient.
-When it cannot prove that capability, mark the native route incompatible and do
-not attempt it; continue to the validated exact-base Git fallback only when it
-is safe. Native tools own placement, branch creation, and harness lifecycle.
-Retain the corresponding `exit_worktree` recovery handle/instructions. Do not
-create parallel Git worktree state the Host cannot manage.
+Inspect live definitions rather than guessing arguments. Native availability
+and compatibility differ: `enter_worktree` must explicitly pin both the
+approved recorded base and exact repository-local source path
+`<repo>/.worktrees/<branch>`. Otherwise it is incompatible; use the safe
+exact-base Git fallback. Retain its `exit_worktree` recovery handle; do not
+create parallel Git state the Host cannot manage.
 
 After native allocation, validate the actual allocated `HEAD` equals the
 recorded base before returning its isolated path to the requesting orchestrator.
@@ -129,40 +126,38 @@ and only when location, branch, permissions, and the recorded base are safe and
 approved. If native is incompatible and no safe Git fallback exists, return the
 `blocked-no-compatible-isolation` blocker without attempting native allocation.
 
-Choose a fallback location in this order:
+Derive the only durable fallback paths from a validated branch name:
 
-1. an explicit repository/user preference;
-2. existing `.worktrees/`;
-3. existing `worktrees/`;
-4. a new sibling location outside the repository, named from the repository and
-   feature slug.
+- source worktree: `<repo>/.worktrees/<branch>`;
+- build cache: `<repo>/.cache/<branch>/target`.
 
-Before creating a project-local worktree, verify the selected directory is
+Preserve valid slash-separated segments; reject empty/absolute branches, empty
+segments, traversal (`.` or `..`), backslashes, whitespace/control, home
+expansion, or paths escaping the physical repository. No new sibling or `/tmp`
+source/cache fallback; `/tmp` is only disposable small files, not resume or
+recovery state.
+
+Before creating any new durable worktree, verify both generated roots are
 ignored:
 
 ```bash
-git check-ignore -q .worktrees
-git check-ignore -q worktrees
+git check-ignore -q .worktrees/
+git check-ignore -q .cache/
 ```
 
-Interpret the exit status exactly: `0` means ignored; `1` means definitively not
-ignored; any other exit status or fatal diagnostic is a verification failure.
-Report a verification failure without proposing an ignore mutation.
+`0` means ignored; `1` means definitively not ignored. Require `0` for both
+roots. Either `1` returns `blocked-local-policy-unignored`; any other status or diagnostic returns
+`blocked-ignore-verification`. Do not propose an ignore mutation.
 
-For exit `1`, do not edit `.gitignore` silently. If the user still requires the
-project-local location, return the conflict to workspace preflight during
-initial selection, or to the requesting main orchestrator for a post-Gate-3
-wave. Do not request or apply a `.gitignore` mutation before the project
-baseline. The orchestrator must select a mutation-free location, such as the
-validated sibling fallback, or stop on the explicit location constraint. Do not
-create a commit or continue on the unignored path. A sibling path must be
-absent, have a validated physical parent, and not overlap the repository,
-another worktree, or a user-owned directory.
+For exit `1`, do not silently edit `.gitignore`; return the conflict to workspace
+preflight or post-Gate-3 main. Do not mutate it before baseline, create a
+commit, or continue on an unignored/uncertain path; do not create a commit or
+escape derived paths through a sibling or `/tmp` mutation-free location.
 
 After validating the path and branch name, create the fallback:
 
 ```bash
-git worktree add <absolute-path> -b <branch-name> <wave-base>
+git worktree add <repo>/.worktrees/<branch> -b <branch-name> <wave-base>
 ```
 
 Never interpolate an unvalidated environment variable, glob, or command
@@ -208,9 +203,10 @@ Stop and preserve actual state when:
 - an existing linked-worktree candidate has unresolved ownership, changes, or
   task overlap;
 - isolation was required but no native tool can explicitly pin the recorded base
-  and no safe exact-base Git fallback is available;
-- the project-local directory is unignored and the requesting orchestrator has
-  not selected a mutation-free location;
+  and exact repository-local source path and no safe exact-base Git fallback is
+  available;
+- either repository-local generated root is unignored or its ignore status is
+  uncertain;
 - branch creation would overwrite or conflict with existing state;
 - a sandbox, permission, or Git error prevents creation;
 - cleanup ownership or a native tool result is ambiguous.

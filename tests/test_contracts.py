@@ -403,8 +403,20 @@ class PluginContractTests(unittest.TestCase):
             "mutation-free location",
             "sibling",
             "return the conflict to workspace preflight",
+            ".worktrees/<branch>",
+            ".cache/<branch>/target",
+            "exact repository-local source path",
+            "disposable small files",
         ):
             self.assertIn(phrase, normalized)
+        self.assertNotIn("new sibling location outside the repository", normalized)
+        self.assertIn("git check-ignore -q .worktrees/", text)
+        self.assertIn("git check-ignore -q .cache/", text)
+        self.assertNotIn("git check-ignore -q /.worktrees/", text)
+        self.assertNotIn("git check-ignore -q /.cache/", text)
+        ignored = read_text(ROOT / ".gitignore")
+        self.assertIn("/.worktrees/", ignored)
+        self.assertIn("/.cache/", ignored)
         self.assertLess(normalized.index("enter_worktree"), normalized.index("git worktree add"))
         self.assertIn('$using-git-worktrees', metadata)
         self.assertIn('display_name: "Using Git Worktrees"', metadata)

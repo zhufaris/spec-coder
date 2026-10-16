@@ -9,6 +9,7 @@ import re
 import tomllib
 from collections.abc import Mapping
 from datetime import datetime
+from pathlib import Path
 from types import MappingProxyType
 from typing import Dict, Iterable, Optional, Tuple
 
@@ -723,20 +724,60 @@ def choose_isolation_route(
     candidate_safe: bool,
     native_available: bool,
     native_can_pin_recorded_base: bool,
+    native_can_pin_repository_path: bool,
     git_fallback_safe: bool,
-    local_ignore_status: int,
+    worktree_ignore_status: int,
+    cache_ignore_status: int,
 ) -> str:
     if linked_candidate and not superproject:
         return "reuse-linked" if candidate_safe else "linked-conflict"
-    if native_available and native_can_pin_recorded_base:
+    if worktree_ignore_status == 1 or cache_ignore_status == 1:
+        return "blocked-local-policy-unignored"
+    if worktree_ignore_status != 0 or cache_ignore_status != 0:
+        return "blocked-ignore-verification"
+    if (
+        native_available
+        and native_can_pin_recorded_base
+        and native_can_pin_repository_path
+    ):
         return "native"
     if not git_fallback_safe:
         return "blocked-no-compatible-isolation"
-    if local_ignore_status == 0:
-        return "git-local"
-    if local_ignore_status == 1:
-        return "preflight-mutation-free-location"
-    return "blocked-ignore-verification"
+    return "git-local"
+
+
+def repository_workspace_paths(repo_root: str, branch_name: str) -> tuple[str, str]:
+    """Derive repository-local durable source and cache paths for one branch."""
+    if not isinstance(repo_root, str) or not repo_root:
+        raise ValueError("repo_root must be a non-empty path")
+    if repo_root.startswith("~") or not Path(repo_root).is_absolute():
+        raise ValueError("repo_root must be an absolute physical path")
+    if not isinstance(branch_name, str) or not branch_name:
+        raise ValueError("branch_name must be a non-empty string")
+    if branch_name.startswith(("/", "~")) or "\\" in branch_name:
+        raise ValueError("branch_name must be repository-relative")
+    if any(
+        character.isspace() or ord(character) < 32 or ord(character) == 127
+        for character in branch_name
+    ):
+        raise ValueError("branch_name must not contain whitespace or control characters")
+
+    segments = branch_name.split("/")
+    if any(
+        not segment or segment in {".", ".."} or segment.startswith("~")
+        for segment in segments
+    ):
+        raise ValueError("branch_name contains an unsafe path segment")
+
+    root = Path(repo_root)
+    source = root.joinpath(".worktrees", *segments).resolve(strict=False)
+    cache = root.joinpath(".cache", *segments, "target").resolve(strict=False)
+    try:
+        source.relative_to(root)
+        cache.relative_to(root)
+    except ValueError as error:
+        raise ValueError("branch_name escapes repository root") from error
+    return str(source), str(cache)
 
 
 def route_new_discovery(*, workspace_safe: bool, capabilities_ready: bool = True) -> str:

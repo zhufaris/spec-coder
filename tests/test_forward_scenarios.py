@@ -15,6 +15,7 @@ from forward_contracts import (
     decide_workspace_disposition,
     decide_execution_mode,
     git_worktree_add_args,
+    repository_workspace_paths,
     integrate_wave_result,
     apply_mid_run_opt_out,
     route_discovery_document,
@@ -188,8 +189,10 @@ class WorktreeForwardScenarios(unittest.TestCase):
             candidate_safe=True,
             native_available=True,
             native_can_pin_recorded_base=True,
+            native_can_pin_repository_path=True,
             git_fallback_safe=True,
-            local_ignore_status=0,
+            worktree_ignore_status=0,
+            cache_ignore_status=0,
         )
         self.assertEqual(route, "reuse-linked")
 
@@ -200,8 +203,10 @@ class WorktreeForwardScenarios(unittest.TestCase):
             candidate_safe=False,
             native_available=True,
             native_can_pin_recorded_base=True,
+            native_can_pin_repository_path=True,
             git_fallback_safe=True,
-            local_ignore_status=0,
+            worktree_ignore_status=0,
+            cache_ignore_status=0,
         )
         self.assertEqual(route, "linked-conflict")
 
@@ -212,8 +217,10 @@ class WorktreeForwardScenarios(unittest.TestCase):
             candidate_safe=True,
             native_available=True,
             native_can_pin_recorded_base=True,
+            native_can_pin_repository_path=True,
             git_fallback_safe=True,
-            local_ignore_status=0,
+            worktree_ignore_status=0,
+            cache_ignore_status=0,
         )
         self.assertEqual(route, "native")
 
@@ -224,22 +231,26 @@ class WorktreeForwardScenarios(unittest.TestCase):
             candidate_safe=False,
             native_available=True,
             native_can_pin_recorded_base=True,
+            native_can_pin_repository_path=True,
             git_fallback_safe=True,
-            local_ignore_status=0,
+            worktree_ignore_status=0,
+            cache_ignore_status=0,
         )
         self.assertEqual(route, "native")
 
-    def test_unignored_local_path_returns_to_preflight_for_mutation_free_path(self) -> None:
+    def test_unignored_local_path_blocks_without_sibling_or_tmp_fallback(self) -> None:
         route = choose_isolation_route(
             linked_candidate=False,
             superproject=False,
             candidate_safe=False,
             native_available=False,
             native_can_pin_recorded_base=False,
+            native_can_pin_repository_path=False,
             git_fallback_safe=True,
-            local_ignore_status=1,
+            worktree_ignore_status=1,
+            cache_ignore_status=0,
         )
-        self.assertEqual(route, "preflight-mutation-free-location")
+        self.assertEqual(route, "blocked-local-policy-unignored")
 
     def test_incompatible_native_uses_safe_git_fallback(self) -> None:
         route = choose_isolation_route(
@@ -248,8 +259,10 @@ class WorktreeForwardScenarios(unittest.TestCase):
             candidate_safe=False,
             native_available=True,
             native_can_pin_recorded_base=False,
+            native_can_pin_repository_path=False,
             git_fallback_safe=True,
-            local_ignore_status=0,
+            worktree_ignore_status=0,
+            cache_ignore_status=0,
         )
         self.assertEqual(route, "git-local")
 
@@ -260,15 +273,22 @@ class WorktreeForwardScenarios(unittest.TestCase):
             candidate_safe=False,
             native_available=True,
             native_can_pin_recorded_base=False,
+            native_can_pin_repository_path=False,
             git_fallback_safe=False,
-            local_ignore_status=0,
+            worktree_ignore_status=0,
+            cache_ignore_status=0,
         )
         self.assertEqual(route, "blocked-no-compatible-isolation")
 
     def test_git_fallback_is_anchored_to_the_recorded_wave_base(self) -> None:
+        source_path, cache_path = repository_workspace_paths(
+            "/repo", "spec-coder/t1"
+        )
+        self.assertEqual(source_path, "/repo/.worktrees/spec-coder/t1")
+        self.assertEqual(cache_path, "/repo/.cache/spec-coder/t1/target")
         self.assertEqual(
             git_worktree_add_args(
-                absolute_path="/tmp/spec-coder-t1",
+                absolute_path=source_path,
                 branch_name="spec-coder/t1",
                 wave_base="abc1234",
             ),
@@ -276,7 +296,7 @@ class WorktreeForwardScenarios(unittest.TestCase):
                 "git",
                 "worktree",
                 "add",
-                "/tmp/spec-coder-t1",
+                "/repo/.worktrees/spec-coder/t1",
                 "-b",
                 "spec-coder/t1",
                 "abc1234",
