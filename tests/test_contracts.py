@@ -454,6 +454,20 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, notice)
 
+    def test_worktree_adapter_links_canonical_policy_without_copying_outcomes(self) -> None:
+        skill = read_text(ROOT / "skills" / "using-git-worktrees" / "SKILL.md").lower()
+        workflow = read_text(ROOT / "references" / "workflow-contract.md").lower()
+
+        self.assertIn("workflow-contract.md#workspace-selection", skill)
+        for phrase in (
+            "blocked-local-policy-unignored",
+            "blocked-ignore-verification",
+            "preserve valid slash-separated branch segments",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, workflow)
+                self.assertNotIn(phrase, skill)
+
     def test_setup_coder_contract_is_local_idempotent_and_guarded(self) -> None:
         text = self.assert_skill_contract("setup-coder", ("show-me",))
         self.assert_setup_reference_resolves(ROOT)

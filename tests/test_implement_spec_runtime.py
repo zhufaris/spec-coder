@@ -70,7 +70,7 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         orchestrator = read("skills/spec-coder/SKILL.md").lower()
         ticket = read("references/ticket-template.md").lower()
 
-        for content in (workflow, orchestrator, ticket):
+        for content in (workflow, ticket):
             with self.subTest(document=content[:30]):
                 self.assertIn("post-gate-3", content)
                 self.assertIn("check-artifacts.py --phase plan", content)
@@ -81,6 +81,14 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
                 self.assertIn("wave", content)
                 self.assertIn("frontier", content)
                 self.assertIn("fourth gate", content)
+
+        self.assertIn("post-gate-3", orchestrator)
+        self.assertIn(
+            "workflow-contract.md#reopened-gate-3-scheduling-barrier",
+            orchestrator,
+        )
+        self.assertIn("fourth gate", orchestrator)
+        self.assertNotIn("check-artifacts.py --phase plan", orchestrator)
 
         for stopped_action in (
             "dispatch",

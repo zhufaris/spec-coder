@@ -93,13 +93,15 @@ An approved post-Gate-3 change to ownership, dependencies/blockers, conflicts,
 delegation mode, isolation, authoritative workspace, recorded base, or durable
 wave membership/order stops dispatch, result acceptance, staging, commit, and
 checkbox advancement. Persist renewed plan approval/selection, then run
-`check-artifacts.py --phase plan` on the actual artifacts.
+`check-artifacts.py --phase plan --spec <absolute-spec> --plan <absolute-plan>
+--repo <absolute-workspace>` on the actual artifacts.
 
-Account for each active or returned result; verify renewed ownership, recorded
-base, and wave compatibility before reconstructing the earliest incomplete
-frontier. Missing renewal, checker findings, or unaccounted/incompatible results
-remain stopped. Unchanged-plan commit/checkbox updates do not trigger this
-barrier. Reopened Gate 3 is not a fourth gate.
+Account for active/returned results; verify ownership, recorded base, and wave
+compatibility before reconstructing the earliest incomplete
+frontier. Missing renewal, checker findings, unsupported or unavailable checking,
+or unaccounted/incompatible results remain stopped. Unchanged-plan
+commit/checkbox updates do not trigger this barrier. Reopened Gate 3 is not a
+fourth gate.
 
 ## Artifact Contract
 

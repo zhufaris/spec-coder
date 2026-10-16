@@ -11,7 +11,8 @@ ignore, and allocation facts.
 
 ## Required Reading
 
-Load [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope),
+On every entry, including standalone invocation and resume, load [Stage Runtime
+Envelope](../../references/workflow-contract.md#stage-runtime-envelope),
 [Workspace Selection](../../references/workflow-contract.md#workspace-selection),
 [Git Safety](../../references/workflow-contract.md#git-safety), [Failure
 Transitions](../../references/workflow-contract.md#failure-transitions),
@@ -88,17 +89,14 @@ python3 <repo>/scripts/workspace-policy.py inspect --repo <repo> --branch <branc
 ```
 
 Proceed only on `status: accepted`; consume its physical repository,
-`source_worktree`, `build_cache`, branch/path validity, and ignore facts. It
-defines the exact source `<repo>/.worktrees/<branch>` and cache
-`<repo>/.cache/<branch>/target`, preserves valid slash-separated segments, and
-rejects unsafe values. It also decides ignored-root status for `.worktrees/`
-and `.cache/`; an unignored root returns `blocked-local-policy-unignored` and
-uncertain evidence returns `blocked-ignore-verification`. Do not restate,
-invoke, or reinterpret its raw Git probe/exit algorithm; do not propose an
-`.gitignore` mutation, a sibling or mutation-free location, or `/tmp`. Return
-the conflict to workspace preflight. `/tmp` is only disposable small files,
-never durable source, cache, workflow artifacts, verification evidence, or
-recovery state.
+`source_worktree`, `build_cache` (`<repo>/.cache/<branch>/target`), branch/path
+validity, and ignore facts. On any other status, preserve the observed policy
+result and return the conflict to workspace preflight without reclassifying it.
+Do not restate, invoke, or reinterpret the policy's raw Git probe/exit
+algorithm; do not propose an `.gitignore` mutation, a
+sibling or mutation-free location, or `/tmp`. `/tmp` is only disposable small
+files, never durable source, cache, workflow artifacts, verification evidence,
+or recovery state.
 
 When the accepted facts and approved location/branch/permissions permit it:
 

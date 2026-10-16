@@ -78,18 +78,14 @@ evidence, and a final delivery report produced through `delivery-coder`.
 5. When all tickets are complete, invoke `delivery-coder` for findings-first
    review, TDD repairs and fresh full verification. Only that stage produces
    the terminal completion claim.
-6. Reopen the relevant gate for scope or architecture changes and return to
-   `design-coder` when evidence invalidates an assumption. Follow Approval Gates
-   for in-scope autonomous reconsideration; scope expansion needs human review.
-   Approved post-Gate-3 scheduling-input changes activate the Reopened Gate
-   3 barrier: stop dispatch, result acceptance, staging/commit, and checkbox
-   advancement; persist renewed plan and approval; run
-   `check-artifacts.py --phase plan --spec <absolute-spec> --plan
-   <absolute-plan> --repo <absolute-workspace>`; account for active and returned results;
-   verify ownership, recorded base, and wave compatibility before rebuilding
-   the frontier. Missing renewal evidence, failed/unsupported/unavailable
-   checking, or unaccounted/incompatible results remain stopped. Unchanged
-   inputs bypass the barrier; no fourth gate is created.
+6. Return to `design-coder` when evidence invalidates architecture. Apply
+   Approval Gates to in-scope autonomous reconsideration; scope expansion needs
+   human review. For approved post-Gate-3 scheduling-input changes, return
+   immediately under the canonical [Reopened Gate 3 scheduling
+   barrier](../../references/workflow-contract.md#reopened-gate-3-scheduling-barrier),
+   which owns the halt, renewed plan/approval, artifact check, result accounting,
+   compatibility, and frontier reconstruction. Unchanged inputs bypass it; no
+   fourth gate is created.
 7. Stop after the same blocking condition occurs three consecutive times and
    preserve exact evidence and the resume point.
 

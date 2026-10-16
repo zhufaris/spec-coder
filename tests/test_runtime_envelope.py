@@ -72,6 +72,17 @@ class RuntimeEnvelopeOwnerTests(unittest.TestCase):
             (ROOT / "references/implement-spec-execution-contract.md").is_file()
         )
 
+    def test_reopened_gate_three_fail_closed_statuses_live_in_canonical_owner(self):
+        barrier = section(
+            "references/workflow-contract.md", "Reopened Gate 3 scheduling barrier"
+        ).lower()
+        stage = (ROOT / "skills" / "spec-coder" / "SKILL.md").read_text().lower()
+
+        for phrase in ("unsupported", "unavailable"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, barrier)
+        self.assertNotIn("failed/unsupported/unavailable", stage)
+
 
 if __name__ == "__main__":
     unittest.main()

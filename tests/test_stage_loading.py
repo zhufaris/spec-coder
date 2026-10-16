@@ -282,8 +282,8 @@ class StageLoadingTests(unittest.TestCase):
     def test_exact_plan_checker_commands_name_repository_context(self):
         required = {
             ROOT / "references/ticket-template.md",
+            ROOT / "references/workflow-contract.md",
             ROOT / "skills/plan-coder/SKILL.md",
-            ROOT / "skills/spec-coder/SKILL.md",
         }
         observed = set()
         sources = list((ROOT / "references").glob("*.md"))
