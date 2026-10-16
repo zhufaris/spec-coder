@@ -12,7 +12,7 @@
 | --- | --- |
 | `spec-coder` | 总入口；识别新任务或恢复点，并编排完整流程 |
 | `grill-coder` | 组合 `grilling` + `domain-modeling` 以保守 frontier rounds 澄清，并惰性记录已确认的领域语言或 ADR |
-| `design-coder` | 比较 2–3 个方案，完成轻量 DDD 与 Clean Architecture 设计 |
+| `design-coder` | 保守分类并比较 2–3 个方案；bounded 任务合并为一次 Gate 1，架构任务保留两阶段设计评审 |
 | `plan-coder` | 重新验证已准备的 workspace，再生成规格和垂直 tickets |
 | `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
@@ -51,10 +51,13 @@ codex plugin add spec-coder@spec-coder
 本仓库保持 wrapper 精简，因此运行时需要以下上游 skills：
 
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
-- Superpowers：`brainstorming`、`verification-before-completion`
+- Superpowers：`verification-before-completion`
 - Architecture：`clean-architecture`
 
 必需依赖须在当前 Host catalog 中可见、允许模型调用且输入输出契约兼容；仅有磁盘文件或启用配置不够。`using-git-worktrees` 已随插件本地化，只在选定隔离路径后调用；原地执行不调用它。详情见 [`references/upstream-compatibility.md`](./references/upstream-compatibility.md)。
+
+`design-coder` 原生负责意图映射、保守分类、方案比较和 Gate 路由，两种模式均不把
+`brainstorming` 作为必需能力；用户仍可在 spec-coder 编排之外手动调用它。
 
 `0.7.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 或 `implement-spec`。当前 Matt `implement-spec` 的 `disable-model-invocation: true` 表示它仅作为 provenance，不是 dependency；其他 manual-only skill 也不应被配置、改名包装或修改全局文件绕过。discovery 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用本地模板，Gate 3 后由 native implement-spec executor 执行已批准的计划。
 
@@ -206,6 +209,15 @@ separate human authority 的 suite-owned mutation authorization，都会先调�
 `show-me`，在对话中显示简短 ASCII review map 和 two to four 个 grounded
 choices。Autonomous selection does not invoke `show-me`；完整 artifact 或 diff
 仍是适用路径的决定依据，图不会自动授予批准，也不依赖 tmux、编辑器或浏览器。
+
+`design-coder` 只在 repository evidence 同时证明 existing implementation seam、
+one coherent outcome，且不存在 new subsystem、public-interface shape、
+cross-context consistency rule 或 unresolved load-bearing architecture 时把任务分类为
+bounded；未知项一律按 architectural 处理。bounded interactive 路径把真实备选、
+recommended short design、risks 与 testing seam 合并到 one Gate 1：批准推荐项后进入
+workspace preparation 与 Gate 2；选择非推荐项只会返回 elaboration 并再次请求 Gate 1。
+architectural 路径仍先单独选择方案，再 elaboration 与 Gate 1。Gate 2、Gate 3 及后续权限
+不变；autonomous 路径对两类任务都要求 one grounded recommendation。
 
 DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Bounded Context、各自的语言和状态所有权，以及必要的 Entity、Value Object、Aggregate 和 Domain Service；区分领域规则、应用编排与 adapter 转换。涉及并发、重试或跨上下文协作时，明确原子性、冲突结果、幂等与恢复责任。模型角色不必逐一对应类，小任务使用简短描述。
 

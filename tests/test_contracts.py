@@ -587,13 +587,24 @@ class PluginContractTests(unittest.TestCase):
     def test_design_coder_contract(self) -> None:
         text = self.assert_skill_contract(
             "design-coder",
-            ("brainstorming", "domain-modeling", "codebase-design", "clean-architecture"),
+            ("domain-modeling", "codebase-design", "clean-architecture"),
         )
         self.assertIn("2-3", text)
         self.assertIn("adaptive", text.lower())
         self.assertIn("dependency direction", text.lower())
         self.assertIn("testing seams", text.lower())
         self.assertIn("do not write implementation code", text.lower())
+        self.assertIn("unknown evidence", text.lower())
+        self.assertIn("one gate 1", text.lower())
+
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+        capability_map = compatibility.split("## Capability Map\n", 1)[1].split(
+            "\n## ", 1
+        )[0]
+        design_lines = "\n".join(
+            line for line in capability_map.splitlines() if "design-coder" in line
+        )
+        self.assertNotIn("`brainstorming`", design_lines)
 
     def test_plan_coder_contract(self) -> None:
         text = self.assert_skill_contract("plan-coder", ("using-git-worktrees",))

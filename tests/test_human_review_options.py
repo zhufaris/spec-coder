@@ -46,6 +46,31 @@ class HumanReviewOptionTests(unittest.TestCase):
         self.assertIn("A: Shared contract", rendered)
         self.assertIn("B: Per-skill rules", rendered)
 
+    def test_bounded_gate_one_carries_recommended_and_revision_routes(self) -> None:
+        options = [
+            {
+                "label": "A",
+                "choice": "Approve recommended design and continue",
+                "consequence": "Prepare workspace and continue to Gate 2",
+            },
+            {
+                "label": "B",
+                "choice": "Revise using adapter-local alternative",
+                "consequence": "Elaborate that alternative and ask Gate 1 again",
+            },
+            {
+                "label": "C",
+                "choice": "Reject and stop",
+                "consequence": "Stop this change",
+            },
+        ]
+
+        rendered = render_review_snapshot(snapshot(options), width=80)
+
+        for option in options:
+            self.assertIn(f'{option["label"]}: {option["choice"]}', rendered)
+            self.assertIn(option["consequence"], rendered)
+
     def test_missing_too_few_or_too_many_options_are_rejected(self) -> None:
         missing = snapshot(APPROVE_CHANGE_REJECT)
         del missing["review_options"]

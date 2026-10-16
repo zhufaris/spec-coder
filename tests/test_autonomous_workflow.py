@@ -138,14 +138,15 @@ class AutonomousModeContractTests(unittest.TestCase):
 
         for phrase in (
             "autonomous path",
-            "must not invoke `brainstorming`",
             "unique grounded recommendation",
             "auto-selected under explicit autonomous authority",
         ):
             with self.subTest(design_phrase=phrase):
                 self.assertIn(phrase, design)
         self.assertIn("interactive path", design)
-        self.assertIn("compose `brainstorming`", design)
+        self.assertIn("not a required capability", design)
+        self.assertIn("gate 2", design)
+        self.assertIn("gate 3", design)
 
         for phrase in (
             "gate 2",

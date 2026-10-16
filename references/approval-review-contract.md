@@ -14,8 +14,10 @@ Apply this contract only when that decision requires a human review.
 Supply these fields from the authoritative artifact or exact proposed mutation:
 
 - **approval kind**: design alternative selection, Gate 1, Gate 2, Gate 3,
-  reopened gate, or named mutation. Design alternative selection is a review
-  kind before design elaboration; it is distinct from Gate 1 and adds no gate;
+  reopened gate, or named mutation. Design alternative selection is the
+  architectural interactive review kind before design elaboration; it is
+  distinct from Gate 1 and adds no gate. A bounded interactive design instead
+  carries its alternatives in one Gate 1;
 - **artifact or exact proposed mutation**: the design/specification/tickets or
   the target and bounded change being authorized;
 - **key decisions**: the smallest set needed to understand the request;
@@ -41,6 +43,15 @@ selection, show the real alternatives and their actual consequences instead
 of disguising approve/change/reject as competing approaches. Do not add fake
 choices merely to reach the minimum count. No option may authorize work beyond,
 or widen the scope of, the artifact, diff, or other authority shown for review.
+
+A bounded design Gate 1 is one authorization question with approach-bearing
+options. Its recommended option uses the approve intent and authorizes only
+workspace preparation and the path to Gate 2. Each concrete nonrecommended
+alternative uses the change/revise intent and states that design-coder will
+elaborate it and ask Gate 1 again; it grants no implementation authority. A
+reject option stops. The snapshot also includes the recommended short design,
+material risks, and testing seam. With two approaches this normally yields
+approve, one revise alternative, and reject; with three, it yields four options.
 
 For Gate 1, Gate 2, Gate 3, a reopened gate, or a named mutation, the supplied
 option choices must collectively carry all three canonical authorization

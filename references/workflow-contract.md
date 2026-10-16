@@ -73,7 +73,12 @@ Every suite-owned human review consumes the [approval review contract](./approva
 [rendering](./approval-review-contract.md#rendering), [authority and safety](./approval-review-contract.md#authority-and-safety),
 and [owning-skill responsibilities](./approval-review-contract.md#owning-skill-responsibilities).
 Invoke bundled `show-me` before asking; it presents the ASCII review map and
-never owns approval. Design alternative selection precedes Gate 1 and adds no gate.
+never owns approval. `design-coder` owns classification: unknown is
+architectural. Bounded interactive design puts alternatives, recommendation,
+risks, and test seam in one Gate 1; a nonrecommended choice returns to
+elaboration and Gate 1. Architectural design keeps separate alternative
+selection and Gate 1. Autonomous mode requires one grounded recommendation.
+Gate 2, Gate 3, and later authority remain unchanged.
 
 In the interactive path, stop for explicit user approval after:
 

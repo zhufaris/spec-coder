@@ -7,12 +7,9 @@ The plugin owns specification synthesis and ticket decomposition through `plan-c
 ## Capability Map
 
 - `grilling` and `domain-modeling` -> `grill-coder`
-- interactive `design-coder`: `brainstorming`, `domain-modeling`,
-  `codebase-design`, and `clean-architecture`
-- autonomous `design-coder`: native approach comparison plus
-  `domain-modeling`, `codebase-design`, and `clean-architecture`; it must not
-  invoke upstream `brainstorming` because that skill's hard human-approval gate
-  is incompatible with an explicitly authorized no-wait path
+- interactive and autonomous `design-coder`: native conservative
+  classification, approach comparison, and Gate routing plus `domain-modeling`,
+  `codebase-design`, and `clean-architecture` when applicable
 - `tdd` -> `tdd-coder`
 - `code-review` and `verification-before-completion` -> `delivery-coder`
 
@@ -52,12 +49,12 @@ These source snapshots identify the integration's provenance, not proof that eve
 ## Compatibility Check
 
 The autonomous path is enabled only by explicit request-scoped
-`autonomous=true` authority. It does not bypass an upstream hard gate by
-rewriting, wrapping, or indirectly executing that upstream skill. In
-particular, autonomous `design-coder` performs its own grounded comparison and
-must not invoke `brainstorming`; the interactive path continues to compose it.
-Both paths continue to use `domain-modeling`, `codebase-design`, and
-`clean-architecture`.
+`autonomous=true` authority. `design-coder` natively owns conservative
+classification, grounded approach comparison, design presentation, and Gate
+routing in both modes. Neither mode requires or invokes `brainstorming` as part
+of spec-coder orchestration. Users may still invoke that skill manually outside
+this orchestration. Both paths continue to use `domain-modeling`,
+`codebase-design`, and `clean-architecture` when applicable.
 
 Before a stage delegates, confirm that each required upstream skill is visible in the current Host skill catalog, permitted for model invocation, and materially compatible with the expected input/output contract. Disk presence, plugin enablement and configuration overrides are not proof of invocation eligibility. Inspect the selected entry's metadata when needed: `disable-model-invocation: true` is a hard boundary even if the file can be read. If the catalog entry or invocation eligibility is absent, do not execute that skill indirectly through file reads, renamed wrappers, configuration changes, edited frontmatter or subagents.
 

@@ -100,10 +100,14 @@ codex plugin list --json
 
 - 本插件：`spec-coder`、`grill-coder`、`design-coder`、`plan-coder`、`tdd-coder`、`delivery-coder`、`show-me`、`using-git-worktrees`、`setup-coder`
 - Matt Pocock：`grilling`、`domain-modeling`、`codebase-design`、`tdd`、`code-review`
-- Superpowers：`brainstorming`、`verification-before-completion`
+- Superpowers：`verification-before-completion`
 - Architecture：`clean-architecture`
 
 若九个本插件 skills 不可见，先确认插件已启用并再次启动新的 Codex 会话。若当前路径必需的上游 skill 缺失、仅限手动调用或契约不兼容，停止并报告具体证据；不要用名称相近的 skill 替代。原地执行不调用本地 `using-git-worktrees`；选定隔离路径后才使用它，无法隔离时按 workspace 规则决定是否有符合用户要求的安全替代方案。依赖与源快照见 [Upstream Compatibility](./references/upstream-compatibility.md)。
+
+`design-coder` 在 interactive 与 autonomous 两种模式中都原生负责保守分类、方案比较与
+Gate 路由，并按适用性组合 `domain-modeling`、`codebase-design` 与
+`clean-architecture`。`brainstorming` 不属于必需 capability；用户仍可在本编排之外手动调用。
 
 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 和当前 Matt `implement-spec` 都不是 `0.7.0` 的依赖。当前 Matt `implement-spec` 声明 `disable-model-invocation: true`，因此仅为 provenance，不是 dependency；其他 manual-only skill 也不能由其他 skill 调用。fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板，native implement-spec executor 在 Gate 3 后执行批准的计划。
 
@@ -266,6 +270,13 @@ config、`AGENTS.md`、历史或 subagent 推断。它只在存在唯一 recomme
 跳过 Gate 1、Gate 2、Gate 3 的人工等待；design、spec、tickets、durable waves、
 review 与 verification 仍完整执行。scope expansion、push、install、发布、配置、
 凭据、破坏性操作及其他 separate authorization 不在该授权内。
+
+interactive design 会先保守分类：只有 existing seam、one coherent outcome 以及所有
+architecture/interface/cross-context 排除条件都有 repository evidence 时才属于 bounded；
+unknown 属于 architectural。bounded 路径把 alternatives、recommended short design、
+risks 与 testing seam 合并到 one Gate 1，非推荐选择返回 elaboration 后再次请求 Gate 1；
+architectural 路径保留独立 approach selection 与 Gate 1。两条路径都保留 Gate 2、Gate 3
+及后续权限边界；autonomous 路径仍要求 one grounded recommendation。
 
 在新的 Codex 会话中完成以下检查：
 
