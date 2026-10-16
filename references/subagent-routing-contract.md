@@ -27,6 +27,8 @@ proactive heartbeat capability is available. A ready capability records
 preserves the existing delegation decision. Recording capability only after
 dispatch is invalid.
 
+Routing owns the build-cache input: before dispatch main resolves a mutating worker's `Build cache:` to the absolute repository-native `<repo>/.cache/<branch>/target` path (read-only work may state none). The worker must use that path through the repository-native environment or flag; inability to honor it is a blocker with evidence, never a `/tmp` fallback. `/tmp` is reserved for disposable small files and cannot hold source worktree, build cache, workflow artifact, verification evidence or recovery state.
+
 Workers send a starting snapshot, another every 45-60 seconds while active,
 and an immediate snapshot on phase change, before and after a long command, and
 on blocker, failure, or completion. A short attempt need only send its start

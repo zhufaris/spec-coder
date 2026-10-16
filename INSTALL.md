@@ -296,6 +296,8 @@ review 与 verification 仍完整执行。scope expansion、push、install、发
 
 仍不可见时，报告上述三项的实际结果，不要重复盲目安装。
 
+构建缓存与临时文件边界：分支 source worktree 使用 `<repo>/.worktrees/<branch>`，构建缓存使用 `<repo>/.cache/<branch>/target`。`/tmp` 仅用于 disposable small files，不得存放 source worktree、build cache、workflow artifact、verification evidence 或 recovery state。
+
 ### 上游依赖缺失
 
 先判断依赖是否属于当前执行路径。本地 `using-git-worktrees` 只在隔离路径使用；这些 manual-only skills 均不在依赖集合中。必需外部依赖缺失或禁止模型调用时，列出精确名称、Host 可见性和调用资格证据，并按 [Upstream Compatibility](./references/upstream-compatibility.md) 停止；仅恢复实际必需且允许调用的能力。重启不会解除 `disable-model-invocation: true`。

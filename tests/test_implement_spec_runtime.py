@@ -99,6 +99,8 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         for phrase in (
             "authoritative workspace",
             "recorded wave base",
+            "build cache:",
+            ".cache/<branch>/target",
             "delegation_allowed = false",
             "must_not_spawn = true",
         ):

@@ -45,6 +45,16 @@ class DefaultSubagentPlanningContractTests(unittest.TestCase):
             with self.subTest(owner=owner):
                 self.assertIn(owner, template)
 
+        for phrase in (
+            "build cache",
+            ".cache/<branch>/target",
+            "scheduling input",
+            "repository-native",
+            "blocker",
+        ):
+            with self.subTest(cache_phrase=phrase):
+                self.assertIn(phrase, template)
+
     def test_planner_checks_wave_coverage_and_safe_parallel_ownership(self) -> None:
         planner = read("skills/plan-coder/SKILL.md").lower()
 

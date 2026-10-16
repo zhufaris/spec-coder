@@ -224,3 +224,5 @@ selected workspace -> grill-coder [read-only discovery]
 ```
 
 工作流不会自动 push、创建 PR、发布外部 issue、合并原始分支、安装或清理 worktree；这些外部 effects 都需要 separate authorization。完整契约见 [`references/workflow-contract.md`](./references/workflow-contract.md)。
+
+构建与临时文件边界：每个分支的 source worktree 使用 `<repo>/.worktrees/<branch>`，构建缓存使用 `<repo>/.cache/<branch>/target`。`/tmp` 仅用于 disposable small files，不得存放 source worktree、build cache、workflow artifact、verification evidence 或 recovery state。

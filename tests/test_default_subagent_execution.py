@@ -11,6 +11,40 @@ def read(relative: str) -> str:
 
 
 class DefaultSubagentExecutionContractTests(unittest.TestCase):
+    def test_mutating_briefs_carry_build_cache_and_tmp_is_disposable(self) -> None:
+        brief = " ".join(read("references/worker-brief-template.md").split())
+        routing = " ".join(read("references/subagent-routing-contract.md").split())
+
+        for text in (brief, routing):
+            for phrase in (
+                "build cache:",
+                ".cache/<branch>/target",
+                "repository-native",
+                "blocker",
+                "disposable small files",
+            ):
+                with self.subTest(document=text[:30], phrase=phrase):
+                    self.assertIn(phrase, text)
+
+        for document in ("README.md", "INSTALL.md"):
+            published = " ".join(read(document).split())
+            for phrase in (
+                ".worktrees/<branch>",
+                ".cache/<branch>/target",
+                "disposable small files",
+            ):
+                with self.subTest(document=document, phrase=phrase):
+                    self.assertIn(phrase, published)
+            for durable in (
+                "source worktree",
+                "build cache",
+                "workflow artifact",
+                "verification evidence",
+                "recovery state",
+            ):
+                with self.subTest(document=document, durable=durable):
+                    self.assertIn(durable, published)
+
     def test_explicit_parallel_request_prepares_isolation_before_fallback(self) -> None:
         routing = " ".join(read("references/subagent-routing-contract.md").split())
         self.assertIn("## explicit parallel requests", routing)

@@ -36,6 +36,7 @@ blocking edges, and Gate 2/3 decisions here before implementation.
 | Mutation ownership | status.py, tests/test_status.py |
 | Exclusions | Remote health probes and automatic repairs. |
 | Isolation | Serial worker; main validates the authoritative workspace, recorded wave base, and isolation requirement before dispatch. |
+| Build cache | Scheduling input: mutating work receives main-resolved `<repo>/.cache/<branch>/target` and uses a repository-native environment/flag; read-only work may state none. Failure to honor it is a blocker; no `/tmp` fallback. |
 | Concurrency conflicts | None |
 | Verification seam | Public command output, exit status and unchanged project files. |
 | Host capacity | One direct-child slot; recheck live capacity before dispatch. |
@@ -97,6 +98,7 @@ For each ticket, include:
 | Concurrency conflicts | Comma-separated IDs of tickets with ownership overlap or semantic conflicts that cannot share a wave; otherwise None |
 | Verification seam | Independently inspectable focused evidence plus the bundled `scripts/validate-affected.py --repo <repository> --path <task-owned-path>` only for supported spec-coder paths (repeat `--path` for every main-supplied task-owned path); arbitrary target repositories use repository-native affected tests, lint, type, and build checks. For a deleted or pre-rename path, record it in attribution and pass an existing post-change owner or test path covering the removal, with separate dependency/preservation evidence |
 | Host capacity | Capacity assumptions for delegation; live capacity is rechecked when a wave is formed rather than persisted as fact |
+| Build cache | Scheduling input: main supplies the absolute `<repo>/.cache/<branch>/target` path for mutating work; workers report a blocker if repository-native build configuration cannot honor it. |
 | Direct-child boundary | `delegation_allowed = false`; main assembles the [common brief](./worker-brief-template.md#common-brief) and applicable role additions as actual outgoing content, including ownership, no indirect delegation/staging/commits and the shared heartbeat contract. |
 | Acceptance criteria and verification | Applicable success/rejection/concurrency/duplicate/recovery outcomes and the verification seam used to prove them |
 | Blocked by | IDs of tickets that supply a genuinely required capability or contract; otherwise None |

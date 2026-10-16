@@ -24,6 +24,7 @@ Task: {ticket ID or review axis; exact requested bounded outcome}
 Role: {implementation | reviewer | promotion; promotion retains original role}
 Workspace: {absolute validated authoritative workspace; always use this path, not an inherited cwd}
 Base: {recorded wave base revision and relevant initial user changes}
+Build cache: {for mutating work, main-resolved absolute `<repo>/.cache/<branch>/target`; read-only work may state none}
 Inputs: {approved/autonomously selected decisions and authority, acceptance
          criteria, relevant source/artifact contents and exact paths}
 Mutation ownership: {explicit allowed files/modules; none for reviewer}
@@ -31,6 +32,7 @@ Exclusions: {out-of-scope files, behaviors, effects and other workers' ownership
 Verification seam: {commands, prerequisites, expected results and evidence
                     main already owns, including Red or structural baseline;
                     exact tool paths/target cwd and artifact phase when applicable}
+Build-cache policy: mutating workers use the repository-native environment or flag for the supplied Build cache path. If a required build cannot honor it, return evidence and a blocker; never switch to `/tmp`. `/tmp` is for disposable small files only, never source worktree, build cache, workflow artifact, verification evidence or recovery state.
 Return: base identity; complete task-owned diff and all changed/untracked paths;
         commands actually run with results; findings with file/line evidence;
         unresolved uncertainty/blockers. Do not claim checks you did not run.
