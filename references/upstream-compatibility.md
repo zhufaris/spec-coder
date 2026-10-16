@@ -1,6 +1,6 @@
 # Upstream Compatibility
 
-This compatibility contract applies to spec-coder `0.7.0`.
+This compatibility contract applies to spec-coder `0.8.0`.
 
 The plugin owns specification synthesis and ticket decomposition through `plan-coder` and its bundled [specification](./specification-template.md) and [ticket](./ticket-template.md) templates. Other stages compose installed, model-callable skills by capability and name.
 
@@ -94,7 +94,7 @@ Autonomous selection does not invoke `show-me`; authority is determined by
 
 ## Optional Host Model Routing
 
-Version `0.7.0` exposes nine bundled skills. Optional model routing is not a required Host model dependency and never switches the active main model (the
+Version `0.8.0` exposes nine bundled skills. Optional model routing is not a required Host model dependency and never switches the active main model (the
 current Agent/session model). Load [Configuration](./subagent-routing-contract.md#configuration)
 and [Route Selection](./subagent-routing-contract.md#route-selection) before a
 route decision; these own bundled defaults, user precedence and repository floors.
