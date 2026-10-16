@@ -45,40 +45,33 @@ Apply the [domain design contract](./domain-design-contract.md) from discovery t
 
 ## Approval Gates
 
-The workflow accepts a request-scoped `autonomous=true` parameter. The default is false.
-Only an explicit choice in the current user request can enable it. Never infer
-or persist autonomous authority from repository or global
-configuration, `AGENTS.md`, conversation history, a prior session, or a
-subagent. An explicit false choice or revocation returns subsequent decisions
-to the interactive path.
+`autonomous=true` is request-scoped; the default is false. Only an explicit
+choice in the current user request enables it. Never infer or persist it from
+configuration, `AGENTS.md`, history, prior sessions, or subagents. Explicit
+false or revocation restores the interactive path.
 
-Interactive mode retains the human reviews below. In autonomous mode, design
-alternative selection and Gate 1, Gate 2, and Gate 3 do not request human
-review or invoke `show-me`: each requires exactly one unique grounded
-recommendation, which the owning stage records as
-`auto-selected under explicit autonomous authority` rather than user-approved.
-The same rule applies to an in-scope reopened gate. Missing or ambiguous
-recommendations and unresolved
-load-bearing domain or architecture decisions stop the workflow.
+Interactive mode retains human review. Autonomous design selection and Gate 1,
+Gate 2, Gate 3, and reopened gates do not request human review or invoke
+`show-me`; each requires one unique grounded recommendation recorded by its
+owner as `auto-selected under explicit autonomous authority`. Ambiguity or an
+unresolved load-bearing domain/architecture decision stops the workflow.
 
-Autonomous mode does not widen scope or mutation authority. Scope expansion,
-a named mutation, setup's exact-diff authorization, and any action requiring
-separate authorization still request human review. This includes push,
-installation, external publication, user or repository configuration changes,
-credentials, destructive actions, and other independently protected effects.
-The mode still produces the design, specification, tickets, durable planned
-waves, self-check evidence, TDD, review, verification, and atomic commits.
+Autonomy never widens scope or mutation authority. Scope expansion, named
+mutation, setup exact-diff, or any effect requiring separate authorization
+still needs human review, including push, installation, publication,
+configuration, credentials, or destruction. Design, specification, tickets,
+durable waves, self-check, TDD, review, verification, and atomic commits remain.
 
-Every suite-owned human review consumes the [approval review contract](./approval-review-contract.md#review-snapshot),
-[rendering](./approval-review-contract.md#rendering), [authority and safety](./approval-review-contract.md#authority-and-safety),
-and [owning-skill responsibilities](./approval-review-contract.md#owning-skill-responsibilities).
-Invoke bundled `show-me` before asking; it presents the ASCII review map and
-never owns approval. `design-coder` owns classification: unknown is
-architectural. Bounded interactive design puts alternatives, recommendation,
-risks, and test seam in one Gate 1; a nonrecommended choice returns to
-elaboration and Gate 1. Architectural design keeps separate alternative
-selection and Gate 1. Autonomous mode requires one grounded recommendation.
-Gate 2, Gate 3, and later authority remain unchanged.
+Before every suite-owned human review, load the approval contract's [review
+snapshot](./approval-review-contract.md#review-snapshot),
+[rendering](./approval-review-contract.md#rendering), [authority and
+safety](./approval-review-contract.md#authority-and-safety), and [owning-skill
+responsibilities](./approval-review-contract.md#owning-skill-responsibilities),
+then invoke bundled `show-me`; it renders but never approves. `design-coder`
+classifies unknown work as architectural. Bounded interactive design combines
+alternatives, recommendation, risks, and test seam in Gate 1; choosing a
+nonrecommended option returns to elaboration. Architectural design keeps
+alternative selection separate from Gate 1.
 
 In the interactive path, stop for explicit user approval after:
 
@@ -86,27 +79,26 @@ In the interactive path, stop for explicit user approval after:
 2. the written specification;
 3. the vertical ticket set and authorization to implement it.
 
-Approval applies only to the artifact presented at that gate. A scope or architecture change reopens the relevant gate. After the third gate, in-scope TDD, verification, and atomic commits proceed without another confirmation.
+Approval covers only the presented artifact. Scope or architecture changes
+reopen the relevant gate. After Gate 3, authorized TDD, verification, and atomic
+commits need no fourth confirmation.
 
 A reopened gate follows the same approval contract and identifies the prior
-approval, changed fact, affected decision and returned gate. Ordinary
-clarification, status, read-only checks and already authorized work create no
-additional approval request.
+approval, changed fact, affected decision, and returned gate. Clarification,
+status, read-only checks, and authorized work add no approval request.
 
 ### Reopened Gate 3 scheduling barrier
 
-After an approved post-Gate-3 change to ownership, dependencies or blockers,
-conflicts, delegation mode, isolation, authoritative workspace or recorded
-base, or durable wave membership or order, main stops new dispatch, result acceptance,
-staging or commit, and checkbox advancement. Persist the renewed
-plan and interactive approval or autonomous selection, then run
+An approved post-Gate-3 change to ownership, dependencies/blockers, conflicts,
+delegation mode, isolation, authoritative workspace, recorded base, or durable
+wave membership/order stops dispatch, result acceptance, staging, commit, and
+checkbox advancement. Persist renewed plan approval/selection, then run
 `check-artifacts.py --phase plan` on the actual artifacts.
 
-Account for every active or returned result and verify renewed ownership,
-recorded base, and wave compatibility before reconstructing the earliest
-incomplete frontier. Missing renewal evidence, checker findings or
-unsupported/unavailable results, and unaccounted/incompatible results remain
-stopped. Unchanged-plan commit evidence or checkbox updates do not trigger this
+Account for each active or returned result; verify renewed ownership, recorded
+base, and wave compatibility before reconstructing the earliest incomplete
+frontier. Missing renewal, checker findings, or unaccounted/incompatible results
+remain stopped. Unchanged-plan commit/checkbox updates do not trigger this
 barrier. Reopened Gate 3 is not a fourth gate.
 
 ## Artifact Contract

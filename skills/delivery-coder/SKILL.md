@@ -5,7 +5,8 @@ description: Review and verify a completed spec-coder plan before declaring deli
 
 # Delivery Coder
 
-Apply the required owner sections below. Use the `code-review` review method only through a route compatible with the review mode below, then invoke `verification-before-completion`; route behavior repairs through `tdd-coder`.
+Apply the owners below. Route `code-review` through the selected review mode,
+invoke `verification-before-completion`, and return behavior repairs to `tdd-coder`.
 
 Apply the required Review Execution policy before either axis. Reviewers
 collect bounded evidence; main authors the final Standards/Spec conclusions

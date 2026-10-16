@@ -5,7 +5,12 @@ description: Prepare an approved or autonomously selected coding design for impl
 
 # Plan Coder
 
-Apply the required owner sections below, including workspace selection. This skill owns specification synthesis and vertical-ticket decomposition. It compiles every approved Gate-3 ticket graph, including a singleton graph, into inputs for the one native implement-spec executor; it does not schedule workers. Use the plugin's [specification template](../../references/specification-template.md) and [ticket template](../../references/ticket-template.md); no external planning skill is required. Use `using-git-worktrees` only if isolation is selected.
+Apply the owners below. This stage synthesizes the specification and vertical
+tickets, compiling every Gate-3 graph, including a singleton, for the native
+implement-spec executor without scheduling. Use the bundled [specification
+template](../../references/specification-template.md) and [ticket
+template](../../references/ticket-template.md); invoke `using-git-worktrees`
+only for selected isolation.
 
 Preserve the required domain decisions during synthesis and decomposition.
 Apply Approval Gates for interactive and autonomous Gate 2/3 transitions.

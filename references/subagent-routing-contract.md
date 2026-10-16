@@ -144,45 +144,32 @@ unavailable explicitly required model remains a concrete routing conflict.
 
 ## Execution Waves
 
-Before Gate 3, `plan-coder` writes the durable planned wave membership and
-order into the approved or autonomously selected ticket plan. Every ticket exactly once is required; a wave
-has at most four members, dependencies point only to earlier waves, conflicts
-do not share a wave, and a main-local ticket is a singleton. Interactive Gate 3 approves
-both the ticket set and its durable planned wave layout; autonomous Gate 3 selects
-their unique grounded recommendation and records the autonomous
-transition. Scheduling order is not a functional dependency.
+Before Gate 3, the approved or autonomously selected ticket plan records every
+ticket exactly once in durable waves. Waves have at most four
+members; dependencies target earlier waves, conflicts separate, and main-local
+tickets are singletons. Interactive Gate 3 approves the layout; autonomous Gate 3 selects one grounded recommendation. Order is not dependency.
 
-After Gate 3, the native implement-spec executor forms the current execution
-wave only from the earliest incomplete durable planned wave with an unchecked
-ticket. A live dispatch batch considers its
-eligible members in approved or autonomously selected order and may shrink for
-live Host capacity. It must not pull a ticket from a later planned wave or
-regroup membership.
+After Gate 3, the native implement-spec executor selects eligible members of the
+earliest incomplete durable wave in approved or autonomously selected order.
+The live dispatch batch may shrink for Host capacity, but must not pull later
+tickets or regroup membership.
 
-Parallel mutation additionally requires real Host/task workspace isolation.
-When isolation is unavailable, apply
-[Explicit Parallel Requests](#explicit-parallel-requests) before selecting
-serial fallback through one direct worker at a time. Apparent path disjointness
-in one shared workspace is not sufficient isolation. Before replacing an active
-batch, account for its returned results and advance accepted plan state. A
-capacity wait before dispatch has no batch in flight and may recheck live
-capacity without waiting for ticket results or advancing plan state.
+Parallel mutation requires real Host/task isolation; shared-workspace path
+disjointness is insufficient. If unavailable, apply [Explicit Parallel
+Requests](#explicit-parallel-requests) before serial fallback through one direct worker at a time. Before replacing a batch, account for returned results and
+accepted state. A capacity wait before dispatch has no batch in flight and may
+recheck capacity without advancing state.
 
-There is at most one active execution wave, at most four direct implementers,
-and exactly two agent layers. There is no implement-spec wrapper agent and no merger subagent. Durable planned wave membership,
+Exactly two agent layers, one active execution wave, and four direct implementers maximum;
+there is no implement-spec wrapper agent and no merger subagent. Durable waves,
 selected plan checkboxes, and committed Git state govern recovery; transient
-Host handles and execution modes remain conversational evidence. Do not create
-a scheduler database, private state file, or persistent opt-out record.
+handles/modes are conversational only. Never persist scheduler/private/opt-out
+state. Only `local`/`delegate` tickets form waves; `wait`, `block`, `pending`,
+and unknown outcomes grant no dispatch.
 
-Only tickets whose computed mode is `local` or `delegate` form an execution
-wave. A `wait`, `block`, `pending`, or unknown outcome forms no wave and grants
-no dispatch authority.
-
-If an opt-out arrives during a delegated run, stop new dispatch and promotion.
-Keep integrated commits attributed, inspect returned attributable results
-before disposition, and leave undispatched tickets stopped. Cancellation or
-discard still requires a separately safe disposition; after attribution, the
-remaining affected execution is main-local.
+An opt-out must stop new dispatch and promotion. Attribute commits, inspect
+returned results, stop undispatched tickets, and dispose safely; remaining
+affected execution is main-local.
 
 ## Explicit Parallel Requests
 

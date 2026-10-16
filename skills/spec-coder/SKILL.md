@@ -5,8 +5,8 @@ description: Orchestrate code-changing requests through requirements grilling, d
 
 # Spec Coder
 
-Coordinate stages under the required owner sections below. Validate current
-Host capabilities before invoking stages or dispatching workers.
+Coordinate stages under the owners below; validate Host capabilities before
+invocation or dispatch.
 
 ## Required Reading
 

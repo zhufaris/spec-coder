@@ -5,13 +5,11 @@ description: Interrogate a coding request in conservative dependency-aware quest
 
 # Grill Coder
 
-Apply the required owner sections below.
-Compose the installed, model-callable `grilling` skill for the interview method
-and `domain-modeling` for glossary/ADR discipline. Both capabilities are
-required. Do not call, wrap, rename, or emulate manual-only `grill-with-docs` or
-`grill-me-with-doc`; their presence on disk is not invocation eligibility.
-
-Use the [domain design contract](../../references/domain-design-contract.md) to identify terminology conflicts, missing rule/state owners, and relevant concurrency or failure scenarios. Read the [worked examples](../../references/domain-design-examples.md) when the business meanings or responsibilities are unclear; defer detailed model selection to design.
+Apply the owners below. Compose model-callable `grilling` for interviews and
+`domain-modeling` for glossary/ADR discipline. Never call or emulate manual-only
+with-doc skills. Use the [domain contract](../../references/domain-design-contract.md)
+to surface terminology, ownership, concurrency, and failure questions; defer
+model selection to design and use its examples when ownership is unclear.
 
 ## Required Reading
 

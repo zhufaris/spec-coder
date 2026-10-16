@@ -5,11 +5,10 @@ description: Turn confirmed coding requirements into an approved or autonomously
 
 # Design Coder
 
-Apply the required owner sections below.
-This skill owns intent reflection, conservative classification, comparison,
-presentation, and Gate routing. Both modes compose `domain-modeling`,
-`codebase-design`, and `clean-architecture` when applicable. `brainstorming` is
-not a required capability; users may invoke it manually outside spec-coder.
+Apply the owners below. This stage owns intent reflection, conservative
+classification, alternatives, presentation, and Gate routing, composing
+`domain-modeling`, `codebase-design`, and `clean-architecture` when applicable.
+`brainstorming` is not a required capability.
 
 Apply the required domain sections to the selected approach. A bounded
 interactive task combines alternatives and design approval into one Gate 1;

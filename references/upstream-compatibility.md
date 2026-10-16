@@ -48,37 +48,29 @@ These source snapshots identify the integration's provenance, not proof that eve
 
 ## Compatibility Check
 
-The autonomous path is enabled only by explicit request-scoped
-`autonomous=true` authority. `design-coder` natively owns conservative
-classification, grounded approach comparison, design presentation, and Gate
-routing in both modes. Neither mode requires or invokes `brainstorming` as part
-of spec-coder orchestration. Users may still invoke that skill manually outside
-this orchestration. Both paths continue to use `domain-modeling`,
-`codebase-design`, and `clean-architecture` when applicable.
+Only request-scoped `autonomous=true` enables autonomy. `design-coder` owns
+classification, grounded alternatives, presentation, and Gate routing; neither
+mode invokes `brainstorming`. Use `domain-modeling`, `codebase-design`, and
+`clean-architecture` when applicable.
 
-Before a stage delegates, confirm that each required upstream skill is visible in the current Host skill catalog, permitted for model invocation, and materially compatible with the expected input/output contract. Disk presence, plugin enablement and configuration overrides are not proof of invocation eligibility. Inspect the selected entry's metadata when needed: `disable-model-invocation: true` is a hard boundary even if the file can be read. If the catalog entry or invocation eligibility is absent, do not execute that skill indirectly through file reads, renamed wrappers, configuration changes, edited frontmatter or subagents.
+Before delegation, confirm upstream skills are Host-visible, model-callable,
+and I/O-compatible. Disk/plugin presence is insufficient;
+`disable-model-invocation: true` is a hard boundary. Never bypass restriction
+through reads, wrappers, configuration/frontmatter edits, or subagents.
 
-The current Matt Pocock `grill-with-docs`, `to-spec`, `to-tickets`, and
-`implement-spec` entries, and the locally installed `grill-me-with-doc`, are
-manual-only and intentionally excluded from the capability map. In particular,
-current Matt `implement-spec` declares `disable-model-invocation: true`; it is
-provenance only, not a dependency. `to-spec` and `to-tickets` also remain
-nondependencies of spec-coder 0.7.0. Users may invoke these skills manually
-outside this orchestration; do not require their installation, modify their
-flags, rename/wrap them, or ask the user to run them to complete the native
-workflow. `grill-coder` instead composes the model-callable `grilling` and
-`domain-modeling` primitives directly. Native `plan-coder` owns specification
-and ticket planning, while the native implement-spec executor schedules the
-approved plan after Gate 3; neither invokes a manual-only upstream skill.
+Matt Pocock `grill-with-docs`, `to-spec`, `to-tickets`, and `implement-spec`,
+plus local `grill-me-with-doc`, are manual-only and excluded. Matt
+`implement-spec` is provenance only, not a dependency; native `plan-coder` and the
+native implement-spec executor own planning and post-Gate-3 scheduling. Do not
+install, modify, wrap, or require them. Users may invoke them outside this
+orchestration; they are not workflow dependencies.
 
-`grill-coder` adopts `grilling`'s decision-tree frontier rounds, then refines
-them locally: each round contains at most three dependency-ready, mutually
-independent questions in tree order. Scope, domain meaning or ownership, core
-invariant, architecture, overlapping-coupling, and unknown-coupling decisions
-remain serial. It assigns stable IDs and individual recommendations, handles
-partial answers and ambiguity conservatively, and keeps repository-fact
-investigation agent-owned. This refinement does not invoke or emulate either
-manual-only with-doc wrapper.
+`grill-coder` directly composes model-callable `grilling` and `domain-modeling`.
+Its decision-tree rounds contain at most three dependency-ready independent
+questions; scope, domain meaning/ownership, core invariants, architecture, and
+known/unknown coupling remain serial. It assigns stable IDs/recommendations,
+handles partial/ambiguous answers conservatively, and keeps repository-fact
+investigation agent-owned without emulating a with-doc wrapper.
 
 ## Default Delegation and Review Compatibility
 

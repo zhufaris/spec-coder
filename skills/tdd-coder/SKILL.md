@@ -5,15 +5,15 @@ description: Implement one executor-issued unblocked vertical ticket through an 
 
 # TDD Coder
 
-Apply the required owner sections below. Compose the installed `tdd` skill at the public testing seams already selected in the specification and ticket plan.
+Apply the owners below and compose `tdd` at the approved public seams.
 
 This skill delegates eligible implementation work by default within one
 approved or autonomously selected bounded ticket and its verification seam.
-The main agent retains Red-Green, attribution and commit ownership. Apply the
-required routing and domain sections before implementation.
-Each executor-issued lifecycle owns one selected ticket only.
-It is one unblocked ticket lifecycle, not a plan-selection entry point.
-Each gate-3-approved executor-issued handoff authorizes one approved or autonomously selected ticket: one approved or autonomously selected unblocked vertical ticket in an approved or autonomously selected durable planned wave.
+Main retains Red-Green, attribution, and commit ownership. Each executor-issued
+lifecycle owns one selected ticket, never plan selection. Its Gate-3-approved
+handoff authorizes one approved or autonomously selected unblocked vertical ticket
+in an approved or autonomously selected durable planned wave.
+It remains one unblocked ticket lifecycle.
 
 ## Required Reading
 

@@ -24,48 +24,66 @@ domain and architecture evidence required in the artifact.
 
 ## Scale to the observed problem
 
-Inspect evidence before selecting modeling depth. Explain which triggers apply; they can overlap. Use a short paragraph for a small change. Do not require identifiers, a glossary, entities, services, or architecture layers merely to fill a template.
-
-Treat the modeling and persistence checks below as conditional on the affected behavior, not a mandatory inventory for every ticket. Straightforward input normalization or an authorized query can remain in existing modules without new value objects, policies, events or repositories. Retain access/tenant checks, input constraints and observable rejection behavior; simpler structure does not reduce those obligations. Revisit modeling depth only when evidence reveals an additional rule or interaction.
+Choose modeling depth from observed evidence and name overlapping triggers. A
+small change may need one paragraph, not template-driven identifiers,
+glossaries, entities, services, or layers. The later modeling/persistence checks
+apply only to affected behavior. Simple normalization or an authorized query
+may remain in existing modules without new value objects, policies, events, or
+repositories, while preserving access/tenant checks, input constraints, and
+observable rejection. Revisit depth when evidence adds a rule or interaction.
 
 | Observed trigger | Required decisions |
 | --- | --- |
-| Simple CRUD, field or display change | Business meaning, responsible module, input constraints, observable result and verification |
-| Interacting rules or significant state transitions | Invariants, enforcing model, state ownership, allowed and rejected transitions |
-| Concurrent writes or repeated requests | Atomicity/conflict mechanism, idempotency identity and owner, losing/duplicate outcome |
-| Multiple business contexts or external semantics | Context map, local models, translation, interaction data, consistency and recovery responsibilities |
-| Framework, persistence or SDK coupling | Interface ownership, source dependencies, data conversion and concrete dependency assembly |
+| CRUD, field, display | Meaning, owner, constraints, result, verification |
+| Rules or state transitions | Invariants, enforcement/state owners, allowed/rejected transitions |
+| Concurrency or retries | Atomicity/conflict, idempotency identity/owner, losing/duplicate outcome |
+| Multiple contexts/external semantics | Local models, translation/data, consistency/recovery owners |
+| Framework, persistence, SDK coupling | Interface owner, dependencies, conversion, assembly |
 
-Give interacting scenarios, invariants, and architecture decisions stable references such as `SCN-1`, `INV-1`, and `ARCH-1`, or unambiguous section anchors. Preserve them during decomposition. Read the [worked examples](./domain-design-examples.md) when applying a trigger or resolving ambiguous model/service responsibilities.
+Give scenarios, invariants, and architecture decisions stable references such
+as `SCN-1`, `INV-1`, and `ARCH-1`, preserve them during decomposition, and use
+the [worked examples](./domain-design-examples.md) for ambiguous ownership.
 
 ## Discover and evolve domain language
 
-Extract nouns, business actions, states, roles and constraints from requirements, tests, API/UI behavior and existing code. Use domain-expert meaning and observable behavior as evidence; database names alone do not define the model. Check an existing `GLOSSARY-MAP.md` and its context glossaries when present. Record ambiguous terms and contradictions between the code and requested behavior, their context, and the decisions they affect before encoding assumptions.
+Derive nouns, actions, states, roles, and constraints from requirements, tests,
+API/UI behavior, code, domain meaning, and observable outcomes—not database
+names alone. Read existing `GLOSSARY-MAP.md` and context glossaries. Before
+assuming, record ambiguous/contradictory terms, their contexts, and affected
+decisions.
 
-Use consistent domain terms in code, tests, interfaces and user-relevant errors where they describe the same concept. The same word can mean different things in different contexts; name those meanings and any translation explicitly. Capture settled terminology through the existing glossary workflow and workspace rules; keep implementation decisions in the specification, not the glossary.
-
-When improving a misleading name, identify affected public contracts, consumers and migration constraints. Keep public compatibility when required, with explicit boundary translation where needed. When a breaking change is approved, describe its scoped migration rather than retaining a misleading abstraction indefinitely. Do not infer permission to rename a public field or status from approval of an internal model.
+Use one term for one meaning across code, tests, interfaces, and user errors;
+name context-specific meanings and translations. Record settled language via
+the glossary workflow, but keep implementation decisions in the specification.
+A rename must identify public contracts, consumers, compatibility/translation,
+and migration. Internal-model approval never implicitly authorizes renaming a
+public field or status.
 
 ## Bounded contexts and their models
 
-Describe the affected **Bounded Contexts** and only the neighbors needed to explain interactions. A bounded context owns a coherent model and language; it is not automatically a folder, table, team, deployment unit, or microservice. Justify a boundary with differences in meaning, rules, or ownership. One context can suffice.
-
-For an existing system, separate **observed**, **proposed**, and **unresolved** model elements using code/specification evidence. Identify contradictions and the affected decisions. Do not turn observed legacy leakage into an approved constraint or expand a local change into an unrelated redesign.
-
-Within the existing specification, provide a compact description for each relevant context. Combine rows for small tasks; omit inapplicable constructs with a brief reason when their absence could be ambiguous.
+Describe only affected **Bounded Contexts** and interaction-relevant neighbors.
+A context owns coherent language/model; it is not inherently a folder, table,
+team, deployment, or microservice. Justify boundaries by meaning, rules, or
+ownership; one context may suffice. Separate evidence-backed **observed**,
+**proposed**, and **unresolved** elements and contradictions. Legacy leakage is
+not approval for a constraint or unrelated redesign. In the specification,
+combine small-task rows and explain ambiguous omissions.
 
 | Model content | Explain |
 | --- | --- |
-| Context purpose and language | Capabilities, local term meanings, authoritative state, exclusions and relationships with neighbors |
-| Entity | Business identity, lifecycle, state transitions and behavior; identity across contexts needs an explicit mapping |
-| Value object | Value meaning, equality, immutability and valid construction; avoid wrapping every primitive without a domain reason |
-| Aggregate and root, when needed | Root, included entities/value objects, protected invariants and consistency boundary; justify from rules that must hold together, not joins |
-| Domain service, when needed | A named business operation that does not naturally belong to one entity/value object; inputs, results, rules and collaborators |
-| Policy / DDD Specification, when needed | A named business decision with independent meaning, variation or reuse; inputs, result, enforcing caller and why a local condition is insufficient |
-| Application service / use case | Coordination of domain operations, transactions and external interactions; reference the authoritative domain rule instead of duplicating it |
-| Repositories, ports and events, when needed | The actual capability and owner they serve, contract semantics and why existing interfaces are insufficient |
+| Context | Purpose/language, authoritative state, exclusions, neighbors |
+| Entity | Identity, lifecycle, behavior; cross-context identity mapping |
+| Value object | Meaning, equality, immutability, valid construction |
+| Aggregate/root, if needed | Members, protected invariants, rule-based consistency boundary |
+| Domain service/policy, if needed | Named decision/operation, inputs/results/rules/collaborators and enforcing caller |
+| Application use case | Coordination, transactions/interactions, references to authoritative rules |
+| Repository/port/event, if needed | Served capability/owner, semantics, insufficiency of existing interfaces |
 
-Give every significant invariant an authoritative enforcing module and an observable behavior seam. Use an entity, value object, aggregate, or domain function/service as appropriate; logical roles need not become separate classes. Do not create a service per use case, a repository per table, passive records plus a generic service containing every rule, or an interface for every class. Preserve simple CRUD where there is no richer rule to model.
+Give each significant invariant an enforcing module and observable seam. Choose
+the simplest suitable entity, value object, aggregate, or function/service;
+logical roles need not be classes. Avoid service-per-use-case,
+repository-per-table, passive-record/god-service, and interface-per-class
+designs. Preserve simple CRUD when no richer rule exists.
 
 ## Protect behavior and valid values
 
@@ -104,22 +122,30 @@ Define the module responsible for each rule, the public interface, allowed cross
 
 ## Design content and specification mapping
 
-In `design-coder`, start from concrete success, rejection, and relevant retry scenarios. Work out their domain rules and architecture together. Distinguish confirmed decisions, evidence from existing code, and unresolved questions.
-
-Use the bundled [specification template](./specification-template.md). Put the following content in the indicated sections; a small task can express several rows in one paragraph.
+In `design-coder`, derive domain rules and architecture together from success,
+rejection, and relevant retry scenarios. Separate confirmed decisions, code
+evidence, and unresolved questions. Use the bundled [specification
+template](./specification-template.md); small tasks may combine rows.
 
 | Design content | Placement in the local specification | Preserve |
 | --- | --- | --- |
-| User scenarios | User Stories; Implementation Decisions / Behavior & Failure Modes | Triggers, observable outcomes, rejection and relevant retry behavior |
-| Domain model | Implementation Decisions / Domain Model | Affected contexts, canonical terms, actions, valid values, justified policies, enforcing owners, invariants and consistency boundaries |
-| Architecture | Implementation Decisions / Architecture | Domain/application/adapter responsibilities, public interfaces, source dependency direction, assembly and boundary data |
-| Verification | Testing Decisions | Scenario/invariant to public test seam; applicable persistence round trip and subsequent behavior; separate evidence for dependency rules |
-| Limits and unresolved decisions | Out of Scope; Further Notes | Explicit exclusions, open questions, and the decisions they block |
-| Language evolution | Implementation Decisions / Compatibility & Migration | Changed meanings/names, affected public consumers, compatibility constraints and approved migration scope |
+| Scenarios | User Stories; Behavior & Failure Modes | Triggers, outcomes, rejection/retry |
+| Domain | Domain Model | Contexts, terms/actions/values, policies, owners, invariants/boundaries |
+| Architecture | Architecture | Responsibilities, interfaces, dependencies, assembly/boundary data |
+| Verification | Testing Decisions | Public seams, persistence behavior, separate dependency evidence |
+| Limits | Out of Scope; Further Notes | Exclusions, open decisions and blocked work |
+| Language | Compatibility & Migration | Meaning/name changes, consumers, compatibility/migration |
 
-Record an interface's preconditions, outputs, and failure semantics, not just a method name. Preserve applicable action/VO/policy decisions in ticket references and acceptance examples, including rejected operations and bypass paths. Describe architecture by module responsibility rather than a list of directories. Runtime calls may go out to an adapter while source dependencies point toward an internally owned interface.
+Record interface preconditions, outputs, and failures—not only method names.
+Tickets preserve applicable action/value/policy decisions, rejections, and
+bypass paths. Describe module responsibilities and remember that runtime calls
+may target an adapter while source dependencies point inward.
 
-Before Gate 2, reconcile every relevant approved scenario, context/model responsibility, invariant, consistency/interaction decision, dependency rule, and testing seam with its specification location. Fix omissions. If synthesis reveals a new business or architecture decision, return to `design-coder` and reopen the affected gate; specification synthesis must not invent entities, services or recovery policies. Ordinary wording corrections do not create a new design gate.
+Before Gate 2, map every relevant scenario, model responsibility, invariant,
+interaction/dependency decision, and test seam into the specification. Fix
+omissions. New business/architecture decisions return to `design-coder` and
+reopen the gate; synthesis cannot invent entities, services, or recovery.
+Wording-only corrections do not create a gate.
 
 ## Ticket decomposition
 

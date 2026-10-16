@@ -188,6 +188,41 @@ class StageLoadingTests(unittest.TestCase):
                 self.assertLessEqual(counts[stage], budget)
         self.assertLess(sum(counts.values()), 22500)
 
+    def test_runtime_compaction_targets_and_conditional_non_growth(self):
+        stages = (
+            "spec-coder",
+            "grill-coder",
+            "design-coder",
+            "plan-coder",
+            "tdd-coder",
+            "delivery-coder",
+        )
+        normal = {
+            stage: len(
+                instruction_text(
+                    ROOT / "skills" / stage / "SKILL.md", frozenset()
+                ).split()
+            )
+            for stage in stages
+        }
+        pre_compaction_all_trigger_limits = {
+            "spec-coder": 8489,
+            "grill-coder": 5419,
+            "design-coder": 6969,
+            "plan-coder": 11105,
+            "tdd-coder": 11091,
+            "delivery-coder": 11606,
+        }
+
+        self.assertLessEqual(sum(normal.values()), 19000)
+        self.assertLessEqual(normal["plan-coder"], 5200)
+        for stage, limit in pre_compaction_all_trigger_limits.items():
+            with self.subTest(stage=stage):
+                triggered = len(
+                    instruction_text(ROOT / "skills" / stage / "SKILL.md").split()
+                )
+                self.assertLessEqual(triggered, limit)
+
     def test_plan_coder_verification_fallback_owns_detailed_contract(self):
         path = ROOT / "skills/plan-coder/SKILL.md"
         normal = required_links(path)
