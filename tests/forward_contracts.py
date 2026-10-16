@@ -563,10 +563,10 @@ def apply_approved_setup(
 
 
 def apply_approved_setup_targets(
-    proposals: Mapping[str, Tuple[bytes, bytes]],
-    current: Mapping[str, bytes],
+    proposals: Mapping[str, tuple[bool, bytes, bytes]],
+    current: Mapping[str, tuple[bool, bytes]],
     writer: Callable[[str, bytes], object],
-    reader: Callable[[str], bytes],
+    reader: Callable[[str], tuple[bool, bytes]],
     canonical_agents: bytes,
 ) -> Dict[str, object]:
     """Revalidate every approved target before applying any of them.
@@ -589,14 +589,24 @@ def apply_approved_setup_targets(
     allowed_targets = {"AGENTS.md", ".gitignore"}
     current_items = tuple(current.items())
     if not all(
-        isinstance(target, str) and target and isinstance(content, bytes)
-        for target, content in current_items
+        isinstance(target, str)
+        and target
+        and isinstance(observation, tuple)
+        and len(observation) == 2
+        and isinstance(observation[0], bool)
+        and isinstance(observation[1], bytes)
+        for target, observation in current_items
     ):
-        raise ValueError("current setup targets require nonempty names and byte content")
-    if any(target not in allowed_targets for target, _content in current_items):
+        raise ValueError("current setup targets require existence and byte observations")
+    if any(
+        not exists and content
+        for _target, (exists, content) in current_items
+    ):
+        raise ValueError("absent setup targets cannot have nonempty bytes")
+    if any(target not in allowed_targets for target, _observation in current_items):
         raise ValueError("current setup target is outside approved authority")
 
-    ordered_proposals: list[tuple[str, bytes, bytes]] = []
+    ordered_proposals: list[tuple[str, bool, bytes, bytes]] = []
     for target, proposal in proposals.items():
         if not isinstance(target, str) or not target:
             raise ValueError("setup proposal targets must be nonempty strings")
@@ -604,11 +614,17 @@ def apply_approved_setup_targets(
             raise ValueError("setup proposal target is outside approved authority")
         if (
             not isinstance(proposal, tuple)
-            or len(proposal) != 2
-            or not all(isinstance(content, bytes) for content in proposal)
+            or len(proposal) != 3
+            or not isinstance(proposal[0], bool)
+            or not isinstance(proposal[1], bytes)
+            or not isinstance(proposal[2], bytes)
         ):
-            raise ValueError("setup proposals must be exact before/after byte pairs")
-        before, after = proposal
+            raise ValueError(
+                "setup proposals require existence, before bytes, and after bytes"
+            )
+        before_exists, before, after = proposal
+        if not before_exists and before:
+            raise ValueError("absent setup targets cannot have nonempty bytes")
         if before == after:
             raise ValueError("setup proposals must describe a byte change")
         if target == "AGENTS.md":
@@ -622,22 +638,23 @@ def apply_approved_setup_targets(
         else:
             from scripts.spec_coder_checks.workspace_policy import propose_ignore
 
-            ignore_proposal = propose_ignore(before)
+            ignore_proposal = propose_ignore(before if before_exists else None)
             authorized_after = base64.b64decode(
                 ignore_proposal.proposed_bytes_base64, validate=True
             )
         if after != authorized_after:
             raise ValueError("setup proposal does not match authorized bytes")
-        ordered_proposals.append((target, before, after))
+        ordered_proposals.append((target, before_exists, before, after))
 
-    targets = tuple(target for target, _before, _after in ordered_proposals)
+    targets = tuple(target for target, _exists, _before, _after in ordered_proposals)
     proposal_keys = set(targets)
     current_keys = {target for target, _content in current_items}
     current_by_target = dict(current_items)
     drifted = tuple(
         target
-        for target, before, _after in ordered_proposals
-        if target not in current_by_target or current_by_target[target] != before
+        for target, before_exists, before, _after in ordered_proposals
+        if target not in current_by_target
+        or current_by_target[target] != (before_exists, before)
     )
     unexpected = tuple(sorted(current_keys - proposal_keys))
     if current_keys != proposal_keys or drifted:
@@ -652,7 +669,10 @@ def apply_approved_setup_targets(
 
     applied: list[str] = []
     observed_digests: list[tuple[str, str]] = []
-    for index, (target, _before, after) in enumerate(ordered_proposals):
+    observed_existence: list[tuple[str, bool]] = []
+    for index, (target, _before_exists, _before, after) in enumerate(
+        ordered_proposals
+    ):
         failure_detail = None
         try:
             if writer(target, after) is False:
@@ -660,11 +680,21 @@ def apply_approved_setup_targets(
         except Exception as error:  # The failure is evidence, not rollback authority.
             failure_detail = f"{type(error).__name__}: {error}"
 
+        observed_exists = None
         observed = None
         try:
-            observed = reader(target)
-            if not isinstance(observed, bytes):
-                raise TypeError("reader returned non-bytes content")
+            observation = reader(target)
+            if (
+                not isinstance(observation, tuple)
+                or len(observation) != 2
+                or not isinstance(observation[0], bool)
+                or not isinstance(observation[1], bytes)
+            ):
+                raise TypeError("reader returned an invalid target observation")
+            observed_exists, observed = observation
+            if not observed_exists and observed:
+                raise ValueError("absent setup targets cannot have nonempty bytes")
+            observed_existence.append((target, observed_exists))
             observed_digests.append((target, hashlib.sha256(observed).hexdigest()))
         except Exception as error:
             observation_failure = f"{type(error).__name__}: {error}"
@@ -674,10 +704,11 @@ def apply_approved_setup_targets(
                 else f"re-read failed: {observation_failure}"
             )
 
-        if failure_detail is None and observed != after:
+        observed_matches = observed_exists is True and observed == after
+        if failure_detail is None and not observed_matches:
             failure_detail = f"post-write bytes did not match approved bytes for {target}"
         if failure_detail is not None:
-            target_applied = observed == after
+            target_applied = observed_matches
             if target_applied:
                 applied.append(target)
             return {
@@ -688,6 +719,7 @@ def apply_approved_setup_targets(
                 "failed_target": target,
                 "failure_detail": failure_detail,
                 "observed_digests": tuple(observed_digests),
+                "observed_existence": tuple(observed_existence),
                 "recovery": "Regenerate proposals from fresh bases and perform an idempotent rerun.",
             }
         applied.append(target)
@@ -698,6 +730,7 @@ def apply_approved_setup_targets(
         "applied": tuple(applied),
         "unapplied": (),
         "observed_digests": tuple(observed_digests),
+        "observed_existence": tuple(observed_existence),
     }
 
 

@@ -51,14 +51,16 @@ BUNDLED_ROUTING = Path(__file__).resolve().parents[1] / "config" / "model-routin
 
 
 def authorized_ignore_proposal(before):
-    proposal = propose_ignore(before)
-    return before, base64.b64decode(proposal.proposed_bytes_base64)
+    exists, content = before
+    proposal = propose_ignore(content if exists else None)
+    return exists, content, base64.b64decode(proposal.proposed_bytes_base64)
 
 
 def authorized_setup_proposals():
+    agents_after = propose_setup(AGENTS_BASE, CANONICAL)[1]
     return {
-        "AGENTS.md": propose_setup(AGENTS_BASE, CANONICAL),
-        ".gitignore": authorized_ignore_proposal(IGNORE_BASE),
+        "AGENTS.md": (True, AGENTS_BASE, agents_after),
+        ".gitignore": authorized_ignore_proposal((True, IGNORE_BASE)),
     }
 
 
@@ -98,9 +100,9 @@ class SetupForwardScenarios(unittest.TestCase):
 
         result = apply_approved_setup_targets(
             proposals,
-            {"AGENTS.md": AGENTS_BASE, ".gitignore": b"drifted"},
+            {"AGENTS.md": (True, AGENTS_BASE), ".gitignore": (True, b"drifted")},
             lambda target, content: writes.append((target, content)),
-            lambda target: b"must-not-read",
+            lambda target: (True, b"must-not-read"),
             CANONICAL,
         )
 
@@ -114,9 +116,9 @@ class SetupForwardScenarios(unittest.TestCase):
 
         result = apply_approved_setup_targets(
             proposals,
-            {"AGENTS.md": AGENTS_BASE},
+            {"AGENTS.md": (True, AGENTS_BASE)},
             lambda target, content: writes.append((target, content)),
-            lambda target: b"must-not-read",
+            lambda target: (True, b"must-not-read"),
             CANONICAL,
         )
 
@@ -130,18 +132,24 @@ class SetupForwardScenarios(unittest.TestCase):
     def test_partial_apply_reports_changed_and_unapplied_targets(self) -> None:
         proposals = authorized_setup_proposals()
 
-        stored = {target: before for target, (before, _after) in proposals.items()}
+        stored = {
+            target: (exists, before)
+            for target, (exists, before, _after) in proposals.items()
+        }
         calls = []
 
         def writer(target, content):
             calls.append((target, content))
             if target == ".gitignore":
                 raise OSError("simulated write failure")
-            stored[target] = content
+            stored[target] = (True, content)
 
         result = apply_approved_setup_targets(
             proposals,
-            {target: before for target, (before, _after) in proposals.items()},
+            {
+                target: (exists, before)
+                for target, (exists, before, _after) in proposals.items()
+            },
             writer,
             stored.__getitem__,
             CANONICAL,
@@ -158,12 +166,12 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertIn("idempotent", result["recovery"])
         self.assertEqual(
             dict(result["observed_digests"])["AGENTS.md"],
-            hashlib.sha256(proposals["AGENTS.md"][1]).hexdigest(),
+            hashlib.sha256(proposals["AGENTS.md"][2]).hexdigest(),
         )
 
         def recovery_writer(target, content):
             calls.append((target, content))
-            stored[target] = content
+            stored[target] = (True, content)
 
         recovery = apply_approved_setup_targets(
             {".gitignore": proposals[".gitignore"]},
@@ -178,31 +186,37 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(
             calls,
             [
-                ("AGENTS.md", proposals["AGENTS.md"][1]),
-                (".gitignore", proposals[".gitignore"][1]),
-                (".gitignore", proposals[".gitignore"][1]),
+                ("AGENTS.md", proposals["AGENTS.md"][2]),
+                (".gitignore", proposals[".gitignore"][2]),
+                (".gitignore", proposals[".gitignore"][2]),
             ],
         )
         self.assertEqual(
             stored,
             {
-                "AGENTS.md": proposals["AGENTS.md"][1],
-                ".gitignore": proposals[".gitignore"][1],
+                "AGENTS.md": (True, proposals["AGENTS.md"][2]),
+                ".gitignore": (True, proposals[".gitignore"][2]),
             },
         )
 
     def test_multi_target_apply_is_ordered_and_reports_complete_evidence(self) -> None:
         proposals = authorized_setup_proposals()
         writes = []
-        stored = {target: before for target, (before, _after) in proposals.items()}
+        stored = {
+            target: (exists, before)
+            for target, (exists, before, _after) in proposals.items()
+        }
 
         def writer(target, content):
             writes.append((target, content))
-            stored[target] = content
+            stored[target] = (True, content)
 
         result = apply_approved_setup_targets(
             proposals,
-            {target: before for target, (before, _after) in proposals.items()},
+            {
+                target: (exists, before)
+                for target, (exists, before, _after) in proposals.items()
+            },
             writer,
             stored.__getitem__,
             CANONICAL,
@@ -214,32 +228,38 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(
             writes,
             [
-                ("AGENTS.md", proposals["AGENTS.md"][1]),
-                (".gitignore", proposals[".gitignore"][1]),
+                ("AGENTS.md", proposals["AGENTS.md"][2]),
+                (".gitignore", proposals[".gitignore"][2]),
             ],
         )
         self.assertEqual(
             result["observed_digests"],
             tuple(
                 (target, hashlib.sha256(after).hexdigest())
-                for target, (_before, after) in proposals.items()
+                for target, (_exists, _before, after) in proposals.items()
             ),
         )
 
     def test_writer_false_reports_failure_without_rollback(self) -> None:
         proposals = authorized_setup_proposals()
         calls = []
-        stored = {target: before for target, (before, _after) in proposals.items()}
+        stored = {
+            target: (exists, before)
+            for target, (exists, before, _after) in proposals.items()
+        }
 
         def writer(target, content):
             calls.append((target, content))
             if target == ".gitignore":
                 return False
-            stored[target] = content
+            stored[target] = (True, content)
 
         result = apply_approved_setup_targets(
             proposals,
-            {target: before for target, (before, _after) in proposals.items()},
+            {
+                target: (exists, before)
+                for target, (exists, before, _after) in proposals.items()
+            },
             writer,
             stored.__getitem__,
             CANONICAL,
@@ -252,8 +272,8 @@ class SetupForwardScenarios(unittest.TestCase):
         self.assertEqual(
             calls,
             [
-                ("AGENTS.md", proposals["AGENTS.md"][1]),
-                (".gitignore", proposals[".gitignore"][1]),
+                ("AGENTS.md", proposals["AGENTS.md"][2]),
+                (".gitignore", proposals[".gitignore"][2]),
             ],
         )
         self.assertEqual(
@@ -264,9 +284,22 @@ class SetupForwardScenarios(unittest.TestCase):
         writes = []
         invalid_cases = (
             ({}, {}),
-            ({"AGENTS.md": (b"same", b"same")}, {"AGENTS.md": b"same"}),
-            ({"AGENTS.md": ("text", b"after")}, {"AGENTS.md": b"base"}),
-            ({"AGENTS.md": (b"base", b"after")}, {"AGENTS.md": "text"}),
+            (
+                {"AGENTS.md": (True, b"same", b"same")},
+                {"AGENTS.md": (True, b"same")},
+            ),
+            (
+                {"AGENTS.md": (False, b"unexpected", b"after")},
+                {"AGENTS.md": (False, b"")},
+            ),
+            (
+                {"AGENTS.md": (True, "text", b"after")},
+                {"AGENTS.md": (True, b"base")},
+            ),
+            (
+                {"AGENTS.md": (True, b"base", b"after")},
+                {"AGENTS.md": (False, b"unexpected")},
+            ),
         )
 
         for proposals, current in invalid_cases:
@@ -276,7 +309,7 @@ class SetupForwardScenarios(unittest.TestCase):
                         proposals,
                         current,
                         lambda target, content: writes.append((target, content)),
-                        lambda target: b"must-not-read",
+                        lambda target: (True, b"must-not-read"),
                         CANONICAL,
                     )
 
@@ -287,12 +320,15 @@ class SetupForwardScenarios(unittest.TestCase):
 
         for proposals, current in (
             (
-                {"config.toml": (b"config-base", b"config-after")},
-                {"config.toml": b"config-base"},
+                {"config.toml": (True, b"config-base", b"config-after")},
+                {"config.toml": (True, b"config-base")},
             ),
             (
-                {"AGENTS.md": (b"agents-base", b"agents-after")},
-                {"AGENTS.md": b"agents-base", "config.toml": b"config-base"},
+                {"AGENTS.md": (True, AGENTS_BASE, propose_setup(AGENTS_BASE, CANONICAL)[1])},
+                {
+                    "AGENTS.md": (True, AGENTS_BASE),
+                    "config.toml": (True, b"config-base"),
+                },
             ),
         ):
             with self.subTest(proposals=proposals, current=current):
@@ -301,7 +337,7 @@ class SetupForwardScenarios(unittest.TestCase):
                         proposals,
                         current,
                         lambda target, content: writes.append((target, content)),
-                        lambda target: b"must-not-read",
+                        lambda target: (True, b"must-not-read"),
                         CANONICAL,
                     )
 
@@ -311,34 +347,90 @@ class SetupForwardScenarios(unittest.TestCase):
         writes = []
         with self.assertRaisesRegex(ValueError, "authorized bytes"):
             apply_approved_setup_targets(
-                {".gitignore": (b"user-pattern\n", b"replacement\n")},
-                {".gitignore": b"user-pattern\n"},
+                {".gitignore": (True, b"user-pattern\n", b"replacement\n")},
+                {".gitignore": (True, b"user-pattern\n")},
                 lambda target, content: writes.append((target, content)),
-                lambda target: b"must-not-read",
+                lambda target: (True, b"must-not-read"),
                 CANONICAL,
             )
         self.assertEqual(writes, [])
+
+    def test_absent_gitignore_and_concurrently_created_empty_file_are_distinct(self) -> None:
+        proposal = propose_ignore(None)
+        after = base64.b64decode(proposal.proposed_bytes_base64)
+        writes = []
+
+        result = apply_approved_setup_targets(
+            {".gitignore": (False, b"", after)},
+            {".gitignore": (True, b"")},
+            lambda target, content: writes.append((target, content)),
+            lambda target: (True, b""),
+            CANONICAL,
+        )
+
+        self.assertEqual(result["status"], BLOCKED)
+        self.assertEqual(result["reason"], "approved-target-drift")
+        self.assertEqual(writes, [])
+
+    def test_missing_setup_targets_are_created_and_reobserved(self) -> None:
+        agents_after = propose_setup(b"", CANONICAL)[1]
+        ignore_after = base64.b64decode(
+            propose_ignore(None).proposed_bytes_base64
+        )
+        proposals = {
+            "AGENTS.md": (False, b"", agents_after),
+            ".gitignore": (False, b"", ignore_after),
+        }
+        stored = {
+            "AGENTS.md": (False, b""),
+            ".gitignore": (False, b""),
+        }
+        writes = []
+
+        def writer(target, content):
+            writes.append((target, content))
+            stored[target] = (True, content)
+
+        result = apply_approved_setup_targets(
+            proposals,
+            dict(stored),
+            writer,
+            stored.__getitem__,
+            CANONICAL,
+        )
+
+        self.assertEqual(result["status"], READY)
+        self.assertEqual(result["applied"], ("AGENTS.md", ".gitignore"))
+        self.assertEqual(
+            result["observed_existence"],
+            (("AGENTS.md", True), (".gitignore", True)),
+        )
+        self.assertEqual(
+            writes,
+            [("AGENTS.md", agents_after), (".gitignore", ignore_after)],
+        )
 
     def test_agents_proposal_must_match_the_explicit_canonical_block(self) -> None:
         writes = []
         with self.assertRaisesRegex(ValueError, "authorized bytes"):
             apply_approved_setup_targets(
-                {"AGENTS.md": (AGENTS_BASE, b"replacement\n")},
-                {"AGENTS.md": AGENTS_BASE},
+                {"AGENTS.md": (True, AGENTS_BASE, b"replacement\n")},
+                {"AGENTS.md": (True, AGENTS_BASE)},
                 lambda target, content: writes.append((target, content)),
-                lambda target: b"must-not-read",
+                lambda target: (True, b"must-not-read"),
                 CANONICAL,
             )
         self.assertEqual(writes, [])
 
     def test_post_write_observation_must_match_approved_bytes(self) -> None:
-        proposal = propose_setup(AGENTS_BASE, CANONICAL)
+        after = propose_setup(AGENTS_BASE, CANONICAL)[1]
+        proposal = (True, AGENTS_BASE, after)
         writes = []
-        stored = {"AGENTS.md": AGENTS_BASE}
+        stored = {"AGENTS.md": (True, AGENTS_BASE)}
 
         result = apply_approved_setup_targets(
             {"AGENTS.md": proposal},
-            {"AGENTS.md": AGENTS_BASE},
+            {"AGENTS.md": (True, AGENTS_BASE)},
             lambda target, content: writes.append((target, content)),
             stored.__getitem__,
             CANONICAL,
@@ -353,7 +445,7 @@ class SetupForwardScenarios(unittest.TestCase):
             result["observed_digests"],
             (("AGENTS.md", hashlib.sha256(AGENTS_BASE).hexdigest()),),
         )
-        self.assertEqual(writes, [("AGENTS.md", proposal[1])])
+        self.assertEqual(writes, [("AGENTS.md", after)])
 
     def test_first_setup_then_no_op_rerun_preserves_existing_bytes(self) -> None:
         original = b"# Existing\r\n\r\nKeep this.\r\n"
