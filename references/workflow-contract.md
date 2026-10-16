@@ -153,15 +153,17 @@ unchanged main-only completion authority.
 
 `setup-coder` is a manually invoked, idempotent onboarding capability; it is not
 part of the fixed coding phase order. Follow the [setup contract](./setup-contract.md)
-for repository-local `AGENTS.md` management, capability assessment,
-verification-command discovery, mutation approval, concurrency protection, and
-`READY`/`WARNING`/`BLOCKED` reporting. Setup does not create coding artifacts or
-a worktree and does not install, stage, commit, push, or persist private state.
-Its exact-diff `AGENTS.md` update is an onboarding mutation and not a coding
-artifact or implementation change, so it may occur without coding-workflow
-workspace preflight or a green project baseline. Setup's own authority,
-byte-preservation, approval, and concurrent-change checks are the safety
-boundary; this exception does not authorize any other pre-baseline write.
+for repository-local `AGENTS.md` managed region and exact root `.gitignore`
+entries `/.worktrees/` and `/.cache/`, capability assessment, verification-command
+discovery, mutation approval, concurrency protection, and `READY`/`WARNING`/`BLOCKED`
+reporting. Setup does not create coding artifacts or a worktree and does not
+install, stage, commit, push, or persist private state. Its exact-diff managed
+region update and only those two exact root `.gitignore` entries are each an
+onboarding mutation, not a coding artifact or implementation change, so they
+may occur without coding-workflow workspace preflight or a green project
+baseline. Setup's own authority, byte-preservation, approval, and
+concurrent-change checks are the safety boundary; this exception does not
+authorize any other pre-baseline write.
 
 ## Workspace Selection
 

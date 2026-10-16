@@ -424,6 +424,55 @@ and require a new exact diff and approval.
 
 Forbidden action: Do not merge or overwrite under stale authorization.
 
+## Isolation-root onboarding with exact bytes
+
+Starting state: A readable Git repository has an absent `AGENTS.md`, a partial
+root `.gitignore` containing only `/.worktrees/`, and a user-owned final line
+without a line terminator.
+
+Expected route: Prepare one exact review for `AGENTS.md` and `.gitignore` that
+names every base/proposed digest, changed and preserved region, safety guard and
+consequence. Propose only `/.cache/`, prepended before the unterminated
+user-owned bytes, then re-read all approved targets before the first write.
+
+Forbidden action: Do not normalize, delete, reorder, or append into the
+user-owned unterminated `.gitignore` bytes.
+
+## Multi-target setup drift
+
+Starting state: The user approved the exact `AGENTS.md` and `.gitignore`
+proposal, but either target changes before setup starts writing.
+
+Expected route: Detect the changed digest while re-reading all approved targets,
+block all writes, invalidate the approval, and request a new multi-target
+proposal.
+
+Forbidden action: Do not apply the still-matching target alone or merge the
+drift under the old approval.
+
+## Setup partial apply recovery
+
+Starting state: All approved targets match at revalidation, the managed-block
+write succeeds, and the `.gitignore` write then fails.
+
+Expected route: Report the exact partial apply, including the changed target's
+observed digest and unapplied target, preserve the failure evidence, and offer
+an idempotent rerun using fresh target bases.
+
+Forbidden action: Do not roll back the successful user-file write or claim the
+onboarding update is fully applied.
+
+## Isolation-root idempotent rerun
+
+Starting state: Root `AGENTS.md` is current and root `.gitignore` already has
+the exact `/.worktrees/` and `/.cache/` entries among other user patterns.
+
+Expected route: Produce zero diff, perform no write, and report both targets as
+current after fresh inspection.
+
+Forbidden action: Do not append duplicate entries, remove equivalent-looking
+patterns, or reorder user-owned ignore bytes.
+
 ## Missing required setup capability
 
 Starting state: A required external stage capability is absent, manual-only via

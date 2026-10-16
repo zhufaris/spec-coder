@@ -5,8 +5,9 @@ idempotent, not a stage in the fixed spec-coder coding workflow.
 
 ## Scope and authority
 
-Default to the target repository's root `AGENTS.md`. Repository-local setup is
-portable and reviewable. Reading parent or user-global instructions is allowed
+Default to the target repository's root `AGENTS.md` managed block and the two
+exact root `.gitignore` entries `/.worktrees/` and `/.cache/`. Repository-local
+setup is portable and reviewable. Reading parent or user-global instructions is allowed
 for precedence/conflict evidence, but a global file may change only after an
 explicit global request, a separate exact diff, and separate approval.
 
@@ -23,10 +24,12 @@ absent, valid with its `minimum_tier`, or invalid with conservative
 invalid content is a `WARNING`. Setup must not create or edit this repository
 policy or either trusted user mapping path.
 
-The approved `AGENTS.md` update is an onboarding mutation, not a coding artifact
-or implementation change. It may therefore run outside the fixed coding phase
-order and before a project baseline. Its exact authority, byte-preservation,
-approval, and concurrent-base checks do not permit any other pre-baseline write.
+The approved `AGENTS.md` managed-region update and the two exact root
+`.gitignore` entries are onboarding mutations, not coding artifacts or
+implementation changes. They may therefore run outside the fixed coding phase
+order and before a project baseline. Their exact authority, byte-preservation,
+approval, and concurrent-base checks do not permit any other pre-baseline write
+or arbitrary `.gitignore` normalization, deletion, or reordering.
 
 ## Capability assessment
 
@@ -86,6 +89,32 @@ For an absent or empty file, write only the canonical managed block.
 Unchanged inputs must produce zero diff. Repeated setup must not append another
 block or reorder user content.
 
+## Repository-local isolation roots
+
+Alongside the managed block, setup owns only the exact root `.gitignore`
+patterns `/.worktrees/` and `/.cache/`. It obtains their current/proposed facts
+from Workspace Policy; it does not reinterpret equivalent-looking patterns,
+remove duplicates, or modify any other ignore rule.
+
+Classify the selected `.gitignore` target as absent, current, or partial:
+
+| State | Meaning | Action |
+| --- | --- | --- |
+| `absent` | No root `.gitignore` exists | Propose a file containing only the missing generated entries |
+| `current` | Both exact root entries are present | Zero diff; no write |
+| `partial` | One or both exact root entries are absent | Propose only the missing entries, preserving all existing bytes |
+
+For existing content ending in a line terminator, append only the missing exact
+entries in their canonical order. If existing content has no final line
+terminator, prepend the missing generated entries without terminating,
+normalizing, or otherwise changing the user-owned bytes. This rule applies even
+when the other root entry is already present. A missing file may be created.
+
+The isolation-root proposal is idempotent: once its exact entries are present,
+the next setup run is a zero-diff no-op. It remains separate from marker
+classification: malformed or duplicated `AGENTS.md` markers block the complete
+onboarding mutation rather than allowing a `.gitignore`-only write.
+
 ## Verification command discovery
 
 Use evidence in this order:
@@ -124,21 +153,31 @@ merely to change the label.
 
 ## Mutation protocol
 
-For file absence, an absent block, or a stale valid block:
+For `AGENTS.md` file absence, an absent or stale valid block, or an absent or
+partial selected `.gitignore` target:
 
-1. retain the exact inspected base bytes;
-2. compute the exact diff or replacement bytes;
-3. supply `show-me` with target, changed/preserved regions, exact mutation,
-   safety guard, risk, approval effect, and next stage;
+1. retain the exact inspected base bytes and SHA-256 digest for every selected
+   target (`AGENTS.md` and `.gitignore`);
+2. compute the exact per-target diff or replacement bytes, retaining the
+   proposed digest, changed regions, and byte-for-byte preserved regions;
+3. supply `show-me` one `ReviewSnapshot` naming every selected target, its
+   base/proposed digest, changed/preserved regions, exact mutation, all-approved-targets
+   re-read safety guard, risk/consequence, approval effect, and next stage;
 4. show the authoritative diff and ask explicitly;
-5. re-read immediately before apply and require an unchanged base;
-6. apply only the approved bytes;
-7. re-read and verify both generated content and marker-external bytes.
+5. immediately before the first write, re-read all approved targets and require
+   every base digest to be unchanged;
+6. on any drift, block all writes, invalidate approval, and produce a new
+   multi-target proposal rather than merging or overwriting;
+7. apply only the approved bytes;
+8. re-read and verify both generated content and every target's preserved bytes.
 
 A concurrent change invalidates approval. Do not merge or overwrite it under
-the old authorization; produce a new proposal. Its `BLOCKED` state clears only
-after a fresh base, a new exact proposal, and new approval. Approval of
-repository-local content never authorizes global content.
+the old authorization; produce a new proposal. If an apply fails after a prior
+target changed, report the exact partial apply (target, observed digest, and
+which targets remain unapplied), retain the user-visible failure evidence, and
+offer an idempotent rerun against fresh bases. Do not roll back user files. Its
+`BLOCKED` state clears only after a fresh base, a new exact proposal, and new
+approval. Approval of repository-local content never authorizes global content.
 
 Under repository-local scope, inspect applicable parent/global instructions for
 precedence evidence but do not mutate them. A stale compatible global managed

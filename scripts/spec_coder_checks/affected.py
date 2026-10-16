@@ -56,6 +56,14 @@ _OWNER_CHECKS = {
         "test_implement_spec_executor",
         "test_implement_spec_runtime",
     ),
+    "references/setup-contract.md": (
+        "test_contracts",
+        "test_forward_scenarios",
+    ),
+    "assets/agents-snippet.md": (
+        "test_contracts",
+        "test_forward_scenarios",
+    ),
     "references/subagent-routing-contract.md": (
         "test_default_subagent_execution",
         "test_parallel_request_scenarios",

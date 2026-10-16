@@ -293,6 +293,19 @@ class AffectedValidationTests(unittest.TestCase):
                 )
                 self.assertIn(expected, joined)
 
+    def test_setup_contract_and_generated_snippet_select_setup_consumers(self):
+        for path in (
+            "references/setup-contract.md",
+            "assets/agents-snippet.md",
+        ):
+            with self.subTest(path=path):
+                joined = "\n".join(
+                    " ".join(command["argv"]) for command in self.build(path)
+                )
+                self.assertIn("test_contracts", joined)
+                self.assertIn("test_forward_scenarios", joined)
+                self.assertNotIn("test_*.py", joined)
+
     def test_progress_snapshot_bundle_selects_its_focused_suite(self):
         for path in (
             "scripts/progress-snapshot.py",

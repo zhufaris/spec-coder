@@ -1,6 +1,6 @@
 ---
 name: setup-coder
-description: Audit and initialize a target Git repository for spec-coder through an idempotent repository-local AGENTS.md managed block, Host capability checks, verification-command discovery, exact-diff approval, and READY/WARNING/BLOCKED reporting. Use when a user explicitly asks to set up or onboard a repository; do not run before every coding task.
+description: Audit a Git repository for idempotent repository-local setup, exact-diff approval, and READY/WARNING/BLOCKED reporting. Use only when a user asks to onboard a repository.
 ---
 
 # Setup Coder
@@ -24,65 +24,70 @@ sections before acting. Links are requirements, not background references.
 
 ## Input
 
-The target Git repository (default: current repository), the current Host skill
-catalog and invocation metadata, repository instructions/build evidence, and an
-explicit requested scope. Default scope is repository-local. Global scope is
-valid only after an explicit global request and separate exact-diff approval.
+The target Git repository (default: current), Host catalog and metadata,
+repository instructions/build evidence, and requested scope. Default scope is
+repository-local: root `AGENTS.md` managed block plus only `/.worktrees/` and
+`/.cache/` in root `.gitignore`; other patterns remain user-owned. Global scope
+requires an explicit request and separate exact-diff approval.
 
 ## Output
 
-Return a conversational `SetupReport` containing:
+Return a conversational `SetupReport` with:
 
 - absolute target and scope;
 - aggregate `READY`, `WARNING`, or `BLOCKED` status;
-- required and optional capability evidence with affected stages;
-- managed-block state and applied/proposed/no-op result;
-- read-only model routing policy state and effective safety fallback;
+- required/optional capability evidence and affected stages;
+- managed-block/isolation-root state, per-target base/proposed digest, and
+  applied/proposed/no-op result;
+- routing-policy state and safety fallback;
 - verification commands, their sources, and `executed` or `discovered` state;
-- blockers, warnings, remediation, and confirmation of forbidden side effects.
+- blockers/warnings, remediation, and forbidden side effects.
 
 Do not persist the setup report or create a private state/configuration file.
 
 ## Process
 
-1. Confirm the target is a readable Git repository. Inspect its root
-   `AGENTS.md`, relevant parent/global instructions, Git status, current branch,
-   and existing worktrees without changing them.
-2. Audit every bundled and external capability required by the workflow. For
-   external skills, current Host visibility, model invocation eligibility, and
-   material compatibility are all required. Treat
-   `disable-model-invocation: true` as a hard `BLOCKED` boundary. Record
-   optional gaps as `WARNING`; do not install or rewrite another skill.
-3. Inspect `.spec-coder/model-routing.toml` read-only when present. Report an
-   absent policy as optional, a valid `minimum_tier`, or an invalid policy with
-   its conservative `inherit-main` fallback. Never create or edit the user or
-   repository model routing configuration during setup.
+1. Confirm a readable Git repository; inspect root `AGENTS.md`, applicable
+   parent/global instructions, Git status/branch, and worktrees without writes.
+2. Audit required bundled/external capabilities for Host visibility, model
+   eligibility, and material compatibility. `disable-model-invocation: true` is
+   `BLOCKED`; optional gaps are `WARNING`. Do not install or rewrite a skill.
+3. Read `.spec-coder/model-routing.toml` when present: report absent, valid
+   `minimum_tier`, or invalid -> `inherit-main`; never create or edit routing.
 4. Read the canonical [AGENTS snippet](../../assets/agents-snippet.md) and
    classify the target block as `absent`, `current`, `stale`, `malformed`, or
-   `duplicated` under the setup contract. A current block is a zero diff no-op.
-   Malformed or duplicated markers block automatic mutation.
-5. Discover verification commands from repository evidence in the contract's
-   precedence order. Execute only safe, already available commands; otherwise
-   label them `discovered`. Do not install dependencies. Do not invent a
-   command to make setup appear complete.
-6. For an absent or stale valid block, create an exact diff that preserves all
-   marker-external bytes. Prepend if file lacks final line terminator; never
-   append into the user-owned final line. Include a concise verification
-   subsection only when durable repository instructions are absent and the
-   command evidence is trustworthy. Present the diff and mutation `ReviewSnapshot` through
-   `show-me`, then ask for explicit approval.
-7. Immediately before writing, re-read the target and prove an unchanged base.
-   If it changed, invalidate approval and produce a new proposal. Apply only the
-   approved diff, then re-read and verify the managed block and surrounding
-   bytes.
-8. Aggregate checks as `BLOCKED > WARNING > READY` and report concrete evidence
-   and remediation. Safe local configuration may complete before an unrelated
-   blocker is reported, but the final status must remain `BLOCKED`.
+   `duplicated` under the setup contract. In the same read-only audit, obtain
+   the Workspace Policy's proposal facts for root `.gitignore`: it may add only
+   `/.worktrees/` and `/.cache/`. A current entry is a zero-diff no-op; a
+   missing file may be created and a partial file receives only its missing
+   exact entry. Malformed or duplicated markers, or an uncertain ignore
+   observation, block automatic mutation.
+5. Discover commands in contract precedence; execute only safe available ones,
+   otherwise label `discovered`. Do not install dependencies or invent commands.
+6. For an absent or stale valid block, or missing isolation-root entry, create
+   one exact multi-target diff. Preserve all marker-external and non-generated
+   ignore bytes. For either target, prepend if file lacks final line terminator;
+   never append generated bytes into the user-owned final line.
+   Include a concise verification subsection only when durable repository
+   instructions are absent and the command evidence is trustworthy. Present
+   one mutation `ReviewSnapshot` through `show-me` that names every target,
+   each base/proposed digest, changed and preserved regions, the all-target
+   re-read safety guard, consequence, and idempotent recovery path; then ask
+   for explicit approval.
+7. Immediately before the first write, re-read every approved target and prove
+   every approved target retains its unchanged base. Any drift invalidates
+   approval, blocks all writes, and requires a new proposal. Apply only the
+   approved bytes, then re-read and
+   verify the managed block, the two exact root entries, and all preserved
+   bytes. If an apply fails after a prior target changed, report the exact
+   partial apply state and its idempotent rerun path; do not roll back or
+   overwrite user files.
+8. Aggregate `BLOCKED > WARNING > READY`; report evidence/remediation. A safe
+   local update never clears an unrelated `BLOCKED` result.
 
-Report evidence that cannot be established as `not assessable from supplied
-evidence`; do not invent an owner, command, status, or stage. An absent/stale
-required local block awaiting or denied approval is `BLOCKED`. A safe completed
-update with only discovered-but-unexecuted verification is `WARNING`.
+Report missing evidence as `not assessable from supplied evidence`; do not
+invent an owner, command, status, or stage. An absent/stale local block awaiting
+or denied approval is `BLOCKED`; discovered-only verification is `WARNING`.
 
 Do not create a worktree, specification, ticket, glossary, ADR, setup config,
 stage, commit, install, push, PR, or external issue. Do not modify global
@@ -103,5 +108,5 @@ Stop without a configuration write when:
 - file ownership, permissions, or overlapping user changes make attribution
   unsafe.
 
-Preserve the target, base evidence, proposed diff, capability result, and resume
-point. Never turn a warning or blocker into `READY` to finish setup.
+Preserve target, base evidence, proposal, capability result, and resume point.
+Never turn a warning or blocker into `READY` to finish setup.

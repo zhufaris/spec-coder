@@ -508,6 +508,34 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("onboarding mutation", workflow_normalized)
         self.assertIn("not a coding artifact", workflow_normalized)
 
+    def test_setup_onboards_both_repository_local_isolation_roots(self) -> None:
+        setup = read_text(ROOT / "skills" / "setup-coder" / "SKILL.md")
+        contract = read_text(ROOT / "references" / "setup-contract.md")
+        workflow = read_text(ROOT / "references" / "workflow-contract.md")
+        combined = " ".join((setup + "\n" + contract).lower().split())
+
+        for phrase in (
+            ".gitignore",
+            "/.worktrees/",
+            "/.cache/",
+            "all approved targets",
+            "partial apply",
+            "no final line terminator",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, combined)
+
+        workflow_normalized = " ".join(workflow.lower().split())
+        for phrase in (
+            "agents.md",
+            "managed region",
+            "/.worktrees/",
+            "/.cache/",
+            "does not authorize any other pre-baseline write",
+        ):
+            with self.subTest(workflow_phrase=phrase):
+                self.assertIn(phrase, workflow_normalized)
+
     def test_maintainer_docs_are_repository_ignored(self) -> None:
         ignore_rules = read_text(ROOT / ".gitignore").splitlines()
         self.assertIn("/docs/", ignore_rules)
@@ -766,6 +794,10 @@ class PluginContractTests(unittest.TestCase):
             "## Stale managed block",
             "## Malformed managed markers",
             "## Concurrent AGENTS change",
+            "## Isolation-root onboarding with exact bytes",
+            "## Multi-target setup drift",
+            "## Setup partial apply recovery",
+            "## Isolation-root idempotent rerun",
             "## Missing required setup capability",
             "## Optional setup warning",
             "## Verification command discovery",
@@ -774,6 +806,15 @@ class PluginContractTests(unittest.TestCase):
         )
         for heading in setup_headings:
             self.assertIn(heading, scenarios)
+        setup_section = scenarios.split("## First repository setup", 1)[1]
+        for phrase in (
+            "all approved targets",
+            "base/proposed digest",
+            "partial apply",
+            "idempotent rerun",
+            "no write",
+        ):
+            self.assertIn(phrase, setup_section)
         routing_headings = tuple(
             f"## SCN-ROUTE-{number}:" for number in range(1, 10)
         )
