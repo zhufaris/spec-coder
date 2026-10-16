@@ -225,6 +225,15 @@ class AffectedValidationTests(unittest.TestCase):
             ),
             "references/verification-contract.md": ("test_verification_evidence",),
             "references/domain-design-contract.md": ("test_contracts",),
+            "references/approval-review-contract.md": (
+                "test_human_review_options",
+                "test_forward_scenarios",
+            ),
+            "references/upstream-compatibility.md": (
+                "test_contracts",
+                "test_autonomous_workflow",
+                "test_stage_loading",
+            ),
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -256,10 +265,24 @@ class AffectedValidationTests(unittest.TestCase):
                 self.assertEqual(len(validators), 1)
                 self.assertEqual(validators[0]["argv"][-1], f"skills/{stage}")
 
+    def test_worktree_skill_routes_legacy_contract_and_policy_checks(self):
+        joined = "\n".join(
+            " ".join(command["argv"])
+            for command in self.build("skills/using-git-worktrees/SKILL.md")
+        )
+        for module in (
+            "test_contracts",
+            "test_exact_base_worktree",
+            "test_workspace_policy",
+        ):
+            with self.subTest(module=module):
+                self.assertIn(module, joined)
+
     def test_mapper_and_public_docs_select_owned_contract_checks(self):
         cases = {
             "scripts/validate-affected.py": "test_affected_validation",
             "scripts/spec_coder_checks/affected.py": "test_affected_validation",
+            "tests/design_contracts.py": "test_design_governance",
             "README.md": "test_contracts",
             "INSTALL.md": "test_contracts",
         }

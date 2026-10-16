@@ -42,9 +42,11 @@ _SKILL_CHECKS = {
     "setup-coder": ("test_contracts", "test_forward_scenarios"),
     "show-me": ("test_human_review_options", "test_stage_loading"),
     "using-git-worktrees": (
+        "test_contracts",
         "test_exact_base_worktree",
         "test_forward_scenarios",
         "test_implement_spec_runtime",
+        "test_workspace_policy",
     ),
 }
 _OWNER_CHECKS = {
@@ -105,6 +107,8 @@ _OWNER_CHECKS = {
     ),
     "scripts/validate-affected.py": ("test_affected_validation",),
     "scripts/spec_coder_checks/affected.py": ("test_affected_validation",),
+    "scripts/workspace-policy.py": ("test_workspace_policy",),
+    "scripts/spec_coder_checks/workspace_policy.py": ("test_workspace_policy",),
     "scripts/progress-snapshot.py": ("test_progress_snapshot",),
     "scripts/spec_coder_checks/progress.py": ("test_progress_snapshot",),
     "tests/forward_contracts.py": (
@@ -117,14 +121,24 @@ _OWNER_CHECKS = {
         "test_parallel_request_scenarios",
         "test_worker_heartbeat",
     ),
+    "tests/design_contracts.py": ("test_design_governance",),
     "tests/fixtures/scenarios.md": (
         "test_autonomous_workflow",
         "test_contracts",
     ),
     "README.md": ("test_contracts",),
     "INSTALL.md": ("test_contracts",),
+    "references/approval-review-contract.md": (
+        "test_human_review_options",
+        "test_forward_scenarios",
+    ),
     "references/domain-design-contract.md": ("test_contracts",),
     "references/domain-design-examples.md": ("test_contracts",),
+    "references/upstream-compatibility.md": (
+        "test_contracts",
+        "test_autonomous_workflow",
+        "test_stage_loading",
+    ),
 }
 _SHARED_ROUTING_CHECKS = (
     "test_default_subagent_execution",

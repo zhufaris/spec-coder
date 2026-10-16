@@ -120,7 +120,17 @@ and only when location, branch, permissions, and the recorded base are safe and
 approved. If native is incompatible and no safe Git fallback exists, return the
 `blocked-no-compatible-isolation` blocker without attempting native allocation.
 
-Derive the only durable fallback paths from a validated branch name:
+Obtain the only durable fallback facts through the bundled read-only policy
+adapter, from any caller cwd:
+
+```bash
+python3 <repo>/scripts/workspace-policy.py inspect --repo <repo> --branch <branch-name>
+```
+
+Proceed only when its compact JSON has `status: accepted`; use its
+`source_worktree`, `build_cache`, and exact ignore observations. Do not
+reimplement branch, physical-repository, path, or ignore rules in this prompt.
+The adapter never creates or cleans a worktree. Its canonical facts are:
 
 - source worktree: `<repo>/.worktrees/<branch>`;
 - build cache: `<repo>/.cache/<branch>/target`.
@@ -131,17 +141,22 @@ expansion, or paths escaping the physical repository. No new sibling or `/tmp`
 source/cache fallback; `/tmp` is only disposable small files, not resume or
 recovery state.
 
-Before creating any new durable worktree, verify both generated roots are
-ignored:
+Before creating any new durable worktree, require `ignored` for both exact
+roots in the policy's `ignore` object. A `not-ignored` observation returns
+`blocked-local-policy-unignored`; `uncertain` returns
+`blocked-ignore-verification`. Do not propose an ignore mutation.
+
+The adapter, not this stage, owns the underlying compatibility probes:
 
 ```bash
 git -C <repo> check-ignore -q .worktrees/
 git -C <repo> check-ignore -q .cache/
 ```
 
-`0` means ignored; `1` means definitively not ignored. Require `0` for both
-roots. Either `1` returns `blocked-local-policy-unignored`; any other status or diagnostic returns
-`blocked-ignore-verification`. Do not propose an ignore mutation.
+Inside the adapter, `0` means ignored and `1` means definitively not ignored;
+other outcomes are uncertain. These commands and exit rules are documented for
+compatibility evidence only. Do not invoke or reinterpret them in this skill;
+consume the adapter's JSON facts.
 
 For exit `1`, do not silently edit `.gitignore`; return the conflict to workspace
 preflight or post-Gate-3 main. Do not mutate it before baseline, create a
@@ -158,10 +173,17 @@ Never interpolate an unvalidated environment variable, glob, or command
 substitution into the target path. Preserve every existing worktree and user
 branch.
 
-For every native or Git allocation, serial or parallel, compare actual `HEAD` to
-the recorded base before acceptance. On mismatch, return blocker evidence with
-allocated path, actual `HEAD`, recorded base, and recovery handle; do not
-continue or clean up. Use collision-free paths and preserve partial results.
+For every native or Git allocation, serial or parallel, use the same adapter
+before acceptance:
+
+```bash
+python3 <repo>/scripts/workspace-policy.py validate-allocation --repo <repo> --branch <branch-name> --workspace <allocated-path> --recorded-base <wave-base>
+```
+
+It validates physical repository identity, canonical path, and actual `HEAD`.
+On its blocker result, return the allocated path, actual `HEAD` when supplied,
+recorded base, and recovery handle; do not continue or clean up. Use
+collision-free paths and preserve partial results.
 
 ### 4. Return control to the requesting orchestrator
 
