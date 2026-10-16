@@ -157,10 +157,10 @@ plugin root 下脚本绝对路径；不要从 target cwd 猜测 `./scripts/`。
 ### 运行时工作流契约
 
 安装成功后，能力与日常 workflow map 见 [README.md](./README.md)。委派、durable
-waves、并行隔离、main-only authority、`ProgressSnapshot` heartbeat emitter 和
-reopened Gate 3 的完整规范只在
-[Subagent routing contract](./references/subagent-routing-contract.md) 中维护；安装器
-不实现或配置 Host 消息适配器。需要执行该路径时，按
+waves、并行隔离、main-only authority 和 `ProgressSnapshot` heartbeat emitter 由
+[Subagent routing contract](./references/subagent-routing-contract.md) 维护；reopened
+Gate 3 的 canonical barrier 由 [Workflow contract](./references/workflow-contract.md#reopened-gate-3-scheduling-barrier)
+维护。安装器不实现或配置 Host 消息适配器。需要执行该路径时，按
 [Explicit Parallel Requests](./references/subagent-routing-contract.md#explicit-parallel-requests)
 和 [Worker Progress Heartbeat](./references/subagent-routing-contract.md#worker-progress-heartbeat)
 读取当前规则。Interactive Gate 仍先用 `show-me`。Autonomous selection does not invoke `show-me`。

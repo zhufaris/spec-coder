@@ -431,6 +431,10 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("## 故障排查", install)
         self.assertIn("README.md", install)
         self.assertIn("subagent-routing-contract.md", install)
+        self.assertIn(
+            "workflow-contract.md#reopened-gate-3-scheduling-barrier",
+            install,
+        )
         self.assertNotIn("### 默认委派与执行边界", install)
         self.assertNotIn("### Worker Progress Heartbeat", install)
 
