@@ -214,6 +214,8 @@ class AffectedValidationTests(unittest.TestCase):
         )
 
     def test_shared_owner_groups_select_proportional_checks(self):
+        mapper = (ROOT / "scripts" / "spec_coder_checks" / "affected.py").read_text()
+        self.assertIn('"references/task-playbook-contract.md"', mapper)
         cases = {
             "references/workflow-contract.md": (
                 "test_runtime_envelope",
@@ -242,6 +244,23 @@ class AffectedValidationTests(unittest.TestCase):
                 )
                 for token in expected:
                     self.assertIn(token, joined)
+                self.assertNotIn("test_*.py", joined)
+
+    def test_task_playbook_owner_paths_select_contract_checks(self):
+        paths = (
+            "references/task-playbook-contract.md",
+            "tests/task_playbook_contracts.py",
+            "tests/fixtures/task-playbook-scenarios.md",
+            "THIRD_PARTY_NOTICES.md",
+        )
+        if not all((ROOT / path).is_file() for path in paths):
+            self.skipTest("relocated legacy bundle omits T1 task-playbook owner paths")
+        for path in paths:
+            with self.subTest(path=path):
+                joined = "\n".join(
+                    " ".join(command["argv"]) for command in self.build(path)
+                )
+                self.assertIn("test_task_playbooks", joined)
                 self.assertNotIn("test_*.py", joined)
 
     def test_each_public_skill_selects_its_validator(self):

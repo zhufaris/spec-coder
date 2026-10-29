@@ -142,6 +142,13 @@ _OWNER_CHECKS = {
     ),
     "references/domain-design-contract.md": ("test_contracts",),
     "references/domain-design-examples.md": ("test_contracts",),
+    "references/task-playbook-contract.md": (
+        "test_task_playbooks",
+        "test_affected_validation",
+    ),
+    "tests/task_playbook_contracts.py": ("test_task_playbooks",),
+    "tests/fixtures/task-playbook-scenarios.md": ("test_task_playbooks",),
+    "THIRD_PARTY_NOTICES.md": ("test_task_playbooks",),
     "references/upstream-compatibility.md": (
         "test_contracts",
         "test_autonomous_workflow",
