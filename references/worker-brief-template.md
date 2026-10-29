@@ -21,7 +21,9 @@ are included in the outgoing message, even in a fresh child context.
 
 ```text
 Task: {ticket ID or review axis; exact requested bounded outcome}
-Role: {implementation | reviewer | workflow eval candidate | blinded judge | promotion; promotion retains original role}
+Internal routing note (not transmitted): role-addition headings identify the
+dispatch route; use `task respondent` for the workflow-eval route below.
+Role: {implementation | reviewer | task respondent | blinded judge | promotion; promotion retains original role}
 Workspace: {absolute validated authoritative workspace; always use this path, not an inherited cwd}
 Base: {recorded wave base revision and relevant initial user changes}
 Build cache: {main-resolved canonical `<physical-repo>/.cache/<branch>/target` for this workspace; read-only `Mutation ownership: None` requires `None`}
@@ -99,15 +101,14 @@ Append the applicable role text, resolving its inputs:
   direction, architecture evidence and scope fidelity. Return findings ordered
   by severity with concrete file/line support and uncertainties. Remain on the
   assigned independent axis; main authors final Standards/Spec conclusions.
-- **Workflow eval candidate:** read-only; use only the main-prepared sanitized
-  isolated environment and organic prompt. Do not request or infer Parent/Candidate
-  identity, comparison position, private rubric, judge identity, or another
-  run's output. Produce bounded task output plus available workspace-local
-  transcript evidence. You are a direct layer-2 evidence worker with
-  `delegation_allowed = false` and `must_not_spawn = true`: do not spawn,
-  delegate, judge, merge, promote, publish, mutate authoritative state, or
-  author a verdict. Heartbeat applies. Main reads every output and owns the
-  verdict, repair, verification, aggregation, and completion.
+- **Workflow eval candidate:** use outgoing `Role: task respondent`. Read-only;
+  use only the main-prepared sanitized isolated environment and organic prompt.
+  Produce bounded task output plus available workspace-local transcript evidence.
+  You are a direct layer-2 evidence worker with `delegation_allowed = false`
+  and `must_not_spawn = true`: do not spawn, delegate, merge, promote, publish,
+  mutate authoritative state, or author a final determination. Heartbeat
+  applies. Main reads every output and owns acceptance, repair, verification,
+  aggregation, and completion.
 - **Blinded judge:** read-only; compare only anonymous outputs against the
   private rubric supplied by main. Do not request or infer Parent/Candidate,
   workspace, model, or transcript identities. Return rubric-grounded findings,

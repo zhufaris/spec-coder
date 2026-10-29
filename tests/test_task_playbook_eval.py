@@ -164,6 +164,30 @@ class TaskPlaybookEvalTests(unittest.TestCase):
                 Environment("candidate", "def", "same"),
             )
 
+    def test_candidate_facing_role_body_does_not_disclose_comparison_identity(self):
+        brief = (ROOT / "references/worker-brief-template.md").read_text().lower()
+        role_field = next(
+            line for line in brief.splitlines() if line.startswith("role: {")
+        )
+        self.assertIn("task respondent", role_field)
+        self.assertNotIn("workflow eval candidate", role_field)
+        body = brief.split("- **workflow eval candidate:**", 1)[1].split(
+            "- **blinded judge:**", 1
+        )[0]
+        self.assertIn("role: task respondent", body)
+        for forbidden in (
+            "eval",
+            "evaluation",
+            "test",
+            "judge",
+            "benchmark",
+            "candidate",
+            "arena",
+            "parent",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, body)
+
 
 if __name__ == "__main__":
     unittest.main()
