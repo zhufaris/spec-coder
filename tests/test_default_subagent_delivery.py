@@ -73,6 +73,21 @@ class DefaultSubagentDeliveryContractTests(unittest.TestCase):
         self.assertIn("spec reviewer", self.delivery)
         self.assertIn("read-only", self.delivery)
 
+    def test_workflow_eval_preserves_review_modes_and_main_authority(self) -> None:
+        for phrase in (
+            "only when the approved selection",
+            "skill change",
+            "workflow eval",
+            "only after steps 6-7 are",
+            "deterministic green",
+            "does not replace either review axis",
+            "main reads every candidate output",
+            "authors the fail-closed verdict",
+            "completion",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, self.delivery)
+
 
 if __name__ == "__main__":
     unittest.main()

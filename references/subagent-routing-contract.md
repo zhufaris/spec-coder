@@ -338,6 +338,46 @@ Ineligible work, applicable opt-out scopes, and spawn-unavailable fallback run
 locally when safe. Model routing chooses the child route; it does not make
 eligible default delegation optional.
 
+## Workflow Eval Execution
+
+Delivery may enter this lifecycle only for an approved **Skill Change** or
+**Workflow Eval** selection and only after mandatory deterministic checks are
+Green. A deterministic, Gate, authority, dependency, artifact, test, or
+context-budget regression rejects Candidate without consulting a qualitative
+preference. This lifecycle is conversational orchestration, never persistent
+scheduler state or an automatic promotion mechanism.
+
+Main prepares equivalent sanitized isolated Parent and Candidate environments,
+one or more organic prompts, and a private rubric. Prompt material seen by a
+**workflow eval candidate** must not expose comparison vocabulary, identities,
+the rubric, or which environment is Parent. Main directly dispatches each
+workflow eval candidate as a **direct layer-2** child with
+`delegation_allowed = false` and `must_not_spawn = true`, using the common
+brief, candidate role addition, and normal heartbeat. Candidates return
+bounded output and workspace-local transcript evidence only; they cannot spawn,
+judge, merge, promote, mutate authoritative state, or author a verdict.
+
+Only after all candidate runs have returned, main may directly dispatch one
+read-only **blinded judge** from another available model family. The judge is a
+direct layer-2 sibling, never a child of a candidate, and receives anonymous
+outputs plus the private rubric without Parent/Candidate identity, workspace
+identity, model identity, or transcript provenance. Its brief states
+`delegation_allowed = false` and `must_not_spawn = true`; it cannot spawn,
+mutate, merge, promote, publish, or author the workflow verdict. Unavailable
+cross-family routing leaves the qualitative evidence inconclusive unless main
+already has sufficient nonconflicting evidence; it never permits guessed model
+identifiers or model-specific repository dependencies.
+
+Main reads every candidate output and all available transcript evidence within
+each prepared workspace boundary, checks disclosure and lifecycle sequencing,
+and authors the verdict. Candidate is usable only when deterministic evidence
+has no critical regression and the full comparison is conclusive and at least
+equal to Parent. Inconclusive, conflicting, missing, identity-exposed,
+out-of-sequence, nested-delegation, or boundary-crossing evidence keeps Parent.
+There is no wrapper, merger, third layer, persistent comparison state, external
+publication, or automatic promotion. Delivery remains main-only for verdict,
+repair judgment, fresh verification, aggregation, and completion.
+
 ## Result Integration
 
 For a parallel wave, every child starts from the recorded wave base and returns

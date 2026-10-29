@@ -263,6 +263,21 @@ class AffectedValidationTests(unittest.TestCase):
                 self.assertIn("test_task_playbooks", joined)
                 self.assertNotIn("test_*.py", joined)
 
+    def test_task_playbook_eval_paths_select_only_the_focused_contract(self):
+        paths = (
+            "tests/task_playbook_eval_contracts.py",
+            "tests/fixtures/task-playbook-eval-scenarios.md",
+        )
+        if not all((ROOT / path).is_file() for path in paths):
+            self.skipTest("relocated legacy bundle omits T3 workflow-eval owner paths")
+        for path in paths:
+            with self.subTest(path=path):
+                joined = "\n".join(
+                    " ".join(command["argv"]) for command in self.build(path)
+                )
+                self.assertIn("test_task_playbook_eval", joined)
+                self.assertNotIn("test_*.py", joined)
+
     def test_each_public_skill_selects_its_validator(self):
         for stage in (
             "spec-coder",

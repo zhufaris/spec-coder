@@ -33,6 +33,13 @@ sections before acting. Links are requirements, not background references.
 - **Domain behavior:** when rules, invariants, lifecycle or valid-value constraints are affected, load [Protect behavior and valid values](../../references/domain-design-contract.md#protect-behavior-and-valid-values).
 - **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
 - **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
+- **Task playbook delivery proof:** after mandatory deterministic Green, and
+  only when the approved selection is **Skill Change** or **Workflow Eval**,
+  load [Blinded evaluation constraints](../../references/task-playbook-contract.md#blinded-evaluation-constraints),
+  [Workflow Eval Execution](../../references/subagent-routing-contract.md#workflow-eval-execution),
+  and the candidate/judge role additions in the worker brief. Other playbooks
+  do not load or run this comparison. It does not replace either review axis,
+  fresh verification, or artifact checking.
 - **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
@@ -57,27 +64,53 @@ the selected mode and child limits.
 
 ## Process
 
-1. Confirm every ticket checkbox is complete and inspect the authoritative workspace, selected mode, branch, recorded initial changes, Git log, and cumulative accepted ticket range/diff supplied by the native implement-spec executor. In-place execution is valid; preserve unrelated user changes and distinguish them from ticket-owned edits.
-2. Execute the selected review mode for both the Standards and Spec axes. Report findings before conclusions. Main inspects all returned or locally collected evidence and authors the final Standards/Spec conclusions; reviewer success never grants approval, repair, fresh-verification, commit, delivery or completion authority.
-3. Check acceptance criteria, domain language, public contracts, dependency direction, Clean Architecture boundaries, error handling, security, and unintended scope. Map each in-scope scenario/invariant to completed tickets and actual test evidence. Verify context/model ownership, shared rule placement, and applicable atomicity/conflict, idempotency and recovery guarantees. Verify architecture separately with dependency checks or documented imports, exposed types and assembly; plan checkboxes and green sequential tests alone are insufficient. Check that simple CRUD/query work has not acquired unjustified abstractions or lost access controls.
-4. Route behavior defects through `tdd-coder`: add or correct a failing test, observe Red, implement the minimum repair, run affected checks, and create a separate atomic commit. Perform structural refactoring only while behavior tests remain green.
+1. Confirm all tickets complete; inspect the authoritative workspace, mode,
+   branch, initial changes, history, and executor-supplied cumulative accepted
+   range/diff.
+   Preserve and distinguish unrelated work, including in-place execution.
+2. Run both review axes in the selected mode, findings first. Main inspects all
+   evidence and authors final Standards/Spec conclusions; reviewers never gain
+   approval, repair, verification, commit, delivery, or completion authority.
+3. Check acceptance, domain/public contracts, dependency direction, errors,
+   security, scope, and access controls. Map scenarios/invariants to tickets and
+   tests. Verify applicable ownership, atomicity, idempotency, recovery, and
+   architecture through dependency evidence or imports, exposed types, and
+   assembly; checkboxes and sequential Green are insufficient.
+4. Route behavior defects through `tdd-coder` Red-Green, affected checks, and a
+   repair commit. Refactor structure only while behavior stays Green.
 5. Repeat review until no unresolved blocking findings remain. Do not conceal accepted residual risks.
-6. Invoke `verification-before-completion` and freshly run every applicable full test suite, lint, type-check, build, and repository-specific validation command against the authoritative workspace and cumulative accepted range. Keep that workspace's approved canonical cache from baseline and integration; repository-native configuration failure blocks, never falls back to `/tmp`. Do not rely on earlier output or a ticket-level subset.
+6. Invoke `verification-before-completion`; freshly run every applicable full test
+   suite, lint, type check, build, and repository validation on the authoritative
+   range. Keep that workspace's approved canonical cache from baseline and integration;
+   configuration failure blocks and never falls back to `/tmp`.
+   Earlier or subset evidence cannot substitute.
 7. Run bundled `scripts/check-artifacts.py --phase delivery --spec <absolute-spec>
    --plan <absolute-plan> --repo <absolute-workspace>` against actual artifacts.
-   Resolve findings or explicitly report unsupported historical format and
-   manual review. This checks recorded structure and local commit identities,
-   never proof of execution, attribution or freshness; step 6 remains required.
-   Inspect final status and commit history against recorded initial changes. Confirm each task change is represented by an atomic commit and no unrelated change entered those commits. Preserve any user-staged work that predated the task; its presence is not itself a delivery failure.
-8. Report the delivered specification, commits, fresh evidence, resolved findings, and residual risks. Claim completion only when all required checks pass.
+   Resolve findings or report unsupported history and manual review. This proves
+   neither execution, attribution, nor freshness. Inspect status/history against
+   initial changes; require atomic task commits without unrelated hunks while
+   preserving pre-existing user staging.
+8. For a selected Skill Change or Workflow Eval, and only after steps 6-7 are
+   deterministic Green, execute the blinded comparison constraints and routing
+   lifecycle. Main reads every candidate output and all available
+   workspace-local transcript evidence, authors the fail-closed verdict, and
+   retains Parent on inconclusive or conflicting evidence. Any test, Gate,
+   authority, dependency, artifact, or context-budget regression rejects
+   Candidate regardless of judge preference. No comparison result can weaken a
+   deterministic check or authorize repair, promotion, or completion.
+9. Report the delivered specification, commits, fresh evidence, resolved findings, and residual risks. Claim completion only when all required checks pass.
 
-If delegated evidence fails or is uncertain, preserve the attempt and return to
-main under Attempt Evidence and Promotion. A promotion reviewer retains the
-reviewer role's read-only limits in its assembled brief.
+Failed or uncertain delegated evidence returns to main under Attempt Evidence
+and Promotion; a promotion reviewer remains read-only.
 
-The native implement-spec executor's completion handoff and forbidden external-effects boundary remain in force during delivery. Do not push, create a pull request, publish external tickets, amend pre-existing commits, merge an original branch, install, delete worktrees, or make external changes without separate explicit authorization.
+The executor handoff and external-effect boundary remain: without separate
+authority, do not push, create a pull request, publish external tickets, amend
+prior commits, merge an original branch, install, delete worktrees, or change
+external state.
 
-Apply the contract's [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery) review requirements to applicable domain and persistence changes. Map approved decisions to actual behavior, mapping and dependency evidence across affected entry paths; a model inventory or renamed operation is not enforcement evidence.
+Apply [implementation and delivery](../../references/domain-design-contract.md#implementation-and-delivery)
+to applicable domain/persistence changes. Map decisions to behavior, mapping,
+and dependency evidence; inventories or renamed operations prove no enforcement.
 
 ## Stop Conditions
 
@@ -90,4 +123,5 @@ Stop without claiming completion when:
 - changes cannot be safely attributed or separated in the selected workspace;
 - the same blocking condition occurs three consecutive times.
 
-Preserve the failing command, output, finding, workspace/mode, branch, initial user changes, and current plan state so the workflow can resume safely.
+Preserve the failing command/output, finding, workspace, branch, initial changes,
+and plan state for safe resume.

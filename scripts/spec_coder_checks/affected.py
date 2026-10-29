@@ -148,6 +148,8 @@ _OWNER_CHECKS = {
     ),
     "tests/task_playbook_contracts.py": ("test_task_playbooks",),
     "tests/fixtures/task-playbook-scenarios.md": ("test_task_playbooks",),
+    "tests/task_playbook_eval_contracts.py": ("test_task_playbook_eval",),
+    "tests/fixtures/task-playbook-eval-scenarios.md": ("test_task_playbook_eval",),
     "THIRD_PARTY_NOTICES.md": ("test_task_playbooks",),
     "references/upstream-compatibility.md": (
         "test_contracts",
