@@ -90,7 +90,7 @@ of its evidence and proof obligations. A selection links exactly one subsection.
 
 ### Skill Change playbook
 
-- Entry and design: state Host boundary, public surface, direct-link, and deterministic-contract obligations.
+- Entry and design: state Host boundary and public surface: visibility, callability, disable-model-invocation, frontmatter, triggers, and direct link; preserve deterministic-contract obligations.
 - Red or pin: deterministic contract checks before behavior comparison.
 - Delivery proof: deterministic checks are green and the required blinded evaluation is non-regressing.
 

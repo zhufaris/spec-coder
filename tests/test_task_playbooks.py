@@ -122,6 +122,22 @@ class TaskPlaybookContractTests(unittest.TestCase):
         for heading in ("Feature", "Bug Fix", "Refactor", "Performance", "Skill Change", "Workflow Eval", "Generic", "Ambiguous"):
             self.assertIn("## " + heading, fixture)
 
+    def test_skill_change_playbook_names_hard_host_boundaries(self):
+        contract = (ROOT / "references/task-playbook-contract.md").read_text().lower()
+        skill_change = contract.split("### skill change playbook", 1)[1].split(
+            "### workflow eval playbook", 1
+        )[0]
+        for required in (
+            "visibility",
+            "callability",
+            "disable-model-invocation",
+            "frontmatter",
+            "triggers",
+            "direct link",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, skill_change)
+
 
 if __name__ == "__main__":
     unittest.main()
