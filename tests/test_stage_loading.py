@@ -4,13 +4,26 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from task_playbook_contracts import PlaybookKind, select_playbook
+
 ROOT = Path(__file__).resolve().parents[1]
 LINK = re.compile(r"\]\(([^)]+)\)")
 TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Setup audit or mutation", "Reopened gate or mutation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
             "Interactions", "Architecture", "Verification fallback",
-            "Workspace preparation"}
+            "Workspace preparation", "Selected Task Playbook"}
+PLAYBOOK_KINDS = ("Feature", "Bug Fix", "Refactor", "Performance",
+                  "Skill Change", "Workflow Eval", "Generic")
+PLAYBOOK_CASES = {
+    PlaybookKind.FEATURE: {"new-user-outcome"},
+    PlaybookKind.BUG_FIX: {"reproduced-defect"},
+    PlaybookKind.REFACTOR: {"behavior-preserving"},
+    PlaybookKind.PERFORMANCE: {"repeatable-performance-baseline"},
+    PlaybookKind.SKILL_CHANGE: {"skill-instruction-change"},
+    PlaybookKind.WORKFLOW_EVAL: {"standalone-evaluation"},
+    PlaybookKind.GENERIC: set(),
+}
 
 
 def section(text: str, anchor: str) -> str:
@@ -52,6 +65,18 @@ def instruction_text(path: Path, triggers=TRIGGERS) -> str:
         target = (path.parent / relative).resolve()
         content = target.read_text(encoding="utf-8")
         text += "\n" + (section(content, anchor) if anchor else content)
+    return text
+
+
+def selected_instruction_text(path: Path, selection) -> str:
+    """Resolve a stage plus its one selection-carried playbook owner."""
+    text = instruction_text(path, {"Selected Task Playbook"})
+    if "conditional_references" not in path.read_text(encoding="utf-8"):
+        return text
+    for reference in selection.conditional_references:
+        relative, _, anchor = reference.partition("#")
+        target = (path.parent / relative).resolve()
+        text += "\n" + section(target.read_text(encoding="utf-8"), anchor)
     return text
 
 
@@ -222,6 +247,53 @@ class StageLoadingTests(unittest.TestCase):
                     instruction_text(ROOT / "skills" / stage / "SKILL.md").split()
                 )
                 self.assertLessEqual(triggered, limit)
+
+    def test_selected_playbook_loading_is_direct_and_excludes_other_anchors(self):
+        expected = {
+            "spec-coder": {"route-precedence-and-one-selection-rule", "conversational-todo-boundary"},
+            "grill-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
+            "design-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
+            "plan-coder": {"taskplaybookselection"},
+            "tdd-coder": {"taskplaybookselection"},
+        }
+        forbidden = {"conditional-loading-intent", "blinded-evaluation-constraints", "pstack-provenance-and-nondependency"}
+        for stage, anchors in expected.items():
+            path = ROOT / "skills" / stage / "SKILL.md"
+            normal = required_links(path)
+            selected = required_links(path, {"Selected Task Playbook"})
+            normal_playbook = {link for link in normal if "task-playbook-contract" in link}
+            selected_playbook = {link for link in selected if "task-playbook-contract" in link}
+            with self.subTest(stage=stage):
+                self.assertFalse(normal_playbook)
+                self.assertEqual({link.rsplit("#", 1)[1] for link in selected_playbook}, anchors)
+                self.assertTrue(forbidden.isdisjoint({link.rsplit("#", 1)[1] for link in selected_playbook}))
+
+        stage_paths = [ROOT / "skills" / stage / "SKILL.md" for stage in expected]
+        all_anchors = {kind.value.lower().replace(" ", "-") + "-playbook" for kind in PLAYBOOK_CASES}
+        for kind, facts in PLAYBOOK_CASES.items():
+            selection = select_playbook(request="change", facts=facts)
+            selected_anchor = selection.conditional_references[0].rsplit("#", 1)[1]
+            for path in stage_paths:
+                resolved = selected_instruction_text(path, selection).lower()
+                with self.subTest(stage=path.parent.name, kind=kind):
+                    self.assertIn("### " + selected_anchor.replace("-", " "), resolved)
+                    for absent in all_anchors - {selected_anchor}:
+                        self.assertNotIn("### " + absent.replace("-", " "), resolved)
+
+    def test_normal_and_each_selected_route_have_measured_context(self):
+        stages = ("spec-coder", "grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
+        normal = sum(len(instruction_text(ROOT / "skills" / stage / "SKILL.md", frozenset()).split()) for stage in stages)
+        self.assertLessEqual(normal, 19000)
+        route_counts = {}
+        for kind, facts in PLAYBOOK_CASES.items():
+            selection = select_playbook(request="change", facts=facts)
+            route_counts[kind.value] = sum(
+                len(selected_instruction_text(ROOT / "skills" / stage / "SKILL.md", selection).split())
+                for stage in stages
+            )
+        self.assertEqual(set(route_counts), set(PLAYBOOK_KINDS))
+        self.assertTrue(all(count > normal for count in route_counts.values()))
+        self.assertGreater(len(set(route_counts.values())), 1)
 
     def test_plan_coder_verification_fallback_owns_detailed_contract(self):
         path = ROOT / "skills/plan-coder/SKILL.md"

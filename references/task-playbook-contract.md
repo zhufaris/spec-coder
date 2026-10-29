@@ -23,7 +23,7 @@ Every coding request has exactly one `TaskPlaybookSelection` with these fields:
 | `design_obligations` | Task-specific questions that must be resolved at the existing discovery/design seams. |
 | `red_or_pin` | The required failing reproduction, behavior pin, or measured baseline before implementation. |
 | `delivery_proof` | The proof delivery verifies on the actual affected path. |
-| `conditional_references` | The selected normal and, where applicable, conditional anchors only. |
+| `conditional_references` | Exactly one direct link to the selected kind anchor below; stages dereference that value and never infer or load sibling kinds. |
 
 ## Route precedence and one-selection rule
 
@@ -53,15 +53,58 @@ route, and why a nearby route does not control it.
 
 ## Evidence and proof matrix
 
-| Kind | Entry and design obligations | Red or pin | Delivery proof |
-| --- | --- | --- | --- |
-| Feature | Name the user-visible outcome, data shape, and interface seam. | A failing outcome-level example or acceptance test. | The new affected entry path satisfies the outcome and compatibility checks. |
-| Bug Fix | Reproduce the symptom and identify root cause on the matching surface. | A failing reproduction of the reported defect. | The reproduction is green and neighboring behavior remains covered. |
-| Refactor | State preserved behavior and the reader-load/structure objective. | Pin current behavior before structural work. | Pins are equivalent and the stated structural simplification is inspectable. |
-| Performance | Record repeatable baseline, limiting mechanism, environment, and comparable measure. | Before measurement baseline. | Comparable before/after measurement proves the target without a regression. |
-| Skill Change | State Host boundary, public surface, direct-link and deterministic contract obligations. | Deterministic contract checks before behavior comparison. | Deterministic checks are green; required blinded evaluation is non-regressing. |
-| Workflow Eval | State Parent/Candidate scope, sanitized environment, anonymous rubric, and deterministic prerequisites. | Mandatory deterministic Green for the evaluated candidate. | Blinded comparison is non-regressing; inconclusive evidence keeps Parent. |
-| Generic | State the narrow affected seam and ordinary existing obligations. | Existing task-appropriate Red or pin. | Existing delivery verification on the affected path. |
+This index names the available kinds; each linked subsection is the sole source
+of its evidence and proof obligations. A selection links exactly one subsection.
+
+- [Feature](#feature-playbook)
+- [Bug Fix](#bug-fix-playbook)
+- [Refactor](#refactor-playbook)
+- [Performance](#performance-playbook)
+- [Skill Change](#skill-change-playbook)
+- [Workflow Eval](#workflow-eval-playbook)
+- [Generic](#generic-playbook)
+
+### Feature playbook
+
+- Entry and design: name the user-visible outcome, data shape, and interface seam.
+- Red or pin: a failing outcome-level example or acceptance test.
+- Delivery proof: the affected entry path satisfies the outcome and compatibility checks.
+
+### Bug Fix playbook
+
+- Entry and design: reproduce the symptom and identify root cause on the matching surface.
+- Red or pin: a failing reproduction of the reported defect.
+- Delivery proof: the reproduction is green and neighboring behavior remains covered.
+
+### Refactor playbook
+
+- Entry and design: state preserved behavior and the reader-load or structure objective.
+- Red or pin: pin current behavior before structural work.
+- Delivery proof: pins are equivalent and the structural simplification is inspectable.
+
+### Performance playbook
+
+- Entry and design: record a repeatable baseline, limiting mechanism, environment, and comparable measure.
+- Red or pin: the before-measurement baseline.
+- Delivery proof: comparable before and after measurements prove the target without regression.
+
+### Skill Change playbook
+
+- Entry and design: state Host boundary, public surface, direct-link, and deterministic-contract obligations.
+- Red or pin: deterministic contract checks before behavior comparison.
+- Delivery proof: deterministic checks are green and the required blinded evaluation is non-regressing.
+
+### Workflow Eval playbook
+
+- Entry and design: state Parent/Candidate scope, sanitized environment, anonymous rubric, and deterministic prerequisites.
+- Red or pin: mandatory deterministic Green for the evaluated candidate.
+- Delivery proof: blinded comparison is non-regressing; inconclusive evidence keeps Parent.
+
+### Generic playbook
+
+- Entry and design: state the narrow affected seam and ordinary existing obligations.
+- Red or pin: the existing task-appropriate Red or pin.
+- Delivery proof: existing delivery verification on the affected path.
 
 ## Empirical facts and human decisions
 
@@ -86,8 +129,8 @@ evaluation, approve a Gate, authorize a mutation, or recover scheduling state.
 Normal routing exposes the selected playbook anchor only; unselected playbooks
 add no runtime context. Conditional references are loaded only on their
 triggered path and remain within the existing normal aggregate context budget.
-No task-specific prose may recreate a public routing skill or duplicate this
-matrix in a stage owner.
+No task-specific prose may recreate a public routing skill or duplicate these
+kind anchors in a stage owner.
 
 ## Blinded evaluation constraints
 

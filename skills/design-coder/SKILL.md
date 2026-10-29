@@ -27,6 +27,7 @@ sections before acting. Links are requirements, not background references.
 
 ## Conditional Reading
 
+- **Selected Task Playbook:** validate the supplied [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection), then dereference only its one actual `conditional_references` link; also apply [Empirical facts and human decisions](../../references/task-playbook-contract.md#empirical-facts-and-human-decisions).
 - **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
 - **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
 - **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
@@ -36,7 +37,7 @@ sections before acting. Links are requirements, not background references.
 
 ## Input
 
-Confirmed requirements from `grill-coder`, repository evidence, existing domain language and ADRs, and constraints that the design must preserve.
+Confirmed requirements and selected `TaskPlaybookSelection` from `grill-coder`, repository evidence, domain language, ADRs, and constraints to preserve.
 
 ## Output
 
@@ -49,15 +50,16 @@ out-of-scope behavior.
 
 ## Process
 
-In the autonomous path, classification and design require one unique grounded
-recommendation. Select it without invoking `show-me` or waiting for human
-review, and record `auto-selected under explicit autonomous authority`. Stop
-instead when the recommendation is missing or ambiguous, a load-bearing
-decision remains unresolved, the scope expands, or separate authorization is
-required. Autonomous authority does not change Gate 2, Gate 3, TDD, review,
-verification, mutation, or external-effect authority.
+Autonomous classification/design requires one unique grounded recommendation,
+recorded as `auto-selected under explicit autonomous authority` without
+`show-me`. Stop for ambiguity, unresolved load-bearing decisions, scope growth,
+or separate authorization. Gate 2, Gate 3, TDD, review, verification and effect
+authority remain unchanged.
 
-1. Reconcile the confirmed requirements with code, `GLOSSARY.md`, architecture documents, and ADRs.
+1. Reconcile confirmed requirements and the selected playbook's entry evidence
+   and design obligations with code, `GLOSSARY.md`, architecture documents and
+   ADRs. Run bounded empirical probes before review; probes never approve a
+   Gate, authorize mutation, or settle a human-owned product decision.
 2. Classify the task from repository evidence. It is `bounded` only when an
    existing implementation seam is present, the request has one coherent
    outcome, and it introduces no new subsystem, public-interface shape,

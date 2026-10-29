@@ -22,12 +22,13 @@ sections before acting. Links are requirements, not background references.
 
 ## Conditional Reading
 
+- **Selected Task Playbook:** validate the supplied [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection), then dereference only its one actual `conditional_references` link; also apply [Empirical facts and human decisions](../../references/task-playbook-contract.md#empirical-facts-and-human-decisions).
 - **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
 - **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 
 ## Input
 
-A coding request plus a selected workspace (safe path/mode/base, accounted
+A coding request, its singular `TaskPlaybookSelection`, plus a selected workspace (safe path/mode/base, accounted
 initial changes, and required capabilities) for read-only discovery, the
 current repository, existing specifications, applicable `GLOSSARY.md` or
 `GLOSSARY-MAP.md`, ADRs, and relevant implementation evidence.
@@ -52,28 +53,24 @@ the later specification; persist only qualifying domain language or ADRs.
    dependency preparation and a fresh green baseline, then resume `grill-coder`
    with that prepared evidence. Failed or uncertain preparation also stops
    before the write and returns its evidence to orchestration for disposition.
-2. Inspect implementation evidence, the applicable glossary map/glossary and
-   ADRs before asking what the repository already answers.
-3. Build a private decision tree and work it in dependency-ready frontier
-   rounds, preserving decision-tree order. Ask up to three mutually independent
-   questions whose prerequisites are settled, then recompute the frontier after
-   each response. Do not ask a question whose answer depends on another open
-   question in the same round.
-4. Keep a question serial when its answer controls scope, domain meaning or
-   ownership, a core invariant, or an architecture trade-off that could reshape
-   another question's meaning, options, recommendation, or necessity. Unknown
-   or overlapping coupling is serial as well. A repository fact remains
-   agent-owned: inspect it as a prerequisite only for its downstream question
-   without blocking unrelated ready frontier items.
+2. Inspect implementation evidence, the applicable glossary/ADR owners, and
+   the selected playbook's `entry_evidence` before asking what the repository
+   already answers. Collect its `design_obligations`; resolve empirical forks
+   with bounded probes, while leaving preferences, scope, authority and Gates
+   to their human owners.
+3. Work a private decision tree through its dependency-ready frontier. Ask up to three
+   independent ready questions, recomputing after each response;
+   dependent questions never share a round.
+4. Keep scope, meaning/ownership, invariants, architecture trade-offs and
+   unknown coupling serial. Inspect agent-owned repository facts as downstream
+   prerequisites without blocking unrelated ready items.
 5. Give every question a stable `Qn` ID, applicable options, and its own clear
    recommendation with a one-sentence reason. The user may accept one
    recommendation with `Qn: default`; never interpret one bare `default` as an
    answer to a multi-question round. A recommendation is not a confirmed
    decision.
-6. Absorb only explicit, unambiguous individual answers. Confirm answered IDs,
-   leave omitted IDs unresolved, and ask ambiguity as one focused serial
-   follow-up before recomputing the next frontier. Only an explicit,
-   unambiguous user answer establishes a confirmed decision.
+6. Only explicit, unambiguous individual answers confirm decisions. Preserve
+   omitted IDs and resolve ambiguity with one serial follow-up.
 7. After each confirmed decision, classify its durable destination:
    - canonical domain terminology, context-specific meaning, or an invariant
      updates the applicable `GLOSSARY.md` through `domain-modeling`;

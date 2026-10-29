@@ -28,6 +28,7 @@ sections before acting. Links are requirements, not background references.
 
 ## Conditional Reading
 
+- **Selected Task Playbook:** validate the executor-issued [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection), then dereference only its one actual `conditional_references` link.
 - **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
 - **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
 - **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
@@ -56,28 +57,24 @@ Commit, and synchronized plan state.
 
 ## Process
 
-1. Validate the executor-issued handoff: confirm its approved or autonomously selected durable planned wave, Gate-3 approval, selected ticket identity, and
-   recorded frontier reconstruct to the current earliest incomplete wave. Confirm
-   all blockers are complete. Verify the selected workspace, recorded wave base,
-   and initial changes; preserve unrelated work in either mode. If a direct or
-   resumed invocation cannot reconstruct these executor facts, stop and return
-   the missing or conflicting evidence to the native implement-spec executor;
-   never select a ticket from a plan independently. The runtime wave may contain
-   other ownership-safe tickets, but this invocation owns only one selected
-   ticket and must not pull later-wave work forward. It is one lifecycle inside
-   the native executor: main owns Red or structural evidence, authoritative
-   integration, fresh verification, commits, and plan advancement. A direct
-   implementer brief states `delegation_allowed = false` and cannot delegate or
-   integrate sibling work.
-2. Re-read the specification, domain language, ADRs, ticket acceptance
-   and tests. Resolve referenced decisions, owners, boundaries, consistency and
-   recovery semantics before implementation. Structural-only work uses its path
+1. Validate the executor-issued handoff: approved durable wave, Gate-3 approval,
+   selected ticket, earliest incomplete frontier, completed blockers, workspace,
+   wave base and initial changes. Missing/conflicting facts return to the native
+   implement-spec executor; never select independently. This invocation owns
+   one selected ticket and cannot pull work forward. Main owns Red/structural
+   evidence, integration, fresh verification, commits and plan advancement.
+   Direct briefs state `delegation_allowed = false` and forbid sibling work.
+2. Re-read the specification, ticket, `TaskPlaybookSelection`, domain language,
+   ADRs and tests. Confirm the ticket preserves the selected `red_or_pin` and
+   `delivery_proof`; resolve referenced decisions and boundaries. Structural-only work uses its path
    below; mixed tickets still require Red-Green for changed outcomes.
    Confirm the ticket and brief share this workspace's approved `Build cache`.
    Main-local work keeps the authoritative reservation; an isolated worker keeps
    its approved branch reservation. Configure it repository-natively or block
    with evidence, never substitute `/tmp`.
-3. Write one behavior-focused test through a selected public seam for an applicable scenario or invariant.
+3. Apply the selected `red_or_pin`: write the outcome reproduction for changed
+   behavior, pin current behavior for a refactor, or capture the comparable
+   baseline required by the playbook. Do not substitute a different route's Red.
 4. Run that focused test and have main observe the expected failure as behavior
    Red. If it passes unexpectedly or fails for an unrelated reason, correct the
    test setup before implementation. For structural-only work, main instead

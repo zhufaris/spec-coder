@@ -112,6 +112,14 @@ class DesignGovernanceContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             initial_design_review(mode="unknown")
 
+    def test_playbook_obligations_inform_design_without_bypassing_gates(self):
+        design = (ROOT / "skills" / "design-coder" / "SKILL.md").read_text()
+        self.assertIn("selected playbook's entry evidence", design)
+        self.assertIn("design obligations", design)
+        self.assertIn("probes never approve a", design)
+        for gate in ("Gate 1", "Gate 2", "Gate 3"):
+            self.assertIn(gate, design)
+
 
 if __name__ == "__main__":
     unittest.main()

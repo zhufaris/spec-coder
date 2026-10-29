@@ -144,6 +144,18 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         self.assertIn("executor-issued", metadata)
         self.assertNotIn("next unblocked ticket", metadata)
 
+    def test_playbook_selection_changes_proof_not_executor_topology(self):
+        workflow = read("references/workflow-contract.md").lower()
+        orchestrator = read("skills/spec-coder/SKILL.md").lower()
+        tdd = read("skills/tdd-coder/SKILL.md").lower()
+        self.assertLess(
+            workflow.index("task playbook selection"),
+            workflow.index("run `grill-coder`"),
+        )
+        self.assertIn("one native implement-spec executor", workflow)
+        self.assertNotIn("execution profile", orchestrator)
+        self.assertIn("selected `red_or_pin`", tdd)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -38,6 +38,19 @@ _PROOFS = {
     PlaybookKind.GENERIC: ("narrow affected seam", "existing task-appropriate Red or pin", "existing affected-path verification"),
 }
 
+_REFERENCES = {
+    kind: "../../references/task-playbook-contract.md#" + anchor
+    for kind, anchor in {
+        PlaybookKind.FEATURE: "feature-playbook",
+        PlaybookKind.BUG_FIX: "bug-fix-playbook",
+        PlaybookKind.REFACTOR: "refactor-playbook",
+        PlaybookKind.PERFORMANCE: "performance-playbook",
+        PlaybookKind.SKILL_CHANGE: "skill-change-playbook",
+        PlaybookKind.WORKFLOW_EVAL: "workflow-eval-playbook",
+        PlaybookKind.GENERIC: "generic-playbook",
+    }.items()
+}
+
 
 def select_playbook(*, request: str, facts: set[str]) -> TaskPlaybookSelection:
     """Return exactly one selection using the contract's evidence precedence."""
@@ -65,7 +78,25 @@ def select_playbook(*, request: str, facts: set[str]) -> TaskPlaybookSelection:
         design_obligations=(obligation,),
         red_or_pin=red_or_pin,
         delivery_proof=delivery_proof,
-        conditional_references=("#evidence-and-proof-matrix",),
+        conditional_references=(_REFERENCES[kind],),
+    )
+
+
+def validate_selection(selection: TaskPlaybookSelection) -> bool:
+    """Model the schema check required at every direct stage entry."""
+    if not isinstance(selection, TaskPlaybookSelection):
+        return False
+    if selection.kind not in _REFERENCES:
+        return False
+    if selection.conditional_references != (_REFERENCES[selection.kind],):
+        return False
+    return all(
+        (
+            selection.entry_evidence,
+            selection.design_obligations,
+            selection.red_or_pin,
+            selection.delivery_proof,
+        )
     )
 
 

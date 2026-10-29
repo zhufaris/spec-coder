@@ -7,10 +7,15 @@ from task_playbook_contracts import (
     is_human_decision,
     requires_empirical_probe,
     select_playbook,
+    validate_selection,
 )
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def anchor_for(reference):
+    return reference.rsplit("#", 1)[1]
 
 
 class TaskPlaybookContractTests(unittest.TestCase):
@@ -38,6 +43,8 @@ class TaskPlaybookContractTests(unittest.TestCase):
             PlaybookKind.WORKFLOW_EVAL: {"standalone-evaluation"},
             PlaybookKind.GENERIC: set(),
         }
+        references = set()
+        contract = (ROOT / "references/task-playbook-contract.md").read_text().lower()
         for expected, facts in cases.items():
             with self.subTest(kind=expected):
                 selection = select_playbook(request="change", facts=facts)
@@ -46,7 +53,32 @@ class TaskPlaybookContractTests(unittest.TestCase):
                 self.assertTrue(selection.design_obligations)
                 self.assertTrue(selection.red_or_pin)
                 self.assertTrue(selection.delivery_proof)
-                self.assertTrue(selection.conditional_references)
+                self.assertEqual(len(selection.conditional_references), 1)
+                reference = selection.conditional_references[0]
+                references.add(reference)
+                self.assertTrue(reference.startswith("../../references/task-playbook-contract.md#"))
+                self.assertIn("### " + anchor_for(reference).replace("-", " "), contract)
+                self.assertTrue(validate_selection(selection))
+        self.assertEqual(len(references), len(cases))
+
+    def test_selection_schema_rejects_a_sibling_or_shared_reference(self):
+        selection = select_playbook(request="add export", facts={"new-user-outcome"})
+        self.assertFalse(validate_selection(selection.__class__(
+            kind=selection.kind,
+            entry_evidence=selection.entry_evidence,
+            design_obligations=selection.design_obligations,
+            red_or_pin=selection.red_or_pin,
+            delivery_proof=selection.delivery_proof,
+            conditional_references=("../../references/task-playbook-contract.md#bug-fix-playbook",),
+        )))
+        self.assertFalse(validate_selection(selection.__class__(
+            kind=selection.kind,
+            entry_evidence=selection.entry_evidence,
+            design_obligations=selection.design_obligations,
+            red_or_pin=selection.red_or_pin,
+            delivery_proof=selection.delivery_proof,
+            conditional_references=("../../references/task-playbook-contract.md#evidence-and-proof-matrix",),
+        )))
 
     def test_ambiguous_fallback_and_precedence_never_combine_playbooks(self):
         ambiguous = select_playbook(request="make export better", facts=set())
@@ -72,6 +104,13 @@ class TaskPlaybookContractTests(unittest.TestCase):
             "## TaskPlaybookSelection",
             "## Route precedence and one-selection rule",
             "## Evidence and proof matrix",
+            "### Feature playbook",
+            "### Bug Fix playbook",
+            "### Refactor playbook",
+            "### Performance playbook",
+            "### Skill Change playbook",
+            "### Workflow Eval playbook",
+            "### Generic playbook",
             "## Empirical facts and human decisions",
             "## Conversational TODO boundary",
             "## Conditional loading intent",

@@ -21,6 +21,7 @@ sections before acting. Links are requirements, not background references.
 
 ## Conditional Reading
 
+- **Selected Task Playbook:** before entering discovery, load [Route precedence and one-selection rule](../../references/task-playbook-contract.md#route-precedence-and-one-selection-rule) and [Conversational TODO boundary](../../references/task-playbook-contract.md#conversational-todo-boundary); then dereference the selection's one exact `conditional_references` link, never its sibling kind anchors.
 - **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
 - **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
 - **Isolation:** when selected or needed for a parallel mutation request, invoke bundled `using-git-worktrees`.
@@ -40,41 +41,32 @@ evidence, and a final delivery report produced through `delivery-coder`.
 
 ## Process
 
-1. Inspect repository instructions, Git status, current branch, worktrees,
-   relevant artifacts, plan checkboxes and Git log before changing anything.
-   Check current Host visibility, invocation eligibility and compatibility;
-   respect `disable-model-invocation: true`. Planning uses bundled templates.
-2. For a new request, account for initial changes, select a safe workspace, and
-   invoke `using-git-worktrees` first when isolation is selected. Record the
-   selected workspace's path, mode, base, initial changes, and capability
-   assessment without writing a target-project artifact. Start `grill-coder`
-   and `design-coder` read-only from that selected workspace. Before the first
-   qualifying GLOSSARY/ADR write, or after Gate 1 before `plan-coder` when no
-   such write is needed, prepare dependencies in that final workspace and
-   establish the fresh green baseline by running bundled
-   `scripts/verification-evidence.py capture` for each explicit baseline
-   command using the verification contract. Keep stdout JSON and prepared
-   workspace evidence in conversation until baseline succeeds and artifacts
-   may be written. Inspect the child `exit_code` and reasons separately from
-   the capture CLI exit. On failed or uncertain preparation, stop before any
-   target-project write. For a resume, infer the earliest incomplete phase and
-   run fresh verification at that boundary under Recovery.
+1. Inspect the request, repository instructions and bounded repository facts,
+   including current branch, plan checkboxes, Git log, worktree state and
+   relevant artifacts. Select exactly one
+   `TaskPlaybookSelection`, record the evidence and nearby rejected routes,
+   then copy its exact phase steps and explicit skip reasons into conversational
+   TODOs. Those TODOs guide progress but grant no authority. Check Host
+   compatibility and respect `disable-model-invocation: true`.
+2. Account for initial changes and select a safe workspace, invoking
+   `using-git-worktrees` only for isolation. Record path, mode, base, changes
+   and capabilities; start `grill-coder` and design read-only. Before a qualifying
+   GLOSSARY/ADR write, or after Gate 1 before planning, prepare dependencies and
+   establish the fresh green baseline with
+   `scripts/verification-evidence.py capture` for each explicit command.
+   Keep stdout JSON conversational, checking child `exit_code` separately.
+   Failed or uncertain preparation stops all target-project writes. On resume,
+   infer the earliest incomplete phase and verify freshly under Recovery.
 3. Run `grill-coder` for confirmed requirements, then `design-coder` for 2-3
    alternatives and Gate 1. Run `plan-coder` for workspace revalidation,
    specification/Gate 2 and vertical tickets with durable waves/Gate 3.
    Apply Approval Gates to each interactive or autonomous transition.
-4. After Gate 3, execute the approved or autonomously selected durable planned wave order
-   through one dependency-aware execution wave. Every nonempty
-   approved or autonomously selected plan, including a singleton task graph,
-   enters the native implement-spec executor. Main selects only the earliest
-   incomplete durable-wave ready frontier, at most four direct implementers,
-   and recomputes it after each accepted main integration. Each eligible ticket
-   delegates to one direct child by default when host capacity permits. For each
-   selected ticket, enter one `tdd-coder` lifecycle for Red-Green or
-   structural-preservation evidence, then use the required routing sections and
-   assembled worker brief. Main alone accepts one result at a time, freshly
-   verifies the authoritative workspace, commits that ticket, and advances its
-   checkbox. Do not create an implement-spec wrapper agent or a merger subagent.
+4. After Gate 3, execute the approved or autonomously selected durable planned wave order through one dependency-aware execution wave. Every nonempty plan,
+   including a singleton, enters the native implement-spec executor. Main runs the earliest durable-wave ready frontier
+   (at most four direct implementers), recomputing after each accepted result.
+   Each ticket gets one `tdd-coder` Red-Green or structural lifecycle and the
+   required assembled brief. Main alone accepts, freshly verifies, commits and
+   advances each ticket. No implement-spec wrapper or merger subagent exists.
 5. When all tickets are complete, invoke `delivery-coder` for findings-first
    review, TDD repairs and fresh full verification. Only that stage produces
    the terminal completion claim.

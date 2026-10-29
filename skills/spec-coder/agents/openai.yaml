@@ -1,4 +1,4 @@
 interface:
   display_name: "Spec Coder"
-  short_description: "Run a gated task graph through the native implement-spec executor"
-  default_prompt: "Use $spec-coder to take this coding request through its task graph and verified commits."
+  short_description: "Select one Task Playbook, then run the gated task graph"
+  default_prompt: "Use $spec-coder to select one evidence-backed Task Playbook and take this request through the fixed Gates and native implement-spec executor."
