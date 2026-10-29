@@ -61,6 +61,19 @@ codex plugin add spec-coder@spec-coder
 
 `0.8.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 或 `implement-spec`。当前 Matt `implement-spec` 的 `disable-model-invocation: true` 表示它仅作为 provenance，不是 dependency；其他 manual-only skill 也不应被配置、改名包装或修改全局文件绕过。discovery 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用本地模板，Gate 3 后由 native implement-spec executor 执行已批准的计划。
 
+## Task Playbooks
+
+每个新任务在现有 discovery/design 证据上由 `spec-coder` **内部**选择且只选择一个
+Task Playbook：Feature、Bug Fix、Refactor、Performance、Skill Change、Workflow Eval 或
+Generic。它为该任务增加相称的 entry/design evidence、Red 或 preservation pin 与
+delivery proof；不会增加 public skill，也不会改变固定的五阶段顺序、Gate 1/2/3、native
+implement-spec executor、两层 agent tree 或九个 model-callable skills。完整且唯一的 kind
+contract 见 [Task Playbook contract](./references/task-playbook-contract.md)。
+
+这种 separation 参考 Cursor `pstack`（`cursor/plugins` commit
+`1ba91fc25c0977741dd0e267849e6234b037ed0a`）的 MIT provenance；`pstack` **not a dependency**：不 vendor、不 invoke，不需要安装、配置或模型标识。它不改变现有 Host
+compatibility、model routing 或 runtime behavior。
+
 ## Default delegation
 
 Gate 3 之后，每个 dependency-ready 且具备完整输入、边界明确且可逆的 scope、独立验证 seam，并且不携带 main-only 权限或凭据的 eligible ticket 都会 default delegation 给一个 direct subagent；单个 eligible ticket 也同样委派。显式的 request-wide opt-out、ticket-specific opt-out 或 review-specific opt-out 只在对应范围改为 main-local 执行，并禁止该范围内直接或间接 spawn。opt-out 只在当前请求的对话中生效，不写入仓库或用户配置。

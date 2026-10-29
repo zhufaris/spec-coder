@@ -1116,6 +1116,24 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn("subagent-routing-contract.md#worker-progress-heartbeat", install_guide)
         self.assertNotIn("### worker progress heartbeat", install_guide)
 
+    def test_published_task_playbooks_are_internal_and_pstack_is_not_a_dependency(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        install = read_text(ROOT / "INSTALL.md")
+        compatibility = read_text(ROOT / "references" / "upstream-compatibility.md")
+
+        for document in (readme, install, compatibility):
+            with self.subTest(document=document[:30]):
+                self.assertIn("Task Playbook", document)
+                self.assertIn("pstack", document)
+                self.assertIn("not a dependency", document)
+        self.assertIn("nine", compatibility.lower())
+        self.assertIn("Gate 1", readme)
+        self.assertIn("native implement-spec executor", readme)
+        self.assertIn("exactly one Task Playbook", compatibility)
+        self.assertIn("two layers", compatibility)
+        self.assertIn("no pstack\ninstallation, configuration, model setup", compatibility.lower())
+        self.assertIn("task playbook contract", install.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

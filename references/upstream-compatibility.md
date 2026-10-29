@@ -2,6 +2,21 @@
 
 This compatibility contract applies to spec-coder `0.8.0`.
 
+## Task Playbook compatibility and pstack boundary
+
+`spec-coder` internally selects exactly one Task Playbook (Feature, Bug Fix,
+Refactor, Performance, Skill Change, Workflow Eval, or Generic) from observed
+task evidence. The choice changes only evidence obligations; it preserves the
+fixed stage order, Gate 1/2/3, one native implement-spec executor, two layers,
+and the nine public model-callable skills. Its detailed contract is
+[Task Playbook contract](./task-playbook-contract.md).
+
+Cursor `pstack` at `cursor/plugins` commit
+`1ba91fc25c0977741dd0e267849e6234b037ed0a` is MIT provenance only and **not a dependency**. Spec-coder neither vendors nor invokes pstack, poteto-mode,
+pstack agents, Cursor controls, or pstack model identifiers. No pstack
+installation, configuration, model setup, or runtime dependency is required;
+the existing Host compatibility and model-routing rules remain authoritative.
+
 The plugin owns specification synthesis and ticket decomposition through `plan-coder` and its bundled [specification](./specification-template.md) and [ticket](./ticket-template.md) templates. Other stages compose installed, model-callable skills by capability and name.
 
 ## Capability Map

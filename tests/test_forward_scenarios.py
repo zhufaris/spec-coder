@@ -39,6 +39,13 @@ from forward_contracts import (
     select_planned_wave_batch,
     validate_planned_waves,
 )
+from task_playbook_contracts import (
+    PlaybookKind,
+    is_human_decision,
+    requires_empirical_probe,
+    select_playbook,
+    validate_selection,
+)
 
 
 START = b"<!-- spec-coder:start -->"
@@ -62,6 +69,41 @@ def authorized_setup_proposals():
         "AGENTS.md": (True, AGENTS_BASE, agents_after),
         ".gitignore": authorized_ignore_proposal((True, IGNORE_BASE)),
     }
+
+
+class TaskPlaybookOrganicForwardScenarios(unittest.TestCase):
+    def test_organic_requests_select_one_exact_playbook_with_its_own_proof(self) -> None:
+        # User-facing requests plus observed facts, not a second contract matrix.
+        scenarios = (
+            ("Let a customer export the filtered report.", {"new-user-outcome"}, PlaybookKind.FEATURE),
+            ("Repair the invoice total shown after a refund.", {"reproduced-defect"}, PlaybookKind.BUG_FIX),
+            ("Untangle the parser while preserving every current result.", {"behavior-preserving"}, PlaybookKind.REFACTOR),
+            ("Make the report load faster under the measured production-shaped input.", {"repeatable-performance-baseline"}, PlaybookKind.PERFORMANCE),
+            ("Revise the installed skill's direct-reference instruction.", {"skill-instruction-change"}, PlaybookKind.SKILL_CHANGE),
+            ("Compare the two proposed workflow outputs under the requested policy.", {"standalone-evaluation"}, PlaybookKind.WORKFLOW_EVAL),
+            ("Update this narrowly scoped internal default.", set(), PlaybookKind.GENERIC),
+        )
+        proofs = set()
+        for request, facts, expected_kind in scenarios:
+            with self.subTest(request=request):
+                selected = select_playbook(request=request, facts=facts)
+                self.assertEqual(selected.kind, expected_kind)
+                self.assertTrue(validate_selection(selected))
+                self.assertEqual(len(selected.conditional_references), 1)
+                self.assertEqual(
+                    selected.conditional_references[0].rsplit("#", 1)[1],
+                    expected_kind.value.lower().replace(" ", "-") + "-playbook",
+                )
+                self.assertTrue(selected.red_or_pin)
+                self.assertTrue(selected.delivery_proof)
+                proofs.add((selected.red_or_pin, selected.delivery_proof))
+        self.assertEqual(len(proofs), len(scenarios))
+
+    def test_empirical_forks_are_probed_before_a_human_owned_review(self) -> None:
+        self.assertTrue(requires_empirical_probe("timing"))
+        self.assertFalse(is_human_decision("timing"))
+        self.assertTrue(is_human_decision("scope"))
+        self.assertFalse(requires_empirical_probe("scope"))
 
 
 class ReopenedGateThreeRevalidationScenarios(unittest.TestCase):

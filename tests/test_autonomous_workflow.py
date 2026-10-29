@@ -3,6 +3,15 @@ from pathlib import Path
 from test_stage_loading import instruction_text
 
 from forward_contracts import decide_approval_route, resolve_autonomy_mode
+from task_playbook_contracts import PlaybookKind, select_playbook
+from task_playbook_eval_contracts import (
+    CandidateRun,
+    Environment,
+    assert_candidate_run,
+    assert_equivalent_environments,
+    assert_lifecycle,
+    assert_organic_prompt,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +22,66 @@ def read(relative: str) -> str:
 
 
 class AutonomousModeOracleTests(unittest.TestCase):
+    def test_playbooks_preserve_gate_authority_and_external_effect_boundary(self) -> None:
+        selected = select_playbook(
+            request="Revise the repository skill's directly linked guidance.",
+            facts={"skill-instruction-change"},
+        )
+        self.assertEqual(selected.kind, PlaybookKind.SKILL_CHANGE)
+        for gate in ("gate-1", "gate-2", "gate-3"):
+            with self.subTest(mode="interactive", gate=gate):
+                self.assertEqual(
+                    decide_approval_route(
+                        autonomy_mode="interactive",
+                        review_kind=gate,
+                        grounded_recommendations=1,
+                    ),
+                    "request-human-review",
+                )
+            with self.subTest(mode="autonomous", gate=gate):
+                self.assertEqual(
+                    decide_approval_route(
+                        autonomy_mode="autonomous",
+                        review_kind=gate,
+                        grounded_recommendations=1,
+                    ),
+                    "auto-select-recommended",
+                )
+        self.assertEqual(
+            decide_approval_route(
+                autonomy_mode="autonomous",
+                review_kind="named-mutation",
+                grounded_recommendations=1,
+            ),
+            "request-human-review",
+        )
+
+    def test_workflow_eval_uses_organic_direct_children_without_topology_widening(self) -> None:
+        selected = select_playbook(
+            request="Compare the two workflow outputs for the requested policy.",
+            facts={"standalone-evaluation"},
+        )
+        self.assertEqual(selected.kind, PlaybookKind.WORKFLOW_EVAL)
+        assert_organic_prompt("Compare the two workflow outputs for the requested policy.")
+        assert_equivalent_environments(
+            Environment("parent", "base", "inputs"),
+            Environment("candidate", "base", "inputs"),
+        )
+        assert_candidate_run(CandidateRun(handle="direct-child", output="bounded result"))
+        assert_lifecycle(
+            (
+                "deterministic-green",
+                "prepare-equivalent-environments",
+                "dispatch-direct-candidates",
+                "collect-all-candidates",
+                "dispatch-direct-blinded-judge",
+                "collect-judge",
+                "main-inspect-all-evidence",
+                "main-verdict",
+            ),
+            use_judge=True,
+        )
+
     def test_autonomous_mode_requires_current_user_request_authority(self) -> None:
         self.assertEqual(
             resolve_autonomy_mode(explicit_user_choice=None, source=None),

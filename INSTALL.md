@@ -111,6 +111,14 @@ Gate 路由，并按适用性组合 `domain-modeling`、`codebase-design` 与
 
 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 和当前 Matt `implement-spec` 都不是 `0.8.0` 的依赖。当前 Matt `implement-spec` 声明 `disable-model-invocation: true`，因此仅为 provenance，不是 dependency；其他 manual-only skill 也不能由其他 skill 调用。fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板，native implement-spec executor 在 Gate 3 后执行批准的计划。
 
+Task Playbook 是 `spec-coder` 的内部兼容性契约：每个任务仅选择 Feature、Bug Fix、
+Refactor、Performance、Skill Change、Workflow Eval 或 Generic 之一，以调整 evidence
+obligations，不增加 skill 或安装步骤，也不改变 Gate 1/2/3、native implement-spec executor
+或两层 agent tree。Cursor `pstack` 是 MIT provenance，**not a dependency**：不需要
+install、configuration 或 runtime invocation。详细的 route/proof contract 与 pstack
+boundary 见 [Task Playbook contract](./references/task-playbook-contract.md) 和
+[Upstream Compatibility](./references/upstream-compatibility.md)。
+
 新任务先选择安全的 selected workspace，并记录 path、mode、base、initial changes 与
 capabilities；随后才能进行 read-only discovery 和 design。selected-only 状态不得有
 target-project writes。`grill-coder` 使用可调用的 `grilling` decision-tree frontier rounds：每轮最多三个 dependency-ready、相互独立的问题；scope、domain meaning/ownership、core invariant、architecture、overlapping coupling 或 unknown coupling 保持串行。每题提供稳定 `Qn`、适用选项和独立 recommendation/reason；多题轮次须以 `Qn: default` 接受单题推荐，partial answer 只确认明确 ID，ambiguous answer 先单题澄清并重算 frontier。repository facts 由 agent 检查而非询问用户。已明确确认的规范领域术语可以惰性更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且基于真实取舍的架构决定才写 ADR。没有符合条件的决定就不产生文档写入，目标文档存在所有权冲突时必须停止。
