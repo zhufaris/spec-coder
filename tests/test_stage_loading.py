@@ -294,6 +294,7 @@ class StageLoadingTests(unittest.TestCase):
             )
         self.assertEqual(set(route_counts), set(PLAYBOOK_KINDS))
         self.assertTrue(all(count > normal for count in route_counts.values()))
+        self.assertTrue(all(count <= 20000 for count in route_counts.values()))
         self.assertGreater(len(set(route_counts.values())), 1)
 
     def test_plan_coder_verification_fallback_owns_detailed_contract(self):

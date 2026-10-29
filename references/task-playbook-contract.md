@@ -14,16 +14,12 @@ state file, or an alternate executor.
 
 ## TaskPlaybookSelection
 
-Every coding request has exactly one `TaskPlaybookSelection` with these fields:
-
-| Field | Meaning |
-| --- | --- |
-| `kind` | One singular playbook kind from the route matrix. |
-| `entry_evidence` | Observed request and repository facts that justify the route and rule out plausible alternatives. |
-| `design_obligations` | Task-specific questions that must be resolved at the existing discovery/design seams. |
-| `red_or_pin` | The required failing reproduction, behavior pin, or measured baseline before implementation. |
-| `delivery_proof` | The proof delivery verifies on the actual affected path. |
-| `conditional_references` | Exactly one direct link to the selected kind anchor below; stages dereference that value and never infer or load sibling kinds. |
+Every coding request has exactly one `TaskPlaybookSelection`: `kind` is its
+single route; `entry_evidence` records choosing/rejected-route facts;
+`design_obligations` names existing-seam questions; `red_or_pin` is the
+pre-implementation failure, pin, or baseline; `delivery_proof` proves the
+affected path; `conditional_references` is exactly one direct selected-anchor
+link, dereferenced alone with sibling kinds excluded.
 
 ## Route precedence and one-selection rule
 
@@ -66,59 +62,59 @@ of its evidence and proof obligations. A selection links exactly one subsection.
 
 ### Feature playbook
 
-- Entry and design: name the user-visible outcome, data shape, and interface seam.
-- Phase steps: add outcome acceptance at the existing discovery, design, and affected-path verification seams.
-- Skip reasons: skip preservation pins and measured baselines because a new outcome controls; never skip a fixed stage, Gate, verification, or authority.
-- Red or pin: a failing outcome-level example or acceptance test.
-- Delivery proof: the affected entry path satisfies the outcome and compatibility checks.
+- Entry and design: user-visible outcome, data shape, interface seam.
+- Phase steps: outcome acceptance at existing discovery/design/affected-path verification seams.
+- Skip reasons: outcome controls: omit pins/baselines; retain fixed stages, Gates, verification, authority.
+- Red or pin: failing outcome example or acceptance test.
+- Delivery proof: entry path proves outcome and compatibility.
 
 ### Bug Fix playbook
 
-- Entry and design: reproduce the symptom and identify root cause on the matching surface.
-- Phase steps: add reproduction and root-cause evidence at the existing discovery, design, and affected-path verification seams.
-- Skip reasons: skip new-outcome and measured-baseline obligations because a reproduced defect controls; never skip a fixed stage, Gate, verification, or authority.
-- Red or pin: a failing reproduction of the reported defect.
-- Delivery proof: the reproduction is green and neighboring behavior remains covered.
+- Entry and design: reproduced symptom and root cause on matching surface.
+- Phase steps: reproduction/root-cause evidence at existing discovery/design/affected-path verification seams.
+- Skip reasons: defect controls: omit new-outcome/baseline duties; retain fixed stages, Gates, verification, authority.
+- Red or pin: failing reported-defect reproduction.
+- Delivery proof: reproduction green; neighboring behavior covered.
 
 ### Refactor playbook
 
-- Entry and design: state preserved behavior and the reader-load or structure objective.
-- Phase steps: add preservation pins and structural inspection at the existing design and verification seams.
-- Skip reasons: skip an outcome Red because approved behavior is preserved; use the behavior pin and never skip a fixed stage, Gate, verification, or authority.
+- Entry and design: preserved behavior and reader-load/structure objective.
+- Phase steps: preservation pins and structural inspection at existing design/verification seams.
+- Skip reasons: preservation controls: omit outcome Red, use pin; retain fixed stages, Gates, verification, authority.
 - Red or pin: pin current behavior before structural work.
-- Delivery proof: pins are equivalent and the structural simplification is inspectable.
+- Delivery proof: equivalent pins and inspectable simplification.
 
 ### Performance playbook
 
-- Entry and design: record a repeatable baseline, limiting mechanism, environment, and comparable measure.
-- Phase steps: add comparable measurement at the existing discovery, design, and affected-path verification seams.
-- Skip reasons: skip an outcome Red unless behavior changes because the measured baseline controls; never skip a fixed stage, Gate, verification, or authority.
-- Red or pin: the before-measurement baseline.
-- Delivery proof: comparable before and after measurements prove the target without regression.
+- Entry and design: repeatable baseline, limiter, environment, comparable measure.
+- Phase steps: comparable measurement at existing discovery/design/affected-path verification seams.
+- Skip reasons: baseline controls: omit outcome Red unless behavior changes; retain fixed stages, Gates, verification, authority.
+- Red or pin: before-measurement baseline.
+- Delivery proof: comparable before/after proves target without regression.
 
 ### Skill Change playbook
 
-- Entry and design: state Host boundary and public surface: visibility, callability, disable-model-invocation, frontmatter, triggers, and direct link; preserve deterministic-contract obligations.
-- Phase steps: add Host-contract checks at the existing design and verification seams, then the separately triggered blinded evaluation.
-- Skip reasons: skip product-domain probes unless the skill affects them; the blinded evaluation is required, and no fixed stage, Gate, verification, or authority is skipped.
-- Red or pin: deterministic contract checks before behavior comparison.
-- Delivery proof: deterministic checks are green and the required blinded evaluation is non-regressing.
+- Entry and design: Host boundary/public surface—visibility, callability, disable-model-invocation, frontmatter, triggers, direct link—and deterministic contracts.
+- Phase steps: Host checks at existing design/verification seams, then separately triggered blinded evaluation.
+- Skip reasons: omit unaffected product probes; blinded evaluation required; retain fixed stages, Gates, verification, authority.
+- Red or pin: deterministic checks before behavior comparison.
+- Delivery proof: deterministic Green and non-regressing required blinded evaluation.
 
 ### Workflow Eval playbook
 
-- Entry and design: state Parent/Candidate scope, sanitized environment, anonymous rubric, and deterministic prerequisites.
-- Phase steps: add deterministic prerequisites at existing seams, then the separately triggered blinded Parent/Candidate evaluation.
-- Skip reasons: skip target-project mutation unless comparison finds a repair; the blinded evaluation is required, and no fixed stage, Gate, verification, or authority is skipped.
-- Red or pin: mandatory deterministic Green for the evaluated candidate.
-- Delivery proof: blinded comparison is non-regressing; inconclusive evidence keeps Parent.
+- Entry and design: Parent/Candidate scope, sanitized environment, anonymous rubric, deterministic prerequisites.
+- Phase steps: deterministic prerequisites at existing seams, then separately triggered blinded Parent/Candidate evaluation.
+- Skip reasons: omit target mutation absent repair; blinded evaluation required; retain fixed stages, Gates, verification, authority.
+- Red or pin: mandatory deterministic Green for candidate.
+- Delivery proof: non-regressing blinded comparison; inconclusive keeps Parent.
 
 ### Generic playbook
 
-- Entry and design: state the narrow affected seam and ordinary existing obligations.
-- Phase steps: add only the task-specific checks needed at the existing discovery, design, and affected-path verification seams.
-- Skip reasons: skip specialized playbook obligations because no controlling route evidence exists; never skip a fixed stage, Gate, required verification, or authority.
-- Red or pin: the existing task-appropriate Red or pin.
-- Delivery proof: existing delivery verification on the affected path.
+- Entry and design: narrow affected seam and ordinary obligations.
+- Phase steps: task-specific checks at existing discovery/design/affected-path verification seams.
+- Skip reasons: no route controls: omit specialized duties; retain fixed stages, Gates, required verification, authority.
+- Red or pin: existing task-appropriate Red or pin.
+- Delivery proof: existing affected-path delivery verification.
 
 ## Empirical facts and human decisions
 
