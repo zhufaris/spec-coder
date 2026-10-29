@@ -67,42 +67,56 @@ of its evidence and proof obligations. A selection links exactly one subsection.
 ### Feature playbook
 
 - Entry and design: name the user-visible outcome, data shape, and interface seam.
+- Phase steps: add outcome acceptance at the existing discovery, design, and affected-path verification seams.
+- Skip reasons: skip preservation pins and measured baselines because a new outcome controls; never skip a fixed stage, Gate, verification, or authority.
 - Red or pin: a failing outcome-level example or acceptance test.
 - Delivery proof: the affected entry path satisfies the outcome and compatibility checks.
 
 ### Bug Fix playbook
 
 - Entry and design: reproduce the symptom and identify root cause on the matching surface.
+- Phase steps: add reproduction and root-cause evidence at the existing discovery, design, and affected-path verification seams.
+- Skip reasons: skip new-outcome and measured-baseline obligations because a reproduced defect controls; never skip a fixed stage, Gate, verification, or authority.
 - Red or pin: a failing reproduction of the reported defect.
 - Delivery proof: the reproduction is green and neighboring behavior remains covered.
 
 ### Refactor playbook
 
 - Entry and design: state preserved behavior and the reader-load or structure objective.
+- Phase steps: add preservation pins and structural inspection at the existing design and verification seams.
+- Skip reasons: skip an outcome Red because approved behavior is preserved; use the behavior pin and never skip a fixed stage, Gate, verification, or authority.
 - Red or pin: pin current behavior before structural work.
 - Delivery proof: pins are equivalent and the structural simplification is inspectable.
 
 ### Performance playbook
 
 - Entry and design: record a repeatable baseline, limiting mechanism, environment, and comparable measure.
+- Phase steps: add comparable measurement at the existing discovery, design, and affected-path verification seams.
+- Skip reasons: skip an outcome Red unless behavior changes because the measured baseline controls; never skip a fixed stage, Gate, verification, or authority.
 - Red or pin: the before-measurement baseline.
 - Delivery proof: comparable before and after measurements prove the target without regression.
 
 ### Skill Change playbook
 
 - Entry and design: state Host boundary and public surface: visibility, callability, disable-model-invocation, frontmatter, triggers, and direct link; preserve deterministic-contract obligations.
+- Phase steps: add Host-contract checks at the existing design and verification seams, then the separately triggered blinded evaluation.
+- Skip reasons: skip product-domain probes unless the skill affects them; the blinded evaluation is required, and no fixed stage, Gate, verification, or authority is skipped.
 - Red or pin: deterministic contract checks before behavior comparison.
 - Delivery proof: deterministic checks are green and the required blinded evaluation is non-regressing.
 
 ### Workflow Eval playbook
 
 - Entry and design: state Parent/Candidate scope, sanitized environment, anonymous rubric, and deterministic prerequisites.
+- Phase steps: add deterministic prerequisites at existing seams, then the separately triggered blinded Parent/Candidate evaluation.
+- Skip reasons: skip target-project mutation unless comparison finds a repair; the blinded evaluation is required, and no fixed stage, Gate, verification, or authority is skipped.
 - Red or pin: mandatory deterministic Green for the evaluated candidate.
 - Delivery proof: blinded comparison is non-regressing; inconclusive evidence keeps Parent.
 
 ### Generic playbook
 
 - Entry and design: state the narrow affected seam and ordinary existing obligations.
+- Phase steps: add only the task-specific checks needed at the existing discovery, design, and affected-path verification seams.
+- Skip reasons: skip specialized playbook obligations because no controlling route evidence exists; never skip a fixed stage, Gate, required verification, or authority.
 - Red or pin: the existing task-appropriate Red or pin.
 - Delivery proof: existing delivery verification on the affected path.
 
@@ -117,7 +131,7 @@ an unresolved product decision into an implementation default.
 
 ## Conversational TODO boundary
 
-The selected playbook's exact phase steps and explicit skip reasons may appear
+The selected playbook's exact phase steps and explicit skip reasons must appear
 as conversational TODOs. They guide progress in this trace only and are not
 durable authority. Specification decisions, durable wave membership, plan
 checkboxes, committed Git, Gate approvals, and main-only acceptance retain

@@ -31,9 +31,10 @@ sections before acting. Links are requirements, not background references.
 - **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).
 - **Persistence:** when aggregate updates, repository boundaries or persistence mechanisms are affected, load [Aggregate persistence semantics](../../references/domain-design-contract.md#aggregate-persistence-semantics).
 - **Domain behavior:** when rules, invariants, lifecycle or valid-value constraints are affected, load [Protect behavior and valid values](../../references/domain-design-contract.md#protect-behavior-and-valid-values).
+- **Selected Task Playbook:** validate the approved [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection), then dereference only its exact `conditional_references` anchor for every kind, never a sibling kind anchor. Freshly verify its `delivery_proof` on the actual affected path.
 - **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
 - **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
-- **Task playbook delivery proof:** after mandatory deterministic Green, and
+- **Blinded evaluation lifecycle:** after mandatory deterministic Green, and
   only when the approved selection is **Skill Change** or **Workflow Eval**,
   load [Blinded evaluation constraints](../../references/task-playbook-contract.md#blinded-evaluation-constraints),
   [Workflow Eval Execution](../../references/subagent-routing-contract.md#workflow-eval-execution),
@@ -44,10 +45,11 @@ sections before acting. Links are requirements, not background references.
 
 ## Input
 
-The approved or autonomously selected specification and plan, completed ticket
-commits, current diff and Git history, repository instructions, domain language,
-architecture decisions, and authoritative verification commands. Autonomous
-selection does not reduce review scope or fresh-verification requirements.
+The approved or autonomously selected `TaskPlaybookSelection`, specification
+and plan, completed ticket commits, current diff and Git history, repository
+instructions, domain language, architecture decisions, and authoritative
+verification commands. Autonomous selection does not reduce review scope or
+fresh-verification requirements.
 
 ## Output
 
@@ -68,6 +70,8 @@ the selected mode and child limits.
    branch, initial changes, history, and executor-supplied cumulative accepted
    range/diff.
    Preserve and distinguish unrelated work, including in-place execution.
+   Validate the selected `TaskPlaybookSelection` and dereference only its exact
+   `conditional_references` anchor; do not load sibling kind anchors.
 2. Run both review axes in the selected mode, findings first. Main inspects all
    evidence and authors final Standards/Spec conclusions; reviewers never gain
    approval, repair, verification, commit, delivery, or completion authority.
@@ -90,7 +94,8 @@ the selected mode and child limits.
    neither execution, attribution, nor freshness. Inspect status/history against
    initial changes; require atomic task commits without unrelated hunks while
    preserving pre-existing user staging.
-8. For a selected Skill Change or Workflow Eval, and only after steps 6-7 are
+8. Freshly verify the selected anchor's `delivery_proof` on the actual affected
+   path. For a selected Skill Change or Workflow Eval, and only after steps 6-7 are
    deterministic Green, execute the blinded comparison constraints and routing
    lifecycle. Main reads every candidate output and all available
    workspace-local transcript evidence, authors the fail-closed verdict, and

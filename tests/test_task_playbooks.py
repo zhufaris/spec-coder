@@ -138,6 +138,26 @@ class TaskPlaybookContractTests(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, skill_change)
 
+    def test_each_playbook_owns_exact_phase_steps_and_skip_reasons(self):
+        contract = (ROOT / "references/task-playbook-contract.md").read_text().lower()
+        for kind in (
+            "feature",
+            "bug fix",
+            "refactor",
+            "performance",
+            "skill change",
+            "workflow eval",
+            "generic",
+        ):
+            body = contract.split(f"### {kind} playbook", 1)[1]
+            body = body.split("\n### ", 1)[0].split("\n## ", 1)[0]
+            with self.subTest(kind=kind):
+                self.assertIn("- phase steps:", body)
+                self.assertIn("- skip reasons:", body)
+        todo_boundary = contract.split("## conversational todo boundary", 1)[1]
+        todo_boundary = todo_boundary.split("\n## ", 1)[0]
+        self.assertIn("must appear", todo_boundary)
+
 
 if __name__ == "__main__":
     unittest.main()

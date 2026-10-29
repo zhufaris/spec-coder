@@ -32,6 +32,9 @@ class TaskPlaybookStageFlowTests(unittest.TestCase):
             "tdd-coder": (
                 "task-playbook-contract.md#taskplaybookselection",
             ),
+            "delivery-coder": (
+                "task-playbook-contract.md#taskplaybookselection",
+            ),
         }
         for stage, links in expected.items():
             content = read(f"skills/{stage}/SKILL.md")
@@ -73,6 +76,7 @@ class TaskPlaybookStageFlowTests(unittest.TestCase):
         design = read("skills/design-coder/SKILL.md")
         plan = read("skills/plan-coder/SKILL.md")
         tdd = read("skills/tdd-coder/SKILL.md")
+        delivery = read("skills/delivery-coder/SKILL.md")
         for token in ("entry_evidence", "design_obligations"):
             self.assertIn(token, grill)
         self.assertIn("design obligations", design)
@@ -80,9 +84,12 @@ class TaskPlaybookStageFlowTests(unittest.TestCase):
             self.assertIn(token, plan)
         for token in ("red_or_pin", "delivery_proof"):
             self.assertIn(token, tdd)
+        for token in ("delivery_proof", "conditional_references"):
+            self.assertIn(token, delivery)
         self.assertIn("nearby rejected routes", spec)
-        self.assertIn("explicit skip reasons", spec)
-        for stage in (spec, grill, design, plan, tdd):
+        self.assertIn("phase steps", spec)
+        self.assertIn("skip reasons", spec)
+        for stage in (spec, grill, design, plan, tdd, delivery):
             self.assertIn("conditional_references", stage)
             self.assertNotIn("task-playbook-contract.md#evidence-and-proof-matrix", stage)
 

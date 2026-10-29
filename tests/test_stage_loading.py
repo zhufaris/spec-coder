@@ -255,6 +255,7 @@ class StageLoadingTests(unittest.TestCase):
             "design-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
             "plan-coder": {"taskplaybookselection"},
             "tdd-coder": {"taskplaybookselection"},
+            "delivery-coder": {"taskplaybookselection"},
         }
         forbidden = {"conditional-loading-intent", "blinded-evaluation-constraints", "pstack-provenance-and-nondependency"}
         for stage, anchors in expected.items():
