@@ -68,10 +68,22 @@ class TaskStepTests(unittest.TestCase):
 
     def test_bug_fix_cli_carries_scoped_root_cause_guidance_at_each_step(self):
         cases = {
-            "discovery": ("legitimate", "unknown", "restart", "persisted", "historical"),
-            "design": ("legitimate", "producer", "scope"),
-            "implementation": ("confirmed", "scope", "neighboring"),
-            "delivery": ("original", "root cause"),
+            "discovery": (
+                "actual contract", "legitimate", "unknown", "restart", "persisted",
+                "without automatic cleanup", "preserve cleanup or recovery authorization",
+                "do not infer historical legitimacy from a name or current creation eligibility",
+            ),
+            "design": (
+                "smallest root-cause repair", "supply missing handling for legitimate state",
+                "earliest producer or wrong transition of illegitimate state",
+                "rather than hide it with retries, swallowed errors, clamps, or defaults",
+                "unknown judgment evidence-backed", "approved repair scope",
+            ),
+            "implementation": (
+                "minimally", "confirmed root cause", "within approved scope",
+                "preserving legitimate validation and neighboring behavior", "without an unlimited sweep",
+            ),
+            "delivery": ("original public path", "root cause repair", "generic green cannot replace it"),
         }
         for stage, obligations in cases.items():
             with self.subTest(stage=stage):
