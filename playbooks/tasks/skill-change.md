@@ -1,0 +1,25 @@
+# Skill Change task playbook
+
+## Skill Change playbook
+
+- Entry and design: Host boundary/public surface—visibility, callability, disable-model-invocation, frontmatter, triggers, direct link—and deterministic contracts.
+- Phase steps: Host checks at existing design/verification seams, then separately triggered blinded evaluation.
+- Skip reasons: omit unaffected product probes; blinded evaluation required; retain fixed stages, Gates, verification, authority.
+- Red or pin: deterministic checks before behavior comparison.
+- Delivery proof: deterministic Green and non-regressing required blinded evaluation.
+
+### Conditional Principles
+
+- **Recurring instruction failure:** read [encode-lessons](../../principles/encode-lessons.md#encode-lessons-in-structure) only when observed; otherwise skip the leaf. Contracts own authority and freshness.
+
+### Procedure
+
+1. [Discovery](../stages/discovery.md#procedure): Identify the affected instruction surface and Host visibility/callability restrictions.
+2. [Design](../stages/design.md#procedure): Design one content owner and direct links; preserve frontmatter, triggers and authority.
+3. [Planning](../stages/planning.md#procedure): Record loading, public compatibility and realistic behavioral acceptance.
+4. [Implementation](../stages/implementation.md#procedure): Observe deterministic contract Red, revise instructions, verify loading and consumers.
+5. [Delivery](../stages/delivery.md#procedure): After deterministic/artifact Green compare final anonymous outputs; accept only non-regression.
+
+### Completion
+
+The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.

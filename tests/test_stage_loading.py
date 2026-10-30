@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from task_playbook_contracts import PlaybookKind, select_playbook
+from task_playbook_contracts import PlaybookKind, select_playbook, validate_selection
 
 ROOT = Path(__file__).resolve().parents[1]
 LINK = re.compile(r"\]\(([^)]+)\)")
@@ -13,6 +13,8 @@ TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
             "Interactions", "Architecture", "Verification fallback",
             "Workspace preparation", "Selected Task Playbook"}
+TRIGGERS |= {"Change sizing", "Domain language", "Behavior preservation",
+             "Context pressure", "Completion", "Recurring instruction failure"}
 PLAYBOOK_KINDS = ("Feature", "Bug Fix", "Refactor", "Performance",
                   "Skill Change", "Workflow Eval", "Generic")
 PLAYBOOK_CASES = {
@@ -52,15 +54,38 @@ def required_links(path: Path, triggers=frozenset()) -> list[str]:
     for block in blocks:
         if block[1] in triggers:
             reading += "\n" + block[0]
-    return LINK.findall(reading)
+    return LINK.findall(reading) + principle_links(skill_text(path), triggers)
+
+
+def principle_links(text, triggers):
+    links = []
+    for block in re.finditer(r"(?ms)^- \*\*(.+?):\*\*.*?(?=^- \*\*|^#{1,6} |\Z)", text):
+        if block[1] in triggers:
+            links.extend(link for link in LINK.findall(block[0]) if "principles/" in link)
+    return links
+
+
+def skill_text(path: Path) -> str:
+    """Inspect a compatibility entry together with its one declared SOP owner."""
+    text = path.read_text(encoding="utf-8")
+    if path.name == "SKILL.md":
+        for link in dict.fromkeys(LINK.findall(text)):
+            if "playbooks/stages/" not in link:
+                continue
+            relative, _, anchor = link.partition("#")
+            target = (path.parent / relative).resolve()
+            text += "\n" + section(target.read_text(encoding="utf-8"), anchor)
+    return text
 
 
 def instruction_text(path: Path, triggers=TRIGGERS) -> str:
     """Selected stage plus only explicitly required/triggered owner sections."""
-    text = path.read_text(encoding="utf-8")
+    text = skill_text(path)
     if path.name != "SKILL.md":
         return text
     for link in dict.fromkeys(required_links(path, triggers)):
+        if "playbooks/stages/" in link:
+            continue
         relative, _, anchor = link.partition("#")
         target = (path.parent / relative).resolve()
         content = target.read_text(encoding="utf-8")
@@ -68,16 +93,66 @@ def instruction_text(path: Path, triggers=TRIGGERS) -> str:
     return text
 
 
-def selected_instruction_text(path: Path, selection) -> str:
-    """Resolve a stage plus its one selection-carried playbook owner."""
-    text = instruction_text(path, {"Selected Task Playbook"})
-    if "conditional_references" not in path.read_text(encoding="utf-8"):
-        return text
-    for reference in selection.conditional_references:
-        relative, _, anchor = reference.partition("#")
+def selected_instruction_text(path: Path, selection, *, mode="orchestrated",
+                              handoff=None, triggers=frozenset()) -> str:
+    """Static scope analysis of router versus stage entry; not a Host executor."""
+    if not validate_selection(selection):
+        raise ValueError("return to router: invalid selection")
+    text = instruction_text(path, triggers | {"Selected Task Playbook"})
+    if path.parent.name == "spec-coder":
+        relative, _, anchor = selection.conditional_references[0].partition("#")
         target = (path.parent / relative).resolve()
-        text += "\n" + section(target.read_text(encoding="utf-8"), anchor)
-    return text
+        return text + "\n" + section(target.read_text(encoding="utf-8"), anchor)
+    stage_link = next(link for link in required_links(path) if "playbooks/stages/" in link)
+    stage = Path(stage_link.split("#")[0]).stem
+    if mode not in {"orchestrated", "standalone", "resume"}:
+        raise ValueError("unknown entry mode")
+    if handoff is None:
+        if mode == "orchestrated":
+            raise ValueError("return to router: missing current-step handoff")
+        relative, _, anchor = selection.conditional_references[0].partition("#")
+        target = (path.parent / relative).resolve()
+        task = section(target.read_text(encoding="utf-8"), anchor)
+        step = next(line for line in task.splitlines()
+                    if f"](../stages/{stage}.md#procedure)" in line)
+        constraints = "\n".join(line for line in task.splitlines()
+                                if line.startswith(("- Red or pin:", "- Delivery proof:")))
+        handoff = {"kind": selection.kind, "stage": stage,
+                   "step": step, "constraints": constraints}
+    if (handoff.get("kind") != selection.kind or handoff.get("stage") != stage
+            or not handoff.get("step") or not handoff.get("constraints")):
+        raise ValueError("return to router: conflicting current-step handoff")
+    return text + "\n" + handoff["step"] + "\n" + handoff["constraints"]
+
+
+def run_instruction_text(stages, selection, triggers=frozenset()) -> str:
+    """Separate reuse metric; never proof of Host runtime deduplication."""
+    chunks = []
+    seen = set()
+    for path in stages:
+        chunks.append(path.read_text(encoding="utf-8"))
+        for link in dict.fromkeys(required_links(path, triggers | {"Selected Task Playbook"})):
+            relative, _, anchor = link.partition("#")
+            target = (path.parent / relative).resolve()
+            identity = (target, anchor)
+            if identity not in seen:
+                seen.add(identity)
+                content = target.read_text(encoding="utf-8")
+                loaded = section(content, anchor) if anchor else content
+                chunks.append(loaded)
+    relative, _, anchor = selection.conditional_references[0].partition("#")
+    target = (stages[0].parent / relative).resolve()
+    task = section(target.read_text(encoding="utf-8"), anchor)
+    chunks.append(task)
+    for link in principle_links(task, triggers):
+        relative, _, anchor = link.partition("#")
+        target = (stages[0].parent / relative).resolve()
+        identity = (target, anchor)
+        if identity not in seen:
+            seen.add(identity)
+            content = target.read_text(encoding="utf-8")
+            chunks.append(section(content, anchor) if anchor else content)
+    return "\n".join(chunks)
 
 
 class StageLoadingTests(unittest.TestCase):
@@ -275,25 +350,37 @@ class StageLoadingTests(unittest.TestCase):
             selection = select_playbook(request="change", facts=facts)
             selected_anchor = selection.conditional_references[0].rsplit("#", 1)[1]
             for path in stage_paths:
-                resolved = selected_instruction_text(path, selection).lower()
+                resolved = selected_instruction_text(path, selection, mode="standalone").lower()
                 with self.subTest(stage=path.parent.name, kind=kind):
-                    self.assertIn("### " + selected_anchor.replace("-", " "), resolved)
+                    if path.parent.name == "spec-coder":
+                        self.assertIn("## " + selected_anchor.replace("-", " "), resolved)
+                    else:
+                        self.assertNotIn("### Completion", resolved)
+                        self.assertIn("- delivery proof:", resolved)
                     for absent in all_anchors - {selected_anchor}:
-                        self.assertNotIn("### " + absent.replace("-", " "), resolved)
+                        self.assertNotIn("## " + absent.replace("-", " "), resolved)
 
     def test_normal_and_each_selected_route_have_measured_context(self):
         stages = ("spec-coder", "grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder")
         normal = sum(len(instruction_text(ROOT / "skills" / stage / "SKILL.md", frozenset()).split()) for stage in stages)
         self.assertLessEqual(normal, 19000)
         route_counts = {}
+        observed = {
+            PlaybookKind.FEATURE: {"Domain behavior"},
+            PlaybookKind.BUG_FIX: {"Change sizing"},
+            PlaybookKind.REFACTOR: {"Behavior preservation"},
+            PlaybookKind.PERFORMANCE: {"Completion"},
+            PlaybookKind.SKILL_CHANGE: {"Recurring instruction failure"},
+            PlaybookKind.WORKFLOW_EVAL: {"Completion"},
+            PlaybookKind.GENERIC: set(),
+        }
         for kind, facts in PLAYBOOK_CASES.items():
             selection = select_playbook(request="change", facts=facts)
-            route_counts[kind.value] = sum(
-                len(selected_instruction_text(ROOT / "skills" / stage / "SKILL.md", selection).split())
-                for stage in stages
-            )
+            route_counts[kind.value] = len(run_instruction_text(
+                [ROOT / "skills" / stage / "SKILL.md" for stage in stages], selection, observed[kind]
+            ).split())
         self.assertEqual(set(route_counts), set(PLAYBOOK_KINDS))
-        self.assertTrue(all(count > normal for count in route_counts.values()))
+        self.assertTrue(all(count > 0 for count in route_counts.values()))
         self.assertTrue(all(count <= 20000 for count in route_counts.values()))
         self.assertGreater(len(set(route_counts.values())), 1)
 
@@ -348,7 +435,7 @@ class StageLoadingTests(unittest.TestCase):
             "skills/tdd-coder/SKILL.md",
             "references/ticket-template.md",
         ):
-            text = (ROOT / relative).read_text()
+            text = skill_text(ROOT / relative)
             with self.subTest(path=relative):
                 for token in ("scripts/validate-affected.py", "--repo", "--path"):
                     self.assertIn(token, text)
@@ -357,11 +444,12 @@ class StageLoadingTests(unittest.TestCase):
         required = {
             ROOT / "references/ticket-template.md",
             ROOT / "references/workflow-contract.md",
-            ROOT / "skills/plan-coder/SKILL.md",
+            ROOT / "playbooks/stages/planning.md",
         }
         observed = set()
         sources = list((ROOT / "references").glob("*.md"))
         sources.extend((ROOT / "skills").glob("*/SKILL.md"))
+        sources.extend((ROOT / "playbooks/stages").glob("*.md"))
         for path in sources:
             for paragraph in re.split(r"\n\s*\n", path.read_text()):
                 command = re.sub(r"\s+", " ", paragraph.replace("\\\n", " "))

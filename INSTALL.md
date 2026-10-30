@@ -286,3 +286,11 @@ architectural 路径保留独立 approach selection 与 Gate 1。两条路径都
 ### 上游依赖缺失
 
 先判断依赖是否属于当前执行路径。本地 `using-git-worktrees` 只在隔离路径使用；这些 manual-only skills 均不在依赖集合中。必需外部依赖缺失或禁止模型调用时，列出精确名称、Host 可见性和调用资格证据，并按 [Upstream Compatibility](./references/upstream-compatibility.md) 停止；仅恢复实际必需且允许调用的能力。重启不会解除 `disable-model-invocation: true`。
+
+### Three-layer bundle contents
+
+Keep `skills/`, `principles/`, `playbooks/`, `references/`, and `scripts/`
+together under the plugin root. Stage names remain callable compatibility
+entries; their SOPs are in `playbooks/stages/`, and task routes point to
+`playbooks/tasks/`. Copying only `skills/` produces incomplete entries.
+No separate pstack installation or model configuration is needed.

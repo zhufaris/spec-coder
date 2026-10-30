@@ -24,9 +24,9 @@ The executor must not push, must not install, and must not delete worktrees.
 
 ## Phase Order
 
-Task Playbook selection occurs before entering the fixed stage order. It changes
-evidence obligations only: Gate 1/2/3 and the one native implement-spec executor
-retain their existing authority and order.
+Task Playbook selection precedes the fixed stage order; task SOPs compose
+stage SOPs. Gate 1/2/3 and the one native implement-spec executor retain
+their existing authority and order.
 
 Run `grill-coder`, `design-coder`, `plan-coder`, `tdd-coder`, and `delivery-coder` in that order. `spec-coder` routes a new request to the first stage and a resumed request to the earliest incomplete stage. After every Gate 3 approval or autonomous selection, every plan enters the native implement-spec executor. The executor schedules the approved task graph as per-ticket `tdd-coder` lifecycles before handing the completed cumulative accepted range to `delivery-coder`; it is orchestration within the fixed five-stage order, not another public stage.
 

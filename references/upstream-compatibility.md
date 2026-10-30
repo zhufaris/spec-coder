@@ -6,7 +6,7 @@ This compatibility contract applies to spec-coder `0.8.0`.
 
 `spec-coder` internally selects exactly one Task Playbook (Feature, Bug Fix,
 Refactor, Performance, Skill Change, Workflow Eval, or Generic) from observed
-task evidence. The choice changes only evidence obligations; it preserves the
+task evidence. The selected task owns its SOP and composes stage procedures; it preserves the
 fixed stage order, Gate 1/2/3, one native implement-spec executor, two layers,
 and the nine public model-callable skills. Its detailed contract is
 [Task Playbook contract](./task-playbook-contract.md).
@@ -132,3 +132,12 @@ skill, visibility/metadata evidence and unmet contract. Distinguish manual-only,
 absent and incompatible capabilities. Do not reproduce remembered upstream
 behavior, substitute a similarly named skill or bypass a restricted entry.
 Native planning is always bundled, not a fallback for restricted upstream skills.
+
+## Three-layer instruction ownership
+
+`principles/` owns triggered judgment rules, `playbooks/tasks/` owns task SOPs,
+and `playbooks/stages/` owns reusable stage procedures. The nine public Skills
+remain compatible entrypoints or action capabilities; a stage entry references
+its procedure instead of duplicating it. Calls to capability Skills do not
+automatically create subagents. Keep `principles/` and `playbooks/` in every
+local or installed bundle. Pstack remains provenance only.

@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from test_stage_loading import required_links
+from test_stage_loading import required_links, skill_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -106,7 +106,7 @@ class StageOwnerLoadingTests(unittest.TestCase):
             "skills/tdd-coder/SKILL.md",
             "references/ticket-template.md",
         ):
-            text = (ROOT / relative).read_text().lower()
+            text = skill_text(ROOT / relative).lower()
             with self.subTest(path=relative):
                 for phrase in (
                     "supported spec-coder",

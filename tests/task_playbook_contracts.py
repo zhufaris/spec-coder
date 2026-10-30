@@ -39,7 +39,7 @@ _PROOFS = {
 }
 
 _REFERENCES = {
-    kind: "../../references/task-playbook-contract.md#" + anchor
+    kind: "../../playbooks/tasks/" + kind.value.lower().replace(" ", "-") + ".md#" + anchor
     for kind, anchor in {
         PlaybookKind.FEATURE: "feature-playbook",
         PlaybookKind.BUG_FIX: "bug-fix-playbook",

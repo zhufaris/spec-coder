@@ -1,12 +1,13 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import skill_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(relative):
-    return (ROOT / relative).read_text()
+    return skill_text(ROOT / relative)
 
 
 class ImplementSpecRuntimeContractTests(unittest.TestCase):

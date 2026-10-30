@@ -56,8 +56,8 @@ class TaskPlaybookContractTests(unittest.TestCase):
                 self.assertEqual(len(selection.conditional_references), 1)
                 reference = selection.conditional_references[0]
                 references.add(reference)
-                self.assertTrue(reference.startswith("../../references/task-playbook-contract.md#"))
-                self.assertIn("### " + anchor_for(reference).replace("-", " "), contract)
+                self.assertTrue(reference.startswith("../../playbooks/tasks/"))
+                self.assertIn("## " + anchor_for(reference).replace("-", " "), (ROOT / "skills/spec-coder" / reference.split("#")[0]).resolve().read_text().lower())
                 self.assertTrue(validate_selection(selection))
         self.assertEqual(len(references), len(cases))
 
@@ -123,10 +123,7 @@ class TaskPlaybookContractTests(unittest.TestCase):
             self.assertIn("## " + heading, fixture)
 
     def test_skill_change_playbook_names_hard_host_boundaries(self):
-        contract = (ROOT / "references/task-playbook-contract.md").read_text().lower()
-        skill_change = contract.split("### skill change playbook", 1)[1].split(
-            "### workflow eval playbook", 1
-        )[0]
+        skill_change = (ROOT / "playbooks/tasks/skill-change.md").read_text().lower()
         for required in (
             "visibility",
             "callability",
@@ -149,8 +146,7 @@ class TaskPlaybookContractTests(unittest.TestCase):
             "workflow eval",
             "generic",
         ):
-            body = contract.split(f"### {kind} playbook", 1)[1]
-            body = body.split("\n### ", 1)[0].split("\n## ", 1)[0]
+            body = (ROOT / "playbooks/tasks" / (kind.replace(" ", "-") + ".md")).read_text().lower()
             with self.subTest(kind=kind):
                 self.assertIn("- phase steps:", body)
                 self.assertIn("- skip reasons:", body)

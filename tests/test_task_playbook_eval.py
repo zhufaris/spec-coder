@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import skill_text
 
 from task_playbook_eval_contracts import (
     CandidateRun,
@@ -22,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(relative):
-    return (ROOT / relative).read_text().lower()
+    return skill_text(ROOT / relative).lower()
 
 
 class TaskPlaybookEvalTests(unittest.TestCase):

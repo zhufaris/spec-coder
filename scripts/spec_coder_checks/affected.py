@@ -166,6 +166,14 @@ _SHARED_ROUTING_SKILLS = ("spec-coder", "tdd-coder", "delivery-coder")
 _ROUTING_PATH = "references/subagent-routing-contract.md"
 
 
+# Explicit owners: task SOPs, stage SOPs, and triggered principles ship with the bundle.
+for _task in ("feature", "bug-fix", "refactor", "performance", "skill-change", "workflow-eval", "generic"):
+    _OWNER_CHECKS[f"playbooks/tasks/{_task}.md"] = ("test_three_layer_architecture", "test_task_playbooks", "test_stage_loading")
+for _stage, _skill in (("discovery", "grill-coder"), ("design", "design-coder"), ("planning", "plan-coder"), ("implementation", "tdd-coder"), ("delivery", "delivery-coder")):
+    _OWNER_CHECKS[f"playbooks/stages/{_stage}.md"] = tuple(dict.fromkeys((*_SKILL_CHECKS[_skill], "test_three_layer_architecture", "test_stage_loading")))
+for _principle in ("subtract-before-add", "model-the-domain", "dependency-direction", "verify-real-outcome", "preserve-observable-behavior", "protect-human-authority", "guard-context", "encode-lessons"):
+    _OWNER_CHECKS[f"principles/{_principle}.md"] = ("test_three_layer_architecture", "test_stage_loading")
+
 def _physical_repo(repo: Path) -> Path:
     root = Path(repo).resolve(strict=True)
     if not root.is_dir():

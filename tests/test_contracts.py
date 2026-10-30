@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from test_stage_loading import instruction_text
+from test_stage_loading import instruction_text, skill_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,7 +35,7 @@ SUBAGENT_ROUTING_REFERENCE = "../../references/subagent-routing-contract.md"
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+    return skill_text(path)
 
 
 def parse_frontmatter(path: Path) -> dict[str, str]:
@@ -198,7 +198,7 @@ class PluginContractTests(unittest.TestCase):
                 )
             }
             self.assertEqual(installed_skills, EXPECTED_SKILLS)
-            for directory in ("skills", "references"):
+            for directory in ("skills", "references", "principles", "playbooks"):
                 for source in (ROOT / directory).rglob("*"):
                     if not source.is_file():
                         continue

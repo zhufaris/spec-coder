@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import skill_text
 
 from tests.design_contracts import (
     bounded_gate_1_transition,
@@ -13,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class DesignGovernanceContractTests(unittest.TestCase):
     def test_design_coder_owns_bounded_route_without_required_brainstorming(self):
-        design = (ROOT / "skills" / "design-coder" / "SKILL.md").read_text()
+        design = skill_text(ROOT / "skills" / "design-coder" / "SKILL.md")
         compatibility = (ROOT / "references" / "upstream-compatibility.md").read_text()
         workflow = (ROOT / "references" / "workflow-contract.md").read_text()
 
@@ -113,7 +114,7 @@ class DesignGovernanceContractTests(unittest.TestCase):
             initial_design_review(mode="unknown")
 
     def test_playbook_obligations_inform_design_without_bypassing_gates(self):
-        design = (ROOT / "skills" / "design-coder" / "SKILL.md").read_text()
+        design = skill_text(ROOT / "skills" / "design-coder" / "SKILL.md")
         self.assertIn("selected playbook's entry evidence", design)
         self.assertIn("design obligations", design)
         self.assertIn("probes never approve a", design)

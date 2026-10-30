@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-from test_stage_loading import required_links, section
+from test_stage_loading import required_links, section, skill_text
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -303,7 +303,7 @@ class PublishedWorkflowIntegration(unittest.TestCase):
                 self.assertIn("../../references/verification-contract.md#authority-and-lifecycle", links)
                 if stage in {"plan-coder", "delivery-coder"}:
                     self.assertIn("../../references/artifact-format.md#command-interface", links)
-                process = section(path.read_text(), "process")
+                process = skill_text(path)
                 for action in expected:
                     self.assertIn(action, process)
 

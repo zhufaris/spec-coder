@@ -2,8 +2,9 @@
 
 ## Purpose and unchanged workflow
 
-This is the canonical owner of task-playbook selection and task-specific
-evidence obligations. It changes evidence obligations only. It does not change
+This is the canonical owner of task selection and handoff. Task playbooks own
+complete SOPs; stage playbooks own reusable procedures; Principles guide
+judgment, and Skills expose concrete capabilities or compatibility entries. It does not change
 the fixed `grill-coder -> design-coder -> plan-coder -> tdd-coder ->
 delivery-coder` stages, Gate 1, Gate 2, Gate 3, the one native implement-spec
 executor, the two-layer execution tree, or the nine public skills.
@@ -28,20 +29,20 @@ repository evidence before classifying. Apply the first supported route below;
 when evidence is missing or contradictory, select `Generic` or stop for an
 unresolved load-bearing human decision. Never merge playbooks.
 
-1. **Workflow Eval** — a standalone, requested behavioral comparison or
+1. **Workflow Eval** ([SOP](../playbooks/tasks/workflow-eval.md#workflow-eval-playbook)) — a standalone, requested behavioral comparison or
    evaluation is controlling.
-2. **Skill Change** — a change to skill instructions, frontmatter, or skill
+2. **Skill Change** ([SOP](../playbooks/tasks/skill-change.md#skill-change-playbook)) — a change to skill instructions, frontmatter, or skill
    behavior is controlling when it is not merely an implementation detail of a
    product feature.
-3. **Bug Fix** — an observed defect and matching reproduction/control surface
+3. **Bug Fix** ([SOP](../playbooks/tasks/bug-fix.md#bug-fix-playbook)) — an observed defect and matching reproduction/control surface
    are controlling, even when the repair changes behavior.
-4. **Performance** — a repeatable measured latency, throughput, memory, or
+4. **Performance** ([SOP](../playbooks/tasks/performance.md#performance-playbook)) — a repeatable measured latency, throughput, memory, or
    resource objective and a comparable baseline are controlling.
-5. **Refactor** — structure changes while current externally observable
+5. **Refactor** ([SOP](../playbooks/tasks/refactor.md#refactor-playbook)) — structure changes while current externally observable
    behavior is explicitly preserved.
-6. **Feature** — deliberate new user-visible behavior, data shape, or interface
+6. **Feature** ([SOP](../playbooks/tasks/feature.md#feature-playbook)) — deliberate new user-visible behavior, data shape, or interface
    capability is controlling.
-7. **Generic** — safe coding work not supported by a more specific route.
+7. **Generic** ([SOP](../playbooks/tasks/generic.md#generic-playbook)) — safe coding work not supported by a more specific route.
 
 An ambiguous request does not infer a Feature, Bug Fix, or Performance route
 from keywords alone. The entry evidence records the observed fact, the chosen
@@ -49,72 +50,35 @@ route, and why a nearby route does not control it.
 
 ## Evidence and proof matrix
 
-This index names the available kinds; each linked subsection is the sole source
-of its evidence and proof obligations. A selection links exactly one subsection.
-
-- [Feature](#feature-playbook)
-- [Bug Fix](#bug-fix-playbook)
-- [Refactor](#refactor-playbook)
-- [Performance](#performance-playbook)
-- [Skill Change](#skill-change-playbook)
-- [Workflow Eval](#workflow-eval-playbook)
-- [Generic](#generic-playbook)
+Task SOPs live in separate files; this is navigation only. Select one file and copy its procedure before execution.
 
 ### Feature playbook
 
-- Entry and design: user-visible outcome, data shape, interface seam.
-- Phase steps: outcome acceptance at existing discovery/design/affected-path verification seams.
-- Skip reasons: outcome controls: omit pins/baselines; retain fixed stages, Gates, verification, authority.
-- Red or pin: failing outcome example or acceptance test.
-- Delivery proof: entry path proves outcome and compatibility.
+Read [Feature SOP](../playbooks/tasks/feature.md#feature-playbook); do not load sibling tasks.
 
 ### Bug Fix playbook
 
-- Entry and design: reproduced symptom and root cause on matching surface.
-- Phase steps: reproduction/root-cause evidence at existing discovery/design/affected-path verification seams.
-- Skip reasons: defect controls: omit new-outcome/baseline duties; retain fixed stages, Gates, verification, authority.
-- Red or pin: failing reported-defect reproduction.
-- Delivery proof: reproduction green; neighboring behavior covered.
+Read [Bug Fix SOP](../playbooks/tasks/bug-fix.md#bug-fix-playbook); do not load sibling tasks.
 
 ### Refactor playbook
 
-- Entry and design: preserved behavior and reader-load/structure objective.
-- Phase steps: preservation pins and structural inspection at existing design/verification seams.
-- Skip reasons: preservation controls: omit outcome Red, use pin; retain fixed stages, Gates, verification, authority.
-- Red or pin: pin current behavior before structural work.
-- Delivery proof: equivalent pins and inspectable simplification.
+Read [Refactor SOP](../playbooks/tasks/refactor.md#refactor-playbook); do not load sibling tasks.
 
 ### Performance playbook
 
-- Entry and design: repeatable baseline, limiter, environment, comparable measure.
-- Phase steps: comparable measurement at existing discovery/design/affected-path verification seams.
-- Skip reasons: baseline controls: omit outcome Red unless behavior changes; retain fixed stages, Gates, verification, authority.
-- Red or pin: before-measurement baseline.
-- Delivery proof: comparable before/after proves target without regression.
+Read [Performance SOP](../playbooks/tasks/performance.md#performance-playbook); do not load sibling tasks.
 
 ### Skill Change playbook
 
-- Entry and design: Host boundary/public surface—visibility, callability, disable-model-invocation, frontmatter, triggers, direct link—and deterministic contracts.
-- Phase steps: Host checks at existing design/verification seams, then separately triggered blinded evaluation.
-- Skip reasons: omit unaffected product probes; blinded evaluation required; retain fixed stages, Gates, verification, authority.
-- Red or pin: deterministic checks before behavior comparison.
-- Delivery proof: deterministic Green and non-regressing required blinded evaluation.
+Read [Skill Change SOP](../playbooks/tasks/skill-change.md#skill-change-playbook); do not load sibling tasks.
 
 ### Workflow Eval playbook
 
-- Entry and design: Parent/Candidate scope, sanitized environment, anonymous rubric, deterministic prerequisites.
-- Phase steps: deterministic prerequisites at existing seams, then separately triggered blinded Parent/Candidate evaluation.
-- Skip reasons: omit target mutation absent repair; blinded evaluation required; retain fixed stages, Gates, verification, authority.
-- Red or pin: mandatory deterministic Green for candidate.
-- Delivery proof: non-regressing blinded comparison; inconclusive keeps Parent.
+Read [Workflow Eval SOP](../playbooks/tasks/workflow-eval.md#workflow-eval-playbook); do not load sibling tasks.
 
 ### Generic playbook
 
-- Entry and design: narrow affected seam and ordinary obligations.
-- Phase steps: task-specific checks at existing discovery/design/affected-path verification seams.
-- Skip reasons: no route controls: omit specialized duties; retain fixed stages, Gates, required verification, authority.
-- Red or pin: existing task-appropriate Red or pin.
-- Delivery proof: existing affected-path delivery verification.
+Read [Generic SOP](../playbooks/tasks/generic.md#generic-playbook); do not load sibling tasks.
 
 ## Empirical facts and human decisions
 
@@ -127,7 +91,7 @@ an unresolved product decision into an implementation default.
 
 ## Conversational TODO boundary
 
-The selected playbook's exact phase steps and explicit skip reasons must appear
+The selected task file's numbered procedure, phase steps and explicit skip reasons must appear
 as conversational TODOs. They guide progress in this trace only and are not
 durable authority. Specification decisions, durable wave membership, plan
 checkboxes, committed Git, Gate approvals, and main-only acceptance retain
@@ -135,6 +99,16 @@ their existing owners. A conversational TODO cannot dispatch work, promote an
 evaluation, approve a Gate, authorize a mutation, or recover scheduling state.
 
 ## Conditional loading intent
+
+The router reads the selected task once and passes the current step, proof
+obligations and applicable principle constraints to each stage. A standalone
+stage reconstructs that handoff from approved artifacts and, only when missing,
+reads the selected task's current step. Never reroute or load sibling tasks.
+The handoff carries the selected kind, current stage and step, proof obligations,
+and observed principle triggers. Missing or conflicting orchestrated inputs
+return to the router; standalone entry or resume may reconstruct the selected
+step from approved artifacts. The handoff is conversational, not durable state.
+
 
 Normal routing exposes the selected playbook anchor only; unselected playbooks
 add no runtime context. Conditional references are loaded only on their

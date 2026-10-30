@@ -6,6 +6,33 @@
 
 它参考 Matt Pocock skills 的“小而可组合”结构。插件负责阶段编排、审批门禁、产物位置和 Git 安全策略；`plan-coder` 使用本插件维护的模板完成规格合成与任务拆分，其余阶段组合允许模型调用的上游能力。
 
+## Principles, Playbooks, Skills
+
+The suite now separates three responsibilities. Principles supply triggered
+judgment rules and limits; Task Playbooks own complete task SOPs; Stage
+Playbooks compose reusable capabilities. Skills expose actions or thin
+compatibility entries. Existing `design-coder`, `plan-coder`, and `tdd-coder`
+names remain callable, while their procedures live in `playbooks/stages/`.
+
+```text
+Request -> spec-coder router -> one Task Playbook
+                                  |
+                                  v
+                            current Stage SOP
+                                  |
+                                  v
+                           capability Skills
+                                  |
+                                  v
+                            tools / scripts
+Principles guide judgment; Contracts own precise boundaries.
+```
+
+Read the selected task once, then only the current stage and triggered
+Principles. A standalone stage reconstructs its supplied task handoff; it
+does not select a different route. No new scheduler, generated instructions,
+model dependency, or public micro-action skill is introduced.
+
 ## Skills
 
 | Skill | 用途 |
@@ -65,9 +92,9 @@ codex plugin add spec-coder@spec-coder
 
 每个新任务在现有 discovery/design 证据上由 `spec-coder` **内部**选择且只选择一个
 Task Playbook：Feature、Bug Fix、Refactor、Performance、Skill Change、Workflow Eval 或
-Generic。它为该任务增加相称的 entry/design evidence、Red 或 preservation pin 与
-delivery proof；不会增加 public skill，也不会改变固定的五阶段顺序、Gate 1/2/3、native
-implement-spec executor、两层 agent tree 或九个 model-callable skills。完整且唯一的 kind
+Generic。所选 Task SOP 编排阶段流程，并定义 entry/design evidence、Red 或 preservation pin 与
+delivery proof；阶段 SOP 调用底层能力，不增加 public skill，也不会改变固定的五阶段顺序、Gate 1/2/3、native
+implement-spec executor、两层 agent tree 或九个 model-callable skills。任务 SOP 位于 `playbooks/tasks/`，路由与交接
 contract 见 [Task Playbook contract](./references/task-playbook-contract.md)。
 
 这种 separation 参考 Cursor `pstack`（`cursor/plugins` commit

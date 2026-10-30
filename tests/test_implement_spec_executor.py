@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from test_stage_loading import skill_text
 
 from forward_contracts import (
     enter_implement_spec_executor,
@@ -189,7 +190,7 @@ class UnifiedImplementSpecExecutorTests(unittest.TestCase):
     def test_contract_forbids_wrapper_merger_and_automatic_external_effects(self):
         workflow = (ROOT / "references/workflow-contract.md").read_text().lower()
         routing = (ROOT / "references/subagent-routing-contract.md").read_text().lower()
-        delivery = (ROOT / "skills/delivery-coder/SKILL.md").read_text().lower()
+        delivery = skill_text(ROOT / "skills/delivery-coder/SKILL.md").lower()
         for phrase in (
             "no implement-spec wrapper agent",
             "no merger subagent",

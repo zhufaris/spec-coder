@@ -10,8 +10,7 @@ invocation or dispatch.
 
 ## Required Reading
 
-On every entry, including standalone invocation and resume, load these owner
-sections before acting. Links are requirements, not background references.
+Every entry, including standalone invocation and resume, requires these owners; reuse current sections.
 
 - [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Recovery](../../references/workflow-contract.md#recovery), [Native implement-spec executor](../../references/workflow-contract.md#native-implement-spec-executor).
 - [Compatibility Check](../../references/upstream-compatibility.md#compatibility-check).
@@ -22,10 +21,16 @@ sections before acting. Links are requirements, not background references.
 ## Conditional Reading
 
 - **Selected Task Playbook:** before entering discovery, load [Route precedence and one-selection rule](../../references/task-playbook-contract.md#route-precedence-and-one-selection-rule) and [Conversational TODO boundary](../../references/task-playbook-contract.md#conversational-todo-boundary); then dereference the selection's one exact `conditional_references` link, never its sibling kind anchors.
-- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
+- **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and apply [human authority](../../principles/protect-human-authority.md#protect-human-authority) before bundled `show-me`; skip this rendering path when no human review is requested.
 - **Delegation:** before deciding a worker route or dispatching any child, load [Authority](../../references/subagent-routing-contract.md#authority), [Tiers](../../references/subagent-routing-contract.md#tiers), [Delegation Eligibility and Execution Mode](../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode), [Execution Waves](../../references/subagent-routing-contract.md#execution-waves), [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests), [Configuration](../../references/subagent-routing-contract.md#configuration), [Route Selection](../../references/subagent-routing-contract.md#route-selection), [Worker Progress Heartbeat](../../references/subagent-routing-contract.md#worker-progress-heartbeat), [Worker Brief Assembly](../../references/subagent-routing-contract.md#worker-brief-assembly), [Attempt Evidence and Promotion](../../references/subagent-routing-contract.md#attempt-evidence-and-promotion), [Stage Responsibilities](../../references/subagent-routing-contract.md#stage-responsibilities), [Result Integration](../../references/subagent-routing-contract.md#result-integration), and [Assembly](../../references/worker-brief-template.md#assembly), [Common brief](../../references/worker-brief-template.md#common-brief), [Role additions](../../references/worker-brief-template.md#role-additions). Supply actual brief content even when the child inherits no context.
 - **Isolation:** when selected or needed for a parallel mutation request, invoke bundled `using-git-worktrees`.
 - **Workspace preparation:** before preparing dependencies or capturing the fresh baseline, load [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), and [Worked invocation](../../references/verification-contract.md#worked-invocation).
+
+## Layers
+
+Select one Task SOP, then load the current Stage SOP and triggered Principles.
+Contracts own permissions and formats. Stage Skills are compatibility entries,
+not additional agents or SOP owners.
 
 ## Input
 
@@ -45,7 +50,7 @@ evidence, and a final delivery report produced through `delivery-coder`.
    including current branch, plan checkboxes, Git log, worktree state and
    relevant artifacts. Select exactly one
    `TaskPlaybookSelection`, record the evidence and nearby rejected routes,
-   then copy its exact phase steps and explicit skip reasons into conversational
+   then copy its numbered task procedure, phase steps and explicit skip reasons into conversational
    TODOs. Those TODOs guide progress but grant no authority. Check Host
    compatibility and respect `disable-model-invocation: true`.
 2. Account for initial changes and select a safe workspace, invoking
@@ -57,16 +62,17 @@ evidence, and a final delivery report produced through `delivery-coder`.
    Keep stdout JSON conversational, checking child `exit_code` separately.
    Failed or uncertain preparation stops all target-project writes. On resume,
    infer the earliest incomplete phase and verify freshly under Recovery.
-3. Run `grill-coder` for confirmed requirements, then `design-coder` for 2-3
-   alternatives and Gate 1. Run `plan-coder` for workspace revalidation,
-   specification/Gate 2 and vertical tickets with durable waves/Gate 3.
-   Apply Approval Gates to each interactive or autonomous transition.
-4. After Gate 3, execute the approved or autonomously selected durable planned wave order through one dependency-aware execution wave. Every nonempty plan,
-   including a singleton, enters the native implement-spec executor. Main runs the earliest durable-wave ready frontier
-   (at most four direct implementers), recomputing after each accepted result.
-   Each ticket gets one `tdd-coder` Red-Green or structural lifecycle and the
-   required assembled brief. Main alone accepts, freshly verifies, commits and
-   advances each ticket. No implement-spec wrapper or merger subagent exists.
+3. Follow the selected Task Playbook's explicit stage sequence. Stage SOPs use `grill-coder`, `design-coder`, and `plan-coder` entries,
+   then implementation and delivery. Apply
+   Approval Gates to each interactive or autonomous transition; neither
+   router nor capability Skills reconstruct another task procedure.
+4. After Gate 3, every nonempty plan, including a singleton, enters the native implement-spec executor.
+   Follow approved or autonomously selected durable planned wave order through
+   one dependency-aware execution wave and its earliest incomplete ready frontier,
+   at most four direct implementers. Each ticket gets one `tdd-coder` lifecycle;
+   main accepts, freshly verifies, commits, and advances it serially. No
+   implement-spec wrapper or merger subagent exists. Apply the executor and
+   routing contracts for dispatch, isolation, integration, and recovery.
 5. When all tickets are complete, invoke `delivery-coder` for findings-first
    review, TDD repairs and fresh full verification. Only that stage produces
    the terminal completion claim.
@@ -86,10 +92,8 @@ evidence, and a final delivery report produced through `delivery-coder`.
 Apply [Execution Waves](../../references/subagent-routing-contract.md#execution-waves),
 [Explicit Parallel Requests](../../references/subagent-routing-contract.md#explicit-parallel-requests)
 and [Result Integration](../../references/subagent-routing-contract.md#result-integration).
-The native implement-spec executor preserves durable membership, applies the
-recorded wave base and adaptive workspace decision, and recomputes the earliest
-incomplete frontier after each accepted result. Use the common brief for every
-dispatch, including a main-created promotion sibling.
+Use these canonical owners for wave membership, recorded base, workspace,
+frontier recomputation, and complete briefs, including promotion siblings.
 
 ## Stop Conditions
 
