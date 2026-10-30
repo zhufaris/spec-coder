@@ -10,7 +10,7 @@
 
 ### Conditional Principles
 
-- **Recurring instruction failure:** read [encode-lessons](../../principles/encode-lessons.md#encode-lessons-in-structure) only when observed; otherwise skip the leaf. Contracts own authority and freshness.
+- **Recurring instruction failure:** read [encode-lessons](../../principles/encode-lessons.md#encode-lessons-in-structure) only when observed; otherwise skip the leaf.
 
 ### Procedure
 

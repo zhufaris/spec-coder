@@ -2,7 +2,7 @@
 
 ## Class
 
-Hard boundary. Hard boundaries constrain execution; design guidance requires contextual judgment.
+Hard boundary.
 
 ## Applies when
 

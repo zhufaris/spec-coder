@@ -2,7 +2,7 @@
 
 ## Class
 
-Design guidance. Hard boundaries constrain execution; design guidance requires contextual judgment.
+Design guidance.
 
 ## Applies when
 

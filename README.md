@@ -28,6 +28,8 @@ Request -> spec-coder router -> one Task Playbook
 Principles guide judgment; Contracts own precise boundaries.
 ```
 
+Hard boundaries constrain execution; design guidance requires contextual judgment.
+
 Read the selected task once, then only the current stage and triggered
 Principles. A standalone stage reconstructs its supplied task handoff; it
 does not select a different route. No new scheduler, generated instructions,

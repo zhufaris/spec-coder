@@ -2,7 +2,7 @@
 
 ## Class
 
-Design guidance. Hard boundaries constrain execution; design guidance requires contextual judgment.
+Design guidance.
 
 ## Applies when
 
@@ -10,7 +10,7 @@ Selecting instructions or transferring work.
 
 ## Rule
 
-Read only the chosen task, current stage and triggered principles. Reuse unchanged evidence; avoid reloading siblings and raw payloads without need.
+Select relevant evidence and instructions, keep handoffs succinct, and avoid reloading raw bulk. Reuse unchanged evidence only where the contract allows.
 
 ## Limits
 

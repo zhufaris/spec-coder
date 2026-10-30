@@ -10,7 +10,7 @@
 
 ### Conditional Principles
 
-- **Change sizing:** read [subtract-before-add](../../principles/subtract-before-add.md#subtract-before-adding) only when observed; otherwise skip the leaf. Contracts own authority and freshness.
+- **Change sizing:** read [subtract-before-add](../../principles/subtract-before-add.md#subtract-before-adding) only when observed; otherwise skip the leaf.
 
 ### Procedure
 

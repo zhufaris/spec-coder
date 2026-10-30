@@ -10,7 +10,7 @@
 
 ### Conditional Principles
 
-- **Domain behavior:** read [model-the-domain](../../principles/model-the-domain.md#model-the-domain) only when observed; otherwise skip the leaf. Contracts own authority and freshness.
+- **Domain behavior:** read [model-the-domain](../../principles/model-the-domain.md#model-the-domain) only when observed; otherwise skip the leaf.
 
 ### Procedure
 

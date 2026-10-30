@@ -10,7 +10,7 @@
 
 ### Conditional Principles
 
-- **Completion:** read [verify-real-outcome](../../principles/verify-real-outcome.md#verify-the-real-outcome) only when observed; otherwise skip the leaf. Contracts own authority and freshness.
+- **Completion:** read [verify-real-outcome](../../principles/verify-real-outcome.md#verify-the-real-outcome) only when observed; otherwise skip the leaf.
 
 ### Procedure
 
