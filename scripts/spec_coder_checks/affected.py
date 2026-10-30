@@ -175,6 +175,12 @@ for _stage, _skill in (("discovery", "grill-coder"), ("design", "design-coder"),
 for _principle in ("subtract-before-add", "model-the-domain", "dependency-direction", "verify-real-outcome", "preserve-observable-behavior", "protect-human-authority", "guard-context", "encode-lessons", "attack-the-premise", "explain-the-number", "minimize-reader-load", "separate-before-serializing-shared-state"):
     _OWNER_CHECKS[f"principles/{_principle}.md"] = ("test_three_layer_architecture", "test_stage_loading")
 
+for _owner, _consumers in {
+    "playbooks/tasks/bug-fix.md": ("test_task_step",),
+    "playbooks/stages/design.md": ("test_task_step", "test_autonomous_workflow"),
+}.items():
+    _OWNER_CHECKS[_owner] = tuple(dict.fromkeys((*_OWNER_CHECKS[_owner], *_consumers)))
+
 def _physical_repo(repo: Path) -> Path:
     root = Path(repo).resolve(strict=True)
     if not root.is_dir():

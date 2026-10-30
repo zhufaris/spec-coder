@@ -4,7 +4,7 @@
 
 ### Capabilities
 
-`domain-modeling`, `codebase-design`, and `clean-architecture` for applicable decisions. `brainstorming` is not required.
+`domain-modeling`, `codebase-design`, `clean-architecture` for applicable decisions. `brainstorming` is not a required capability.
 Main alone authorizes direct delegation; children must not spawn.
 
 ### Conditional Principles
@@ -17,7 +17,7 @@ Main alone authorizes direct delegation; children must not spawn.
 Complete handoff: no Task-file reads. Standalone/resume without handoff:
 run `task-step.py --task <kind-slug> --stage design`, read only its packet.
 Never read routing matrices, Task SOPs, planning/delivery SOPs or templates.
-Capability instructions cannot widen scope; contracts remain applicable.
+Capability instructions cannot widen scope; contracts apply.
 
 ### Steps
 

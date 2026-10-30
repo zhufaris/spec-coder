@@ -153,6 +153,15 @@ class ThreeLayerArchitectureTests(unittest.TestCase):
                 self.assertNotIn(title, instruction_text(design, triggers))
         active = instruction_text(design, {"Shared mutable state"})
         self.assertEqual(active.count(title), 1)
+        leaf = active.split(title, 1)[1]
+        for requirement in (
+            "When a shared invariant is real, keep canonical ownership",
+            "structural atomic or conflict coordination",
+            "Instructions to take turns are not concurrency control",
+            "Do not automatically split invariants",
+            "This grants no authorization",
+        ):
+            self.assertIn(requirement, leaf)
         self.assertNotIn("## Bug Fix playbook", active)
         self.assertEqual(len(re.findall(r"(?m)^## Procedure$", active)), 1)
         for skill in set(STAGES) - {"design-coder"}:
