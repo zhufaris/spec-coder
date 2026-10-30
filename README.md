@@ -106,6 +106,8 @@ delivery proof；阶段 SOP 调用底层能力，不增加 public skill，也不
 implement-spec executor、两层 agent tree 或九个 model-callable skills。任务 SOP 位于 `playbooks/tasks/`，路由与交接
 contract 见 [Task Playbook contract](./references/task-playbook-contract.md)。
 
+Bug Fix 在原始复现路径上区分实际契约允许但缺少处理的状态，与上游产生的不合法状态；未知合法性查实际契约和状态证据，只有 restart-only 情形优先检查持久化状态。修复只覆盖已确认根因的已批准范围，并由原始公共路径与相邻行为共同证明。
+
 这种 separation 参考 Cursor `pstack`（`cursor/plugins` commit
 `1ba91fc25c0977741dd0e267849e6234b037ed0a`）的 MIT provenance；`pstack` **not a dependency**：不 vendor、不 invoke，不需要安装、配置或模型标识。它不改变现有 Host
 compatibility、model routing 或 runtime behavior。

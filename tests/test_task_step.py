@@ -66,6 +66,31 @@ class TaskStepTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertEqual(result.stdout, "")
 
+    def test_bug_fix_cli_carries_scoped_root_cause_guidance_at_each_step(self):
+        cases = {
+            "discovery": ("legitimate", "unknown", "restart", "persisted", "historical"),
+            "design": ("legitimate", "producer", "scope"),
+            "implementation": ("confirmed", "scope", "neighboring"),
+            "delivery": ("original", "root cause"),
+        }
+        for stage, obligations in cases.items():
+            with self.subTest(stage=stage):
+                result = subprocess.run(
+                    [sys.executable, "-B", str(SCRIPT), "--task", "bug-fix", "--stage", stage],
+                    cwd=ROOT / "tests", capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                packet = json.loads(result.stdout)
+                self.assertEqual(packet["task"], "bug-fix")
+                self.assertEqual(packet["stage"], stage)
+                for obligation in obligations:
+                    self.assertIn(obligation, packet["step"].lower())
+                self.assertEqual(len(packet["constraints"]), 4)
+                self.assertIn("Change sizing", packet["principle_triggers"])
+                self.assertIn("Repeated repair failure", packet["principle_triggers"])
+                for other in set(module.STAGES) - {stage}:
+                    self.assertNotIn(f"../stages/{other}.md", json.dumps(packet))
+
     def test_missing_duplicate_empty_proofs_and_triggers_are_rejected(self):
         text = (ROOT / "playbooks/tasks/refactor.md").read_text()
         proof = next(line for line in text.splitlines() if line.startswith("- Delivery proof:"))

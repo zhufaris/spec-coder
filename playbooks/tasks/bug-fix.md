@@ -15,11 +15,11 @@
 
 ### Procedure
 
-1. [Discovery](../stages/discovery.md#procedure): Capture and reproduce the exact reported entry path; locate the first incorrect behavior.
-2. [Design](../stages/design.md#procedure): Choose the smallest root-cause repair; clarify only missing load-bearing facts.
+1. [Discovery](../stages/discovery.md#procedure): Capture and reproduce the exact reported entry path and first incorrect behavior; determine from the actual contract whether the observed state is legitimate, collect evidence when it is unknown, and for restart-only symptoms inspect persisted configuration, caches, locks, and serialized state without automatic cleanup; preserve cleanup or recovery authorization and do not infer historical legitimacy from a name or current creation eligibility.
+2. [Design](../stages/design.md#procedure): Choose the smallest root-cause repair: supply missing handling for legitimate state, or trace the earliest producer or wrong transition of illegitimate state rather than hide it with retries, swallowed errors, clamps, or defaults; keep unknown judgment evidence-backed and define the approved repair scope.
 3. [Planning](../stages/planning.md#procedure): Carry the original reproduction identity into task acceptance and proof.
-4. [Implementation](../stages/implementation.md#procedure): Observe reproduction Red, repair minimally, cover neighboring behavior.
-5. [Delivery](../stages/delivery.md#procedure): Rerun the original public path on integrated code; generic Green cannot replace it.
+4. [Implementation](../stages/implementation.md#procedure): Observe reproduction Red; minimally repair only the confirmed root cause and matching fault instances within approved scope, preserving legitimate validation and neighboring behavior without an unlimited sweep.
+5. [Delivery](../stages/delivery.md#procedure): Rerun the original public path on integrated code to verify the root cause repair; generic Green cannot replace it.
 
 ### Completion
 
