@@ -11,7 +11,7 @@ LINK = re.compile(r"\]\(([^)]+)\)")
 TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Setup audit or mutation", "Reopened gate or mutation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
-            "Interactions", "Architecture", "Verification fallback",
+            "Interactions", "Architecture", "Shared mutable state", "Verification fallback",
             "Workspace preparation", "Selected Task Playbook"}
 TRIGGERS |= {"Change sizing", "Domain language", "Behavior preservation",
              "Context pressure", "Completion", "Recurring instruction failure",

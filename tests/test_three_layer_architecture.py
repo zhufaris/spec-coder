@@ -144,6 +144,21 @@ class ThreeLayerArchitectureTests(unittest.TestCase):
         for title in titles:
             self.assertNotRegex(unrelated, r"(?m)^# " + re.escape(title) + r"$")
 
+    def test_shared_state_principle_is_conditional_and_design_owned(self):
+        from test_stage_loading import instruction_text
+        title = "# Separate before serializing shared state\n"
+        design = ROOT / "skills/design-coder/SKILL.md"
+        for triggers in (frozenset(), {"Architecture"}, {"Interactions"}):
+            with self.subTest(triggers=triggers):
+                self.assertNotIn(title, instruction_text(design, triggers))
+        active = instruction_text(design, {"Shared mutable state"})
+        self.assertEqual(active.count(title), 1)
+        self.assertNotIn("## Bug Fix playbook", active)
+        self.assertEqual(len(re.findall(r"(?m)^## Procedure$", active)), 1)
+        for skill in set(STAGES) - {"design-coder"}:
+            with self.subTest(skill=skill):
+                self.assertNotIn(title, instruction_text(ROOT / f"skills/{skill}/SKILL.md", {"Shared mutable state"}))
+
     def test_generic_stage_guarantees_survive_task_trigger_replacement(self):
         from test_stage_loading import principle_links
         paths = [ROOT / f"skills/{name}/SKILL.md" for name in ("spec-coder", *STAGES)]

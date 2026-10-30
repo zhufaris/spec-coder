@@ -279,7 +279,8 @@ class AffectedValidationTests(unittest.TestCase):
                 self.assertNotIn("test_*.py", joined)
 
     def test_new_principle_paths_select_loading_and_architecture_checks(self):
-        for leaf in ("attack-the-premise", "explain-the-number", "minimize-reader-load"):
+        for leaf in ("attack-the-premise", "explain-the-number", "minimize-reader-load",
+                     "separate-before-serializing-shared-state"):
             with self.subTest(leaf=leaf):
                 commands = self.build(f"principles/{leaf}.md")
                 selected = {
