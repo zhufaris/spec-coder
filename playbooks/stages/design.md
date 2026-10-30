@@ -11,17 +11,21 @@ Main alone authorizes direct delegation; children must not spawn.
 
 - **Architecture:** read [dependency-direction](../../principles/dependency-direction.md#dependency-direction) only on this observed trigger.
 
+### Reading boundary
+
+Complete handoff: no Task-file reads. Standalone/resume without handoff:
+run `task-step.py --task <kind-slug> --stage design`, read only its packet.
+Never read routing matrices, Task SOPs, planning/delivery SOPs or templates.
+Capability instructions cannot widen scope; required contracts remain applicable.
+
 ### Steps
 
-Autonomous classification/design requires one unique grounded recommendation,
-recorded as `auto-selected under explicit autonomous authority` without
-`show-me`. Stop for ambiguity, unresolved load-bearing decisions, scope growth,
-or separate authorization. Gate 2, Gate 3, TDD, review, verification and effect
-authority remain unchanged.
+Autonomous selection needs one unique grounded recommendation recorded as
+`auto-selected under explicit autonomous authority`; no `show-me`. Ambiguity,
+scope growth or separate authorization stops. Gate 2, Gate 3 and verification remain.
 
-1. Reconcile confirmed requirements and the selected playbook's entry evidence
-   and design obligations with code, `GLOSSARY.md`, architecture documents and
-   ADRs. Run bounded empirical probes before review; probes never approve a
+1. Reconcile the selected playbook's entry evidence and design obligations with code and
+   existing glossary/ADRs. Probe empirical forks before review; probes never approve a
    Gate, authorize mutation, or settle a human-owned product decision.
 2. Classify the task from repository evidence. It is `bounded` only when an
    existing implementation seam is present, the request has one coherent
@@ -35,10 +39,19 @@ authority remain unchanged.
    using review kind `design alternative selection`, use the real approaches
    as labeled options, state each consequence, then ask for and interpret the
    selection before elaboration.
-4. Apply DDD adaptively using the contract's observed triggers. Describe affected bounded contexts and necessary neighbors, distinguish observed/proposed/unresolved models, and explain applicable entities, value objects, aggregate roots and services. Assign invariant ownership and consistency scope; justify each construct rather than requiring a complete class inventory.
-5. Apply Clean Architecture proportionally: distinguish domain rules, application coordination and adapter conversion; define interface ownership, source dependency direction, crossing data and concrete dependency assembly where protection is needed. Preserve existing useful seams and scoped legacy migration; allow appropriate authorized query projections.
-6. Use `codebase-design` to keep modules deep, interfaces small, and locality high. Prefer existing seams; define any new testing seams explicitly.
-7. Walk concrete success, rejection, and relevant concurrency, duplicate and partial-failure scenarios through the domain model and module interfaces together. Define atomicity/conflict outcomes, idempotency ownership and recovery responsibilities only on this observed trigger. Cover operational constraints, migration/compatibility and verification, including evidence for actual concurrency mechanisms. Separate confirmed decisions from open questions and identify affected readiness; do not infer infrastructure from an invariant. Return results with stable references where useful using the contract's specification mapping.
+4. Apply DDD proportionally: identify affected bounded contexts/neighbors and
+   observed/proposed/unresolved entities, value objects, aggregate roots and
+   services. Assign invariant owners and consistency scope; justify each construct.
+5. Apply Clean Architecture: distinguish domain rules, application coordination
+   and adapter conversion. Define interface owners, source dependency direction,
+   boundary data and assembly. Preserve useful seams and authorized projections.
+6. Use `codebase-design` for deep modules, small interfaces and locality; state
+   testing seams explicitly.
+7. Walk success/rejection, concurrency, duplicate and partial-failure scenarios.
+   When triggered, define atomicity/conflicts, idempotency and recovery. Preserve
+   operational, migration/compatibility and actual concurrency verification
+   decisions. Separate confirmed decisions and unresolved readiness; never infer
+   infrastructure from an invariant. Use the contract's specification mapping.
 8. Route the result without weakening Gate 1:
    - Bounded interactive: put real alternatives, recommended short design,
      risks, and test seam in one Gate 1. `show-me` offers approve recommendation
@@ -49,9 +62,9 @@ authority remain unchanged.
      `show-me` for Gate 1 with approve, change, and reject.
    - Autonomous: record the one grounded recommendation without waiting.
 
-For modeling triggers, include decisions from [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) in planning's handoff; report selected decisions and unresolved readiness, not another checklist.
+Carry triggered language, protected behavior and persistence decisions into
+planning's handoff under the required domain contract; no repeated checklist.
 
-Do not write implementation code. Use the selected workspace read-only. Before planning writes
-or a qualifying glossary/ADR write, preparation must establish a green baseline.
-Keep design decisions conversational until planning revalidates that evidence.
-Support in-place or isolated workspaces; return the selected design content for synthesis.
+Do not write implementation code. Keep the selected workspace read-only and
+design decisions conversational. Planning revalidates preparation and green
+baseline before writes. Support in-place/isolated workspaces; return the selected design content.

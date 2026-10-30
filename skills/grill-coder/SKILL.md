@@ -9,7 +9,7 @@ Compatibility entry. Validate input/authority; execute the required stage SOP.
 
 ## Required Reading
 
-Every entry, including standalone invocation and resume, requires these owners; reuse only current sections.
+Every entry requires these owners, including standalone invocation and resume; reuse current sections.
 
 - [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language).
@@ -19,7 +19,7 @@ Every entry, including standalone invocation and resume, requires these owners; 
 
 ## Conditional Reading
 
-- **Selected Task Playbook:** validate the supplied [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection). Consume its step without rerouting. Missing orchestrated handoffs return to router; standalone/resume reconstruct a missing handoff from `conditional_references` step only. Apply [Empirical facts and human decisions](../../references/task-playbook-contract.md#empirical-facts-and-human-decisions).
+- **Selected Task Playbook:** validate the supplied [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection). Consume its step without rerouting. Never reread Task SOP with a complete handoff. Missing orchestrated handoffs return to router; standalone/resume reconstruct a missing handoff from `conditional_references` step only using `python3 <plugin>/scripts/task-step.py --task <kind-slug> --stage <stage>`. Read only its output, never the Task file or routing matrix. Apply [Empirical facts and human decisions](../../references/task-playbook-contract.md#empirical-facts-and-human-decisions).
 - **Human review:** before any suite-owned decision request, load [Review snapshot](../../references/approval-review-contract.md#review-snapshot), [Rendering](../../references/approval-review-contract.md#rendering), [Authority and safety](../../references/approval-review-contract.md#authority-and-safety), [Owning-skill responsibilities](../../references/approval-review-contract.md#owning-skill-responsibilities) and invoke bundled `show-me`; skip this rendering path when no human review is requested.
 - **Model examples:** when resolving domain ownership, concurrency, persistence or cross-context failures, read [worked examples](../../references/domain-design-examples.md); apply the required domain sections only to their observed triggers.
 

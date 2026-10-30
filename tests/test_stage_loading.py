@@ -112,11 +112,11 @@ def selected_instruction_text(path: Path, selection, *, mode="orchestrated",
             raise ValueError("return to router: missing current-step handoff")
         relative, _, anchor = selection.conditional_references[0].partition("#")
         target = (path.parent / relative).resolve()
-        task = section(target.read_text(encoding="utf-8"), anchor)
-        step = next(line for line in task.splitlines()
-                    if f"](../stages/{stage}.md#procedure)" in line)
-        constraints = "\n".join(line for line in task.splitlines()
-                                if line.startswith(("- Red or pin:", "- Delivery proof:")))
+        import runpy
+        extractor = runpy.run_path(str(target.parents[2] / "scripts/task-step.py"))["extract_step"]
+        packet = extractor(target.read_text(encoding="utf-8"), stage)
+        step = packet["step"]
+        constraints = "\n".join(packet["constraints"])
         handoff = {"kind": selection.kind, "stage": stage,
                    "step": step, "constraints": constraints}
     if (handoff.get("kind") != selection.kind or handoff.get("stage") != stage

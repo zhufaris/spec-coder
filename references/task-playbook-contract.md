@@ -103,7 +103,9 @@ evaluation, approve a Gate, authorize a mutation, or recover scheduling state.
 The router reads the selected task once and passes the current step, proof
 obligations and applicable principle constraints to each stage. A standalone
 stage reconstructs that handoff from approved artifacts and, only when missing,
-reads the selected task's current step. Never reroute or load sibling tasks.
+runs `python3 <plugin>/scripts/task-step.py --task <kind-slug> --stage <stage>`
+and reads only the returned step packet. A complete handoff forbids Task-file
+reads. Never reroute or read the matrix/sibling tasks for stage execution.
 The handoff carries the selected kind, current stage and step, proof obligations,
 and observed principle triggers. Missing or conflicting orchestrated inputs
 return to the router; standalone entry or resume may reconstruct the selected

@@ -118,6 +118,7 @@ _OWNER_CHECKS = {
     "scripts/workspace-policy.py": ("test_workspace_policy",),
     "scripts/spec_coder_checks/workspace_policy.py": ("test_workspace_policy",),
     "scripts/progress-snapshot.py": ("test_progress_snapshot",),
+    "scripts/task-step.py": ("test_task_step", "test_three_layer_architecture", "test_stage_loading"),
     "scripts/spec_coder_checks/progress.py": ("test_progress_snapshot",),
     "tests/forward_contracts.py": (
         "test_autonomous_workflow",

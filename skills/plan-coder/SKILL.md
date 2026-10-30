@@ -11,7 +11,7 @@ Use the [specification template](../../references/specification-template.md) and
 
 ## Required Reading
 
-Every entry, including standalone invocation and resume, requires these owners; reuse only current sections.
+Every entry requires these owners, including standalone invocation and resume; reuse current sections.
 
 - [Stage Runtime Envelope](../../references/workflow-contract.md#stage-runtime-envelope), [Approval Gates](../../references/workflow-contract.md#approval-gates), [Failure Transitions](../../references/workflow-contract.md#failure-transitions), [Native implement-spec executor](../../references/workflow-contract.md#native-implement-spec-executor).
 - [Scale to the observed problem](../../references/domain-design-contract.md#scale-to-the-observed-problem), [Discover and evolve domain language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [Bounded contexts and their models](../../references/domain-design-contract.md#bounded-contexts-and-their-models), [Design content and specification mapping](../../references/domain-design-contract.md#design-content-and-specification-mapping), [Ticket decomposition](../../references/domain-design-contract.md#ticket-decomposition).
@@ -25,7 +25,7 @@ Every entry, including standalone invocation and resume, requires these owners; 
 
 ## Conditional Reading
 
-- **Selected Task Playbook:** validate the approved [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection). Consume its step without rerouting. Missing orchestrated handoffs return to router; standalone/resume reconstruct a missing handoff from `conditional_references` step only.
+- **Selected Task Playbook:** validate the approved [TaskPlaybookSelection](../../references/task-playbook-contract.md#taskplaybookselection). Consume its step without rerouting. Never reread Task SOP with a complete handoff. Missing orchestrated handoffs return to router; standalone/resume reconstruct a missing handoff from `conditional_references` step only using `python3 <plugin>/scripts/task-step.py --task <kind-slug> --stage <stage>`. Read only its output, never the Task file or routing matrix.
 - **Verification fallback:** for standalone entry, resume, malformed or uncertain observations/records, or a `rerun` result, load [CLI and explicit observations](../../references/verification-contract.md#cli-and-explicit-observations), [Capture and record schema](../../references/verification-contract.md#capture-and-record-schema), [Comparison and exit behavior](../../references/verification-contract.md#comparison-and-exit-behavior), and [Worked invocation](../../references/verification-contract.md#worked-invocation), then establish the required verification freshly.
 - **Architecture:** when module boundaries, dependency direction, interfaces or assembly are designed or changed, load [Architecture that can be verified](../../references/domain-design-contract.md#architecture-that-can-be-verified).
 - **Interactions:** when concurrency, cross-context collaboration, retries or partial failures are relevant, load [Consistency and interaction contracts](../../references/domain-design-contract.md#consistency-and-interaction-contracts).

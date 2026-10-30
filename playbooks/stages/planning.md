@@ -66,19 +66,17 @@ Main alone authorizes direct delegation; children must not spawn.
    committed Git state.
 10. Run bundled `scripts/check-artifacts.py --phase plan --spec <absolute-spec>
    --plan <absolute-plan> --repo <absolute-workspace>` before Gate 3; resolve findings under the same format
-   contract. Before Gate 3, reconcile decision coverage and ticket readiness under the
-   domain contract's Ticket decomposition section. Check delegation eligibility,
-   mutation ownership, exclusions, dependencies, isolation, concurrency conflicts,
-   verification seams and Host capacity. Review and approve the authoritative
-   workspace, recorded wave base, isolation requirement, permitted
-   integration/isolation preparation, task graph, durable-wave membership/order,
-   and blocking edges with the tickets. Validate the durable partition under
-   Execution Waves. Resolve load-bearing omissions through design/specification;
-   independent selected slices need not wait for an unrelated open decision.
-   Present the full ticket set and wave membership/order. In interactive mode,
-   invoke `show-me` and wait for explicit implementation authorization; in
-   autonomous mode record the unique grounded recommendation without waiting.
+   contract. Reconcile decision coverage/readiness under Ticket decomposition. Validate
+   eligibility, mutation ownership/exclusions, dependencies, isolation/conflicts, seams,
+   capacity and durable waves. Present the authoritative workspace/base,
+   permitted preparation/integration and task graph for approval. Resolve load-bearing omissions through design/specification;
+   Independent slices need not wait for unrelated decisions.
+   Present all tickets and wave membership/order. Interactive: `show-me` and
+   explicit implementation authorization. Autonomous: record the unique
+   grounded recommendation without waiting.
 
 Creating an external issue, publishing to an issue tracker, pushing a branch, or opening a pull request always requires separate explicit authorization.
 
-At the existing Gate 2/3 checks, reconcile the selected decisions covered by the contract's [language](../../references/domain-design-contract.md#discover-and-evolve-domain-language), [protected-behavior](../../references/domain-design-contract.md#protect-behavior-and-valid-values), and [persistence](../../references/domain-design-contract.md#aggregate-persistence-semantics) sections against their specification locations and ticket references/acceptance. Do not create a second model inventory; resolve missing decisions through the existing return paths.
+At Gate 2/3 reconcile language, protected behavior and persistence decisions
+with specification locations and ticket acceptance under the required domain
+contract. Do not create a second model inventory; return missing decisions.
