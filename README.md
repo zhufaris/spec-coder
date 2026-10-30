@@ -237,61 +237,99 @@ ownership 和记录字段。`--phase plan` and `--phase delivery` require an exp
 
 ## Workflow
 
-可选参数 `autonomous=true` 只在当前请求中生效（request-scoped），default is
-false，且只能由 current user request 明确启用；不得从仓库/全局配置、
-`AGENTS.md`、历史会话或 subagent 推断或持久化。启用后会在唯一 grounded
-recommended 选项存在时自动采用推荐方案，并跳过 Gate 1、Gate 2、Gate 3 的
-human wait/`show-me`，但仍生成 design、specification、tickets、durable waves，
-并执行 self-check、TDD、review、verification 和 commits。记录必须写成
-`auto-selected under explicit autonomous authority`，不能声称用户逐项批准。
+这份流程面向在目标仓库中使用 `spec-coder` 的工程师：从一个新请求开始，知道每阶段需要什么输入、会留下什么产物，以及证据不足时返回哪里。恢复任务沿用已确认的路线，从实际证据支持的最早未完成阶段继续。
 
-自主模式不会扩大权限：缺少唯一推荐或存在 unresolved load-bearing decision
-时停止；scope expansion、named mutation、setup exact diff、push、install、外部
-发布、配置、凭据和 destructive action 仍需 separate authorization。用户明确
-选择 false 或撤销后，后续流程恢复 interactive mode。
+### 从请求到交付
 
-先选择安全的 selected workspace，并记录 path、mode、base、initial changes 与 capabilities，
-然后才进入 read-only discovery 和 design。此 selected-only 状态禁止 target-project writes。
-Worktree 可选：已有安全 worktree 就复用；改动集中、文件归属清楚且不会干扰其他工作时可原地执行；并行开发或难以分离的已有改动优先隔离。Agent 根据任务与用户偏好说明选择，无需新增创建/跳过审批。两种方式都检查初始 Git 状态、保护用户改动并保持提交范围清晰；缺少隔离工具时，仅在原地执行安全且符合用户要求的情况下继续。
-
-workspace preparation 负责依赖准备和 fresh green baseline。它必须在首次符合条件的
-`GLOSSARY.md`/ADR 写入前完成；也可以在 Gate 1 后、进入 `plan-coder` 前完成。首次
-workspace preparation 实际执行每个 baseline command，以 `verification-evidence.py capture` 保留可观察
-结果；JSON 先留在对话中，baseline 成功后才进行这些目标项目文档写入。
-
-`grill-coder` 在 selected workspace 建立后按 dependency-ready frontier rounds 确认决策：每轮按 decision-tree order 至多提出三个相互独立的问题；会改变 scope、领域含义或 ownership、core invariant、architecture 的问题，以及 coupling 重叠或未知的问题保持串行。每题都有稳定 `Qn`、适用选项和单独 recommendation/reason；多题轮次只能用 `Qn: default` 接受单题推荐，partial answer 只确认明确回答，ambiguous answer 先单题澄清再重算 frontier。Repository facts 始终由 agent 查证，不向用户提问。只有明确确认的规范术语、上下文含义或 invariant 才会惰性创建或更新适用的 `GLOSSARY.md`；只有难以逆转、脱离上下文会令人意外且确有取舍的架构决策才写 ADR。其他决定保留在对话中，文档归属冲突则停止写入。`plan-coder` 在落盘规格前重新验证 prepared workspace。
-
-Interactive Gate 1、Gate 2、Gate 3、重新打开的 human Gate，以及仍需
-separate human authority 的 suite-owned mutation authorization，都会先调用本地
-`show-me`，在对话中显示简短 ASCII review map 和 two to four 个 grounded
-choices。Autonomous selection does not invoke `show-me`；完整 artifact 或 diff
-仍是适用路径的决定依据，图不会自动授予批准，也不依赖 tmux、编辑器或浏览器。
-
-`design-coder` 只在 repository evidence 同时证明 existing implementation seam、
-one coherent outcome，且不存在 new subsystem、public-interface shape、
-cross-context consistency rule 或 unresolved load-bearing architecture 时把任务分类为
-bounded；未知项一律按 architectural 处理。bounded interactive 路径把真实备选、
-recommended short design、risks 与 testing seam 合并到 one Gate 1：批准推荐项后进入
-workspace preparation 与 Gate 2；选择非推荐项只会返回 elaboration 并再次请求 Gate 1。
-architectural 路径仍先单独选择方案，再 elaboration 与 Gate 1。Gate 2、Gate 3 及后续权限
-不变；autonomous 路径对两类任务都要求 one grounded recommendation。
-
-DDD 与 Clean Architecture 根据实际复杂度展开：明确受影响的 Bounded Context、各自的语言和状态所有权，以及必要的 Entity、Value Object、Aggregate 和 Domain Service；区分领域规则、应用编排与 adapter 转换。涉及并发、重试或跨上下文协作时，明确原子性、冲突结果、幂等与恢复责任。模型角色不必逐一对应类，小任务使用简短描述。
-
-`plan-coder` 用本地[规格模板](./references/specification-template.md)保存这些决策，再用[ticket 模板](./references/ticket-template.md)按业务能力切出可验证增量，引用相关模型、规则、接口和测试证据。Gate 2 检查设计信息是否完整，Gate 3 检查场景覆盖与实施条件；实现和交付分别验证行为、规则归属与实际依赖。具体要求见 [Domain Design Contract](./references/domain-design-contract.md)，模型、并发与架构反例见 [Domain Design Examples](./references/domain-design-examples.md)。
+新任务先检查仓库事实与 Host compatibility，选择且只选择一个 Task Playbook，并选择安全的 selected workspace。固定的五阶段随后执行：
 
 ```text
-selected workspace -> grill-coder [read-only discovery]
-    grill-coder -- qualifying write --> workspace preparation
-        -> resume grill-coder -> design-coder [Gate 1]
-    grill-coder -- no discovery write --> design-coder [Gate 1]
-        -> workspace preparation
-    both branches -> plan-coder [规格审批 + tickets/实施审批]
-    -> native implement-spec executor [singleton 与多 ticket 共享；per-ticket tdd-coder lifecycle]
-    -> tdd-coder           [dependency-aware waves + delegated Red-Green + main integration]
-    -> delivery-coder      [two-reviewer Standards/Spec review + 完整验证]
+coding request -> one Task Playbook -> selected workspace
+    -> grill-coder [read-only discovery]
+        qualifying GLOSSARY/ADR write?
+          yes -> workspace preparation -> resume grill-coder
+          no  -> continue read-only
+    -> design-coder [设计选择与 Gate 1]
+    -> workspace preparation [若尚未完成]
+    -> plan-coder
+        specification + spec checker -> Gate 2
+        vertical tickets + durable waves + plan checker -> Gate 3
+    -> native implement-spec executor
+        per-ticket tdd-coder lifecycle
+        -> main acceptance + fresh integration checks + atomic commit
+        -> next ready ticket in approved wave order
+    -> delivery-coder
+        Standards / Spec review -> repairs -> fresh full checks
+        -> task-specific delivery proof + delivery artifact checker
+    -> main final report [commits、验证结果、已接受的剩余风险]
 ```
 
-工作流不会自动 push、创建 PR、发布外部 issue、合并原始分支、安装或清理 worktree；这些外部 effects 都需要 separate authorization。完整契约见 [`references/workflow-contract.md`](./references/workflow-contract.md)。
+workspace preparation 可以提前发生；它必须在首次符合条件的领域文档写入之前完成。如果 discovery 没有这类写入，则可在 Gate 1 后、规划落盘之前完成。选择 workspace 本身只支持只读调查与设计。
+
+准备时实际检查并准备所需依赖，运行每条必需 baseline command，再用 `verification-evidence.py capture` 保留结果，分别检查执行退出码与记录的可复用性。失败或证据不确定时停止目标项目写入。`plan-coder` 在写规格前重新验证 workspace、改动归属与基线有效性；同一请求的 planning 仅按 verification contract 复用匹配记录，resume、ticket integration 和最终 full verification 都使用新验证。两条合法路径如下：
+
+```text
+grill-coder -- qualifying write --> workspace preparation
+    -> resume grill-coder -> design-coder [Gate 1] -> plan-coder
+grill-coder -- no discovery write --> design-coder [Gate 1]
+    -> workspace preparation -> plan-coder
+```
+
+| 阶段 | 需要的输入 | 产物与完成条件 |
+| --- | --- | --- |
+| `grill-coder` | 请求、选定 workspace、实际仓库证据 | 确认需求、范围、领域含义与未解决问题；仅在必要且 workspace 已准备时写 `GLOSSARY.md` 或 ADR |
+| `design-coder` | 已确认需求与现有实现边界 | 比较真实备选、推荐设计、风险和 testing seam；Gate 1 确认设计 |
+| `plan-coder` | 已批准设计、prepared workspace 及有效基线证据 | 规格通过 `--phase spec` 后进入 Gate 2；垂直 tickets、ownership、dependencies、durable waves 通过 `--phase plan` 后进入 Gate 3 |
+| `tdd-coder` | executor-issued 当前就绪 ticket、批准范围、实际 base 和完整 handoff | 原始行为 Red–Green 或适用的结构/行为保持证据、affected checks；main 检查整合结果并为完成 ticket 原子提交 |
+| `delivery-coder` | 全部 ticket 完成、累计接受的范围及实际提交 | 两轴审查与必要修复、fresh full verification、所选任务的 delivery proof 和 `--phase delivery` 检查；main 才能声明交付 |
+
+`grill-coder` 每轮只讨论 dependency-ready frontier：至多三个相互独立的问题，改变 scope、领域含义、ownership、核心 invariant 或 architecture 的问题，以及 coupling 重叠或未知的问题保持串行。每题保留稳定 `Qn`、选项和 recommendation/reason；多题轮次用 `Qn: default` 接受单题推荐，partial answer 只确认已明确回答的题。Repository facts 由 agent 查证。规范术语、上下文含义或 invariant 确认后才惰性维护领域语言；ADR 只记录难以逆转、脱离上下文会令人意外且有真实取舍的决定。
+
+`design-coder` 仅在证据同时支持 existing implementation seam、one coherent outcome，并排除新 subsystem、public-interface shape、cross-context consistency rule 和 unresolved load-bearing architecture 时分类为 bounded。未知情况按 architectural 处理。bounded interactive 路径将备选、推荐短设计、风险与验证 seam 合并到一次 Gate 1；选择非推荐项返回 elaboration 后再次请求 Gate 1。architectural 路径先选择方案，再细化并进行 Gate 1。
+
+DDD 与 Clean Architecture 按实际复杂度展开：确认受影响的 Bounded Context、领域语言、状态所有权和必要模型，区分领域规则、应用编排及 adapter 转换。并发、重试或跨上下文协作须明确原子性、冲突结果、幂等与恢复责任。小任务不需要为了模型角色逐一创建类。规格保存这些决定，垂直 tickets 引用规则、接口和验证证据；Gate 2 检查信息保留，Gate 3 检查场景覆盖与实施条件。具体要求与实例见 [Domain Design Contract](./references/domain-design-contract.md) 和 [Domain Design Examples](./references/domain-design-examples.md)。
+
+### 一条路线，不同的任务证明
+
+Task Playbook 改变各阶段关注的证据与完成证明。路由按下表顺序采用第一条有证据支持的路线；证据缺失或冲突时使用 Generic，或停止处理未解决的关键人工决定，不组合多个任务 SOP。完整规则由 [Task Playbook contract](./references/task-playbook-contract.md#route-precedence-and-one-selection-rule) 维护。
+
+| 路线 | 控制任务的事实 | 交付需要证明 |
+| --- | --- | --- |
+| Workflow Eval | 明确请求一次独立行为比较 | deterministic Green 后进行等条件匿名比较；无回归，无法下结论时保留 Parent |
+| Skill Change | skill 指令、frontmatter 或行为本身是变更对象 | Host 可见性/调用资格与确定性契约通过，再完成必需的匿名行为比较 |
+| Bug Fix | 已观察缺陷与匹配的复现入口 | 原始复现转绿，根因已修复且相邻行为保留 |
+| Performance | 可重复测量的资源目标与可比基线 | 正确工作量下的测量结果达到事先确定的目标，证据支持真实收益 |
+| Refactor | 已明确保持当前外部行为的结构改动 | 行为保持检查通过，并有结构简化或依赖关系的证据 |
+| Feature | 有意新增用户可见行为、数据形态或接口能力 | 新场景与拒绝边界满足规格，相关行为验证通过 |
+| Generic | 没有证据支持更具体路线的安全代码工作 | 批准的范围与对应验收得到实际证明 |
+
+Skill Change 和 Workflow Eval 的匿名比较在 mandatory deterministic/artifact Green 后进行：输入与条件可比、材料经过清理，回答者使用工程问题，judge 只接收匿名回答与私有标准。main 阅读全部回答和可用 transcript 后决定是否接受。确定性失败或权限、审批、依赖、产物、上下文预算回归不能被评分覆盖；不确定或冲突的证据保留 Parent。小规模比较不能证明普遍收益。
+
+### 交接、原则与执行
+
+入口读取所选 Task SOP 一次，把当前步骤、proof obligations 与已观察的触发条件交给当前 stage。stage 只读取自己的 SOP 和已触发 Principles。完整 handoff 禁止重新读取 Task 文件；standalone/resume 缺少 handoff 时，用已批准产物及 `task-step.py` 恢复所选步骤；冲突的编排输入返回 router，不重新选路线。Principles 提供判断，Contracts 维护精确权限与格式，Skills 调用能力。
+
+新增判断在相关节点生效：
+
+| 情况 | 使用的判断 |
+| --- | --- |
+| Bug Fix 多次修复共用同一假设并失败 | [Attack the premise](./principles/attack-the-premise.md)：先观察能区分假设真假的证据，再决定下一次修复 |
+| Performance / Workflow Eval 用数字作决定 | [Explain the number](./principles/explain-the-number.md)：先定阈值，记录次数、波动和实际瓶颈；排除错误、缓存/跳过工作及不等条件 |
+| Refactor 难以追踪或存在隐藏/可变状态 | [Minimize reader load](./principles/minimize-reader-load.md)：减少读者需要记住的间接层和状态，保留有理由的行为与接口边界 |
+| Design 中并发参与者写同一 mutable target | [Separate before serializing shared state](./principles/separate-before-serializing-shared-state.md)：独立事实可分别写入、读取组合；共同 invariant 保留结构化原子性或冲突控制 |
+
+Bug Fix 在原始入口确定状态是否合法：合法状态缺少处理就在相应边界补处理；非法状态追溯最早的错误生产者或转换；未知合法性查实际契约与状态证据。restart-only 故障先查持久化 configuration、cache、lock 和 serialized state，不自动清理。历史状态恢复与当前创建资格分开，保留合法业务校验。只修复已确认根因及批准范围内的匹配故障，由原始公共路径与相邻行为验证，详见 [Bug Fix SOP](./playbooks/tasks/bug-fix.md)。
+
+Gate 3 后，singleton 和多 ticket 都进入同一个 native implement-spec executor。按已批准 durable wave 顺序处理最早未完成的就绪 frontier；eligible ticket 默认交给 direct worker。真实并行修改需要实际隔离，不能把同 checkout 文件不重叠当成隔离。main 串行接受 diff、fresh integration verification、stage、commit 和 checkbox advancement；child 不得再委派或提交。委派、opt-out、显式并行请求及 heartbeat 的边界见前面的 Default delegation 和 [Execution Waves](./references/subagent-routing-contract.md#execution-waves)。
+
+### 审批、恢复与权限
+
+默认 Interactive Gate 由人工决定：Gate 1 批准设计，Gate 2 批准规格，Gate 3 批准 tickets、durable waves 与实施授权。每次 suite-owned human approval 或 mutation review 之前使用本地 `show-me` 呈现 ASCII review map 和 two to four 个有依据的选项；完整 artifact 或 exact diff 仍是决定依据。Gate 3 后已批准的实现、验证及原子提交无需第四次确认。
+
+`autonomous=true` 只能由 current user request 明确启用，default is false，只在当前请求中生效，不从 repository/global config、`AGENTS.md`、历史会话或 subagent 推断或持久化。存在唯一 grounded recommendation 时自动选择设计与 Gate 1/2/3，跳过 human wait。Autonomous selection does not invoke `show-me`，记录 `auto-selected under explicit autonomous authority`。设计、规格、tickets、durable waves、self-check、TDD、审查、验证与提交仍要完成。无法确定唯一推荐或存在 unresolved load-bearing decision 时停止；明确 false 或撤销后恢复 interactive mode。
+
+恢复时检查 authoritative workspace、实际 branch/base、初始用户改动、批准的规格、plan checkboxes、Git commits 及 fresh verification，重建最早未完成阶段和当前 wave，不沿用旧的成功结论或用私有状态文件替代计划。证据否定架构时返回设计；实现或检查失败返回当前 ticket；同一 blocker 连续出现三次时保留准确命令、输出与 resume point 后停止。Gate 3 后 scheduling inputs 改变时，执行 [Reopened Gate 3 scheduling barrier](./references/workflow-contract.md#reopened-gate-3-scheduling-barrier)，先更新计划与审批并验证产物，再恢复调度。
+
+工作流不会自动 push、创建 PR、发布外部 issue、合并原始分支、安装或清理 worktree；scope expansion、named mutation、setup exact diff、配置、凭据、破坏性操作及其他 external effects 都需要 separate authorization。自主模式不扩大权限。完整边界由 [Workflow Contract](./references/workflow-contract.md) 维护。
 
 构建与临时文件边界：每个分支的 source worktree 使用 `<repo>/.worktrees/<branch>`，构建缓存使用 `<repo>/.cache/<branch>/target`。`/tmp` 仅用于 disposable small files，不得存放 source worktree、build cache、workflow artifact、verification evidence 或 recovery state。
