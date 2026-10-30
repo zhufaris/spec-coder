@@ -116,6 +116,50 @@ class ThreeLayerArchitectureTests(unittest.TestCase):
                 self.assertNotIn("## Feature playbook", active)
                 self.assertEqual(len(re.findall(r"(?m)^## Procedure$", active)), 1)
 
+    def test_task_specific_principles_load_only_for_selected_observed_triggers(self):
+        paths = [ROOT / f"skills/{name}/SKILL.md" for name in ("spec-coder", *STAGES)]
+        cases = (
+            ("reproduced-defect", "Repeated repair failure", "Attack the premise"),
+            ("behavior-preserving", "Reader load", "Minimize reader load"),
+            ("repeatable-performance-baseline", "Measurement", "Explain the number"),
+            ("standalone-evaluation", "Measurement", "Explain the number"),
+        )
+        titles = {title for _, _, title in cases}
+        for fact, trigger, title in cases:
+            with self.subTest(fact=fact):
+                selection = select_playbook(request="change", facts={fact})
+                ordinary = run_instruction_text(paths, selection)
+                active = run_instruction_text(paths, selection, {trigger})
+                for candidate in titles:
+                    pattern = r"(?m)^# " + re.escape(candidate) + r"$"
+                    self.assertNotRegex(ordinary, pattern)
+                    if candidate == title:
+                        self.assertEqual(len(re.findall(pattern, active)), 1)
+                    else:
+                        self.assertNotRegex(active, pattern)
+                task_headings = re.findall(r"(?m)^## (.+ playbook)$", active)
+                self.assertEqual(task_headings, [selection.kind.value + " playbook"])
+        generic = select_playbook(request="change", facts=set())
+        unrelated = run_instruction_text(paths, generic, {trigger for _, trigger, _ in cases})
+        for title in titles:
+            self.assertNotRegex(unrelated, r"(?m)^# " + re.escape(title) + r"$")
+
+    def test_generic_stage_guarantees_survive_task_trigger_replacement(self):
+        from test_stage_loading import principle_links
+        paths = [ROOT / f"skills/{name}/SKILL.md" for name in ("spec-coder", *STAGES)]
+        cases = (
+            ("refactor", "behavior-preserving", "Behavior preservation", "Preserve observable behavior"),
+            ("performance", "repeatable-performance-baseline", "Completion", "Verify the real outcome"),
+            ("workflow-eval", "standalone-evaluation", "Completion", "Verify the real outcome"),
+        )
+        for task, fact, trigger, title in cases:
+            with self.subTest(task=task):
+                text = (ROOT / f"playbooks/tasks/{task}.md").read_text()
+                self.assertEqual(principle_links(text, {trigger}), [])
+                selection = select_playbook(request="change", facts={fact})
+                active = run_instruction_text(paths, selection, {trigger})
+                self.assertEqual(len(re.findall(r"(?m)^# " + re.escape(title) + r"$", active)), 1)
+
     def test_stage_handoff_consumption_and_narrow_reconstruction(self):
         from test_stage_loading import selected_instruction_text
         selected = select_playbook(request="repair", facts={"reproduced-defect"})

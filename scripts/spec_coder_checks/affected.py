@@ -172,7 +172,7 @@ for _task in ("feature", "bug-fix", "refactor", "performance", "skill-change", "
     _OWNER_CHECKS[f"playbooks/tasks/{_task}.md"] = ("test_three_layer_architecture", "test_task_playbooks", "test_stage_loading")
 for _stage, _skill in (("discovery", "grill-coder"), ("design", "design-coder"), ("planning", "plan-coder"), ("implementation", "tdd-coder"), ("delivery", "delivery-coder")):
     _OWNER_CHECKS[f"playbooks/stages/{_stage}.md"] = tuple(dict.fromkeys((*_SKILL_CHECKS[_skill], "test_three_layer_architecture", "test_stage_loading")))
-for _principle in ("subtract-before-add", "model-the-domain", "dependency-direction", "verify-real-outcome", "preserve-observable-behavior", "protect-human-authority", "guard-context", "encode-lessons"):
+for _principle in ("subtract-before-add", "model-the-domain", "dependency-direction", "verify-real-outcome", "preserve-observable-behavior", "protect-human-authority", "guard-context", "encode-lessons", "attack-the-premise", "explain-the-number", "minimize-reader-load"):
     _OWNER_CHECKS[f"principles/{_principle}.md"] = ("test_three_layer_architecture", "test_stage_loading")
 
 def _physical_repo(repo: Path) -> Path:

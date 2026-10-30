@@ -10,7 +10,7 @@
 
 ### Conditional Principles
 
-- **Completion:** read [verify-real-outcome](../../principles/verify-real-outcome.md#verify-the-real-outcome) only when observed; otherwise skip the leaf.
+- **Measurement:** read [explain-the-number](../../principles/explain-the-number.md#explain-the-number) only when observed; otherwise skip the leaf.
 
 ### Procedure
 

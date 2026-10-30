@@ -278,6 +278,17 @@ class AffectedValidationTests(unittest.TestCase):
                 self.assertIn("test_task_playbook_eval", joined)
                 self.assertNotIn("test_*.py", joined)
 
+    def test_new_principle_paths_select_loading_and_architecture_checks(self):
+        for leaf in ("attack-the-premise", "explain-the-number", "minimize-reader-load"):
+            with self.subTest(leaf=leaf):
+                commands = self.build(f"principles/{leaf}.md")
+                selected = {
+                    Path(command["argv"][-1]).stem
+                    for command in commands if command["kind"] == "unittest"
+                }
+                self.assertEqual(selected, {"test_three_layer_architecture", "test_stage_loading"})
+                self.assertEqual(commands[-1]["argv"], ("git", "diff", "--check"))
+
     def test_each_public_skill_selects_its_validator(self):
         for stage in (
             "spec-coder",

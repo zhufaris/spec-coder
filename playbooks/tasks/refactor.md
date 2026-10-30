@@ -10,7 +10,7 @@
 
 ### Conditional Principles
 
-- **Behavior preservation:** read [preserve-observable-behavior](../../principles/preserve-observable-behavior.md#preserve-observable-behavior) only when observed; otherwise skip the leaf.
+- **Reader load:** read [minimize-reader-load](../../principles/minimize-reader-load.md#minimize-reader-load) only when observed; otherwise skip the leaf.
 
 ### Procedure
 

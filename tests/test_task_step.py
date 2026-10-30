@@ -31,7 +31,29 @@ class TaskStepTests(unittest.TestCase):
         packet = json.loads(result.stdout)
         self.assertEqual(packet["task"], "refactor")
         self.assertIn("Choose a simpler structure", packet["step"])
-        self.assertIn("Behavior preservation", packet["principle_triggers"])
+        self.assertIn("Reader load", packet["principle_triggers"])
+
+    def test_cli_exposes_task_specific_triggers_without_sibling_steps(self):
+        cases = (
+            ("bug-fix", "Repeated repair failure", "attack-the-premise.md"),
+            ("refactor", "Reader load", "minimize-reader-load.md"),
+            ("performance", "Measurement", "explain-the-number.md"),
+            ("workflow-eval", "Measurement", "explain-the-number.md"),
+        )
+        for task, trigger, leaf in cases:
+            with self.subTest(task=task):
+                result = subprocess.run(
+                    [sys.executable, "-B", str(SCRIPT), "--task", task, "--stage", "design"],
+                    cwd=ROOT / "tests", capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                packet = json.loads(result.stdout)
+                self.assertEqual(packet["task"], task)
+                self.assertIn(trigger, packet["principle_triggers"])
+                self.assertIn(leaf, packet["principle_triggers"])
+                self.assertEqual(len(packet["constraints"]), 4)
+                for other in set(module.STAGES) - {"design"}:
+                    self.assertNotIn(f"../stages/{other}.md", json.dumps(packet))
 
     def test_ambiguous_missing_steps_and_invalid_arguments_fail_closed(self):
         text = (ROOT / "playbooks/tasks/refactor.md").read_text()

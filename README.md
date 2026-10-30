@@ -35,6 +35,12 @@ Principles. A standalone stage reconstructs its supplied task handoff; it
 does not select a different route. No new scheduler, generated instructions,
 model dependency, or public micro-action skill is introduced.
 
+| Observed task trigger | Targeted principle |
+| --- | --- |
+| Bug Fix: Repeated repair failure | Attack the premise |
+| Refactor: Reader load | Minimize reader load |
+| Performance or Workflow Eval: Measurement | Explain the number |
+
 ## Skills
 
 | Skill | 用途 |
@@ -102,6 +108,11 @@ contract 见 [Task Playbook contract](./references/task-playbook-contract.md)。
 这种 separation 参考 Cursor `pstack`（`cursor/plugins` commit
 `1ba91fc25c0977741dd0e267849e6234b037ed0a`）的 MIT provenance；`pstack` **not a dependency**：不 vendor、不 invoke，不需要安装、配置或模型标识。它不改变现有 Host
 compatibility、model routing 或 runtime behavior。
+
+The targeted premise, measurement, and reader-load principles are adapted from
+Cursor `pstack` (`cursor/plugins` commit
+`4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`), without vendoring or invoking
+the upstream skills.
 
 ## Default delegation
 

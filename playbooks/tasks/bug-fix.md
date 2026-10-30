@@ -11,6 +11,7 @@
 ### Conditional Principles
 
 - **Change sizing:** read [subtract-before-add](../../principles/subtract-before-add.md#subtract-before-adding) only when observed; otherwise skip the leaf.
+- **Repeated repair failure:** read [attack-the-premise](../../principles/attack-the-premise.md#attack-the-premise) only when observed; otherwise skip the leaf.
 
 ### Procedure
 

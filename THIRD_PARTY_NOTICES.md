@@ -9,6 +9,12 @@ proof concepts from pstack in
 invoked, or otherwise a runtime dependency; no Cursor controls, pstack agents,
 or pstack model identifiers are used.
 
+The targeted `attack-the-premise`, `explain-the-number`, and
+`minimize-reader-load` principles adapt their judgment rules from
+`cursor/plugins` pstack commit
+`4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`. They are adapted to this
+repository's existing owners and limits, not vendored or invoked.
+
 MIT License
 
 Copyright (c) 2026 Lauren Tan

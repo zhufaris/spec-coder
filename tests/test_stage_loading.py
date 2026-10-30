@@ -14,7 +14,8 @@ TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Interactions", "Architecture", "Verification fallback",
             "Workspace preparation", "Selected Task Playbook"}
 TRIGGERS |= {"Change sizing", "Domain language", "Behavior preservation",
-             "Context pressure", "Completion", "Recurring instruction failure"}
+             "Context pressure", "Completion", "Recurring instruction failure",
+             "Repeated repair failure", "Reader load", "Measurement"}
 PLAYBOOK_KINDS = ("Feature", "Bug Fix", "Refactor", "Performance",
                   "Skill Change", "Workflow Eval", "Generic")
 PLAYBOOK_CASES = {
@@ -367,11 +368,11 @@ class StageLoadingTests(unittest.TestCase):
         route_counts = {}
         observed = {
             PlaybookKind.FEATURE: {"Domain behavior"},
-            PlaybookKind.BUG_FIX: {"Change sizing"},
-            PlaybookKind.REFACTOR: {"Behavior preservation"},
-            PlaybookKind.PERFORMANCE: {"Completion"},
+            PlaybookKind.BUG_FIX: {"Change sizing", "Repeated repair failure"},
+            PlaybookKind.REFACTOR: {"Reader load"},
+            PlaybookKind.PERFORMANCE: {"Measurement"},
             PlaybookKind.SKILL_CHANGE: {"Recurring instruction failure"},
-            PlaybookKind.WORKFLOW_EVAL: {"Completion"},
+            PlaybookKind.WORKFLOW_EVAL: {"Measurement"},
             PlaybookKind.GENERIC: set(),
         }
         for kind, facts in PLAYBOOK_CASES.items():
