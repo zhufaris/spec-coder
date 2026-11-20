@@ -2,7 +2,7 @@
 
 本文供编码 Agent 使用。目标是把 `spec-coder` 安装到当前用户的 Codex 环境，并确认完整工作流可被新会话发现。
 
-本指南对应 `spec-coder 0.8.0`，安装后应发现九个本地 skills。
+本指南对应 `spec-coder 0.9.0`，安装后应发现九个本地 skills。
 
 ## 执行边界
 
@@ -109,7 +109,7 @@ codex plugin list --json
 Gate 路由，并按适用性组合 `domain-modeling`、`codebase-design` 与
 `clean-architecture`。`brainstorming` 不属于必需 capability；用户仍可在本编排之外手动调用。
 
-`grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 和当前 Matt `implement-spec` 都不是 `0.8.0` 的依赖。当前 Matt `implement-spec` 声明 `disable-model-invocation: true`，因此仅为 provenance，不是 dependency；其他 manual-only skill 也不能由其他 skill 调用。fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板，native implement-spec executor 在 Gate 3 后执行批准的计划。
+`grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 和当前 Matt `implement-spec` 都不是 `0.9.0` 的依赖。当前 Matt `implement-spec` 声明 `disable-model-invocation: true`，因此仅为 provenance，不是 dependency；其他 manual-only skill 也不能由其他 skill 调用。fresh Codex session 或启用配置不会改变这个边界。不要修改 upstream 标志、包装改名或通过文件读取间接执行。`grill-coder` 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用随插件安装的模板，native implement-spec executor 在 Gate 3 后执行批准的计划。
 
 Task Playbook 是 `spec-coder` 的内部兼容性契约：每个任务仅选择 Feature、Bug Fix、
 Refactor、Performance、Skill Change、Workflow Eval 或 Generic 之一，以调整 evidence
@@ -213,7 +213,7 @@ Agent tree 固定为两层：只有 active main 可以创建第 2 层 direct sub
 
 `setup-coder` 只发现和报告该仓库策略，不自动创建或修改这两个配置。若确需创建或编辑用户拥有的配置，必须作为独立 mutation 展示 exact diff 并获得明确授权。
 
-`0.8.0` 使用 Luna/economy、Terra/standard、Sol/strong。安装器不会自动迁移已有用户配置；任何调整都需要先展示 exact diff 并由用户明确授权。
+`0.9.0` 使用 Luna/economy、Terra/standard、Sol/strong。安装器不会自动迁移已有用户配置；任何调整都需要先展示 exact diff 并由用户明确授权。
 
 ## 6. 初始化目标仓库
 
