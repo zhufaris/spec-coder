@@ -50,8 +50,8 @@ quietly return:
 
 | Surface | Measured current value | Regression ceiling |
 | --- | ---: | ---: |
-| Normal `spec-coder` context | 1145 words | 1268 words |
-| All-trigger `spec-coder` context | 8455 words | 8489 words |
+| Normal `spec-coder` context | 701 words | 1268 words |
+| All-trigger `spec-coder` context | 8486 words | 8489 words |
 | Task Playbook files | 1093 words; 378 repeated words removed | 1093 words |
 | Implementation stage | 680 words; 202 words removed | 680 words |
 | Workflow plus implementation stage | 3028 words; 213 words removed | 3028 words |
@@ -86,6 +86,15 @@ flowchart TD
 ```
 
 Rendered PNG: [`spec-coder-architecture.png`](./assets/spec-coder-architecture.png)
+
+Reproduce or verify it with local Chromium and the exact repository-local build
+cache recorded by Workspace Selection (never `/tmp`):
+
+```bash
+SPEC_CODER_BUILD_CACHE='/absolute/physical/repo/.cache/<branch>/target'
+python3 scripts/render-architecture.py --render --chromium /usr/bin/chromium --browser-cache "$SPEC_CODER_BUILD_CACHE"
+python3 scripts/render-architecture.py --check --chromium /usr/bin/chromium --browser-cache "$SPEC_CODER_BUILD_CACHE"
+```
 
 ASCII fallback:
 
@@ -134,7 +143,7 @@ model dependency, or public micro-action skill is introduced.
 | `grill-coder` | 组合 `grilling` + `domain-modeling` 以保守 frontier rounds 澄清，并惰性记录已确认的领域语言或 ADR |
 | `design-coder` | 保守分类并比较 2–3 个方案；bounded 任务合并为一次 Gate 1，架构任务保留两阶段设计评审 |
 | `plan-coder` | 重新验证已准备的 workspace，再生成规格和垂直 tickets |
-| `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
+| `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证并向 main 返回 evidence；由 main 原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
 | `show-me` | 在每次 suite-owned human approval 前生成紧凑的 inline ASCII review map |
 | `using-git-worktrees` | 在选定隔离路径后复用或创建安全的可选 Git worktree |

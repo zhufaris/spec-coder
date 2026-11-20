@@ -13,7 +13,7 @@ TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
             "Interactions", "Architecture", "Shared mutable state", "Verification fallback",
             "Workspace preparation", "Selected Task Playbook", "Gate transition",
-            "Dispatch assembly", "Executor handoff and recovery"}
+            "Workspace selection", "Dispatch assembly", "Executor handoff and recovery"}
 TRIGGERS |= {"Change sizing", "Domain language", "Behavior preservation",
              "Context pressure", "Completion", "Recurring instruction failure",
              "Repeated repair failure", "Reader load", "Measurement"}

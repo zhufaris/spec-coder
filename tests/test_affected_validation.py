@@ -354,6 +354,21 @@ class AffectedValidationTests(unittest.TestCase):
                 )
                 self.assertIn(expected, joined)
 
+    def test_architecture_sources_select_geometry_and_sync_checks(self):
+        for path in (
+            "assets/spec-coder-architecture.html",
+            "assets/spec-coder-architecture.png",
+            "scripts/render-architecture.py",
+        ):
+            with self.subTest(path=path):
+                selected = {
+                    Path(command["argv"][-1]).stem
+                    for command in self.build(path)
+                    if command["kind"] == "unittest"
+                }
+                self.assertIn("test_architecture_assets", selected)
+                self.assertEqual(self.build(path)[-1]["argv"], ("git", "diff", "--check"))
+
     def test_setup_contract_and_generated_snippet_select_setup_consumers(self):
         for path in (
             "references/setup-contract.md",

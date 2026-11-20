@@ -144,6 +144,21 @@ class StageOwnerLoadingTests(unittest.TestCase):
             self.assertNotIn(link, normal)
             self.assertIn(link, prepared)
 
+    def test_router_loads_workspace_selection_before_every_workspace_decision(self):
+        path = ROOT / "skills/spec-coder/SKILL.md"
+        normal = links("spec-coder")
+        selected = required_links(path, {"Workspace selection"})
+        owner = "../../references/workflow-contract.md#workspace-selection"
+        self.assertNotIn(owner, normal)
+        self.assertIn(owner, selected)
+
+        text = skill_text(path)
+        process = text.split("## Process\n", 1)[1].split("\n## ", 1)[0]
+        selection = process.index("**Workspace selection**")
+        for decision in ("in-place", "Isolation", "Resume"):
+            with self.subTest(decision=decision):
+                self.assertGreater(process.index(decision), selection)
+
     def test_affected_guidance_is_bounded_and_handles_deleted_paths(self):
         for relative in (
             "skills/tdd-coder/SKILL.md",

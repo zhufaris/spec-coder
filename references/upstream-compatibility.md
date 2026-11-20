@@ -135,17 +135,10 @@ Native planning is always bundled, not a fallback for restricted upstream skills
 
 ## Context ownership compatibility
 
-The normal `spec-coder` entry has three common owners: the workflow envelope,
-compatibility check, and verification lifecycle. Route selection, gate
-transitions, delegation/dispatch, executor recovery, and workspace preparation
-load only at their named conditional trigger, preserving compatibility without
-loading every detailed contract on each entry.
-
-The shared Task SOP scaffold belongs to the Task Playbook contract; Task files
-retain route-specific deltas. The workflow contract owns executor entry and
-handoff, the routing contract owns detailed executor and delegation, and the
-implementation stage owns one-ticket lifecycle evidence. This is a public
-ownership map, not a replacement for the linked contracts.
+The public [context ownership and loading bounds](../README.md#context-ownership-and-loading-bounds)
+map is canonical. This compatibility contract links to that summary rather
+than maintaining a second ownership map; the linked normative contracts remain
+authoritative.
 
 ## Three-layer instruction ownership
 
