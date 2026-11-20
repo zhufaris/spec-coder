@@ -47,7 +47,9 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
 
     def test_build_cache_continuity_is_explicit_across_runtime_phases(self) -> None:
         routing = " ".join(read("references/subagent-routing-contract.md").split())
-        tdd = " ".join(read("skills/tdd-coder/SKILL.md").split())
+        implementation = " ".join(
+            read("playbooks/stages/implementation.md").split()
+        )
         delivery = " ".join(read("skills/delivery-coder/SKILL.md").split())
 
         for phrase in (
@@ -61,9 +63,10 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, routing)
-        self.assertIn("this workspace's approved `build cache`", tdd)
+        self.assertIn("approved `build cache`", implementation)
+        self.assertIn("approved build-cache reservation", implementation)
         self.assertIn("that workspace's approved canonical cache", delivery)
-        for text in (tdd, delivery):
+        for text in (implementation, delivery):
             self.assertIn("never", text)
             self.assertIn("/tmp", text)
 
@@ -96,12 +99,18 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertIn("subagent-routing-contract.md#explicit-parallel-requests", read(path))
 
-    def test_single_ticket_scope_does_not_serialize_sibling_workers(self) -> None:
-        tdd = " ".join(read("skills/tdd-coder/SKILL.md").split())
-        self.assertIn("per ticket, not per wave", tdd)
-        self.assertIn("sibling workers", tdd)
-        self.assertIn("parallel", tdd)
-        self.assertIn("integration and commits remain serial", tdd)
+    def test_single_ticket_lifecycle_does_not_own_sibling_dispatch(self) -> None:
+        implementation = " ".join(
+            read("playbooks/stages/implementation.md").split()
+        )
+        routing = " ".join(
+            read("references/subagent-routing-contract.md").split()
+        )
+        self.assertIn("one executor-issued ticket handoff", implementation)
+        self.assertIn("must not select waves or dispatch siblings", implementation)
+        self.assertNotIn("live dispatch batch", implementation)
+        self.assertIn("live dispatch batch", routing)
+        self.assertIn("integration and commits remain serial", routing)
 
     def test_parallel_capacity_wait_can_recheck_before_dispatch(self) -> None:
         routing = " ".join(read("references/subagent-routing-contract.md").split())
@@ -142,20 +151,22 @@ class DefaultSubagentExecutionContractTests(unittest.TestCase):
         self.assertNotIn("executes exactly one unblocked ticket at a time", orchestrator)
         self.assertNotIn("at most one active ticket", orchestrator)
 
-    def test_tdd_handoff_keeps_red_or_structural_evidence_with_main(self) -> None:
-        tdd = read("skills/tdd-coder/SKILL.md")
+    def test_ticket_handoff_returns_red_or_structural_evidence_to_main(self) -> None:
+        implementation = " ".join(
+            read("playbooks/stages/implementation.md").split()
+        )
 
         for phrase in (
-            "delegates eligible implementation work by default",
+            "one-ticket red/green lifecycle",
             "behavior red",
             "structural preservation",
-            "delegation_allowed = false",
-            "must not stage or commit",
-            "freshly verifies",
+            "must not select waves or dispatch siblings",
+            "must not integrate, accept, stage, or commit",
+            "return its evidence",
         ):
             with self.subTest(phrase=phrase):
-                self.assertIn(phrase, tdd)
-        self.assertNotIn("route optional delegated work", tdd)
+                self.assertIn(phrase, implementation)
+        self.assertNotIn("assemble the worker brief", implementation)
 
     def test_main_integrates_same_base_results_sequentially(self) -> None:
         orchestrator = read("skills/spec-coder/SKILL.md")

@@ -11,6 +11,45 @@ def read(relative):
 
 
 class ImplementSpecRuntimeContractTests(unittest.TestCase):
+    def test_implementation_consumes_one_ticket_handoff_and_returns_evidence(self):
+        implementation = " ".join(
+            read("playbooks/stages/implementation.md").lower().split()
+        )
+        for phrase in (
+            "one executor-issued ticket handoff",
+            "one-ticket red/green lifecycle",
+            "complete task-owned diff",
+            "exact commands and results",
+            "return its evidence",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, implementation)
+
+        for forbidden_authority in (
+            "apply delegation eligibility",
+            "assemble the worker brief",
+            "promotion sibling",
+            "create one conventional commit",
+            "update the durable plan checkbox",
+            "capacity evaluation",
+        ):
+            with self.subTest(forbidden_authority=forbidden_authority):
+                self.assertNotIn(forbidden_authority, implementation)
+
+    def test_implementation_links_to_every_executor_safety_owner(self):
+        implementation = read("playbooks/stages/implementation.md").lower()
+        for owner in (
+            "../../references/workflow-contract.md#native-implement-spec-executor",
+            "../../references/subagent-routing-contract.md#detailed-executor-and-delegation-authority",
+            "../../references/subagent-routing-contract.md#worker-progress-heartbeat",
+            "../../references/subagent-routing-contract.md#delegation-eligibility-and-execution-mode",
+            "../../references/subagent-routing-contract.md#execution-waves",
+            "../../references/subagent-routing-contract.md#attempt-evidence-and-promotion",
+            "../../references/subagent-routing-contract.md#result-integration",
+        ):
+            with self.subTest(owner=owner):
+                self.assertIn(owner, implementation)
+
     def test_orchestrator_enters_one_executor_and_loads_all_runtime_owners(self):
         orchestrator = read("skills/spec-coder/SKILL.md").lower()
         for owner in (
@@ -29,14 +68,16 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
 
     def test_tdd_remains_one_ticket_engine_inside_executor(self):
         tdd = read("skills/tdd-coder/SKILL.md").lower()
+        implementation = read("playbooks/stages/implementation.md").lower()
+        routing = read("references/subagent-routing-contract.md").lower()
         self.assertIn("workflow-contract.md#native-implement-spec-executor", tdd)
         self.assertIn("subagent-routing-contract.md#execution-waves", tdd)
         self.assertIn("subagent-routing-contract.md#result-integration", tdd)
-        self.assertIn("one selected ticket", tdd)
-        self.assertIn("main", tdd)
-        self.assertIn("delegation_allowed = false", tdd)
-        self.assertIn("this workspace's approved `build cache`", tdd)
-        self.assertIn("isolated worker", tdd)
+        self.assertIn("one unblocked ticket", implementation)
+        self.assertIn("main-only", implementation)
+        self.assertIn("delegation_allowed = false", routing)
+        self.assertIn("approved `build cache`", implementation)
+        self.assertIn("authoritative workspace", implementation)
 
     def test_delivery_preserves_the_approved_build_cache(self):
         delivery = read("skills/delivery-coder/SKILL.md").lower()
@@ -58,13 +99,21 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         self.assertNotIn("standalone tdd", brief)
         self.assertIn("executor-issued tdd", brief)
 
-    def test_atomic_commit_precedes_checkbox_and_frontier_recomputation(self):
-        tdd = read("skills/tdd-coder/SKILL.md").lower()
-        commit = tdd.index("create one conventional commit")
-        checkbox = tdd.index("update the durable plan checkbox")
-        return_to_executor = tdd.index("return to the native implement-spec executor")
-        self.assertLess(commit, checkbox)
-        self.assertLess(checkbox, return_to_executor)
+    def test_main_only_acceptance_commit_and_completion_live_outside_ticket_lifecycle(self):
+        workflow = read("references/workflow-contract.md").lower()
+        routing = read("references/subagent-routing-contract.md").lower()
+        implementation = read("playbooks/stages/implementation.md").lower()
+
+        for phrase in ("acceptance", "staging", "commits", "completion"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, workflow)
+        self.assertIn("main integrates one result at a time", routing)
+        for forbidden in (
+            "accept a result",
+            "completion claim",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, implementation)
 
     def test_reopened_gate_three_revalidates_changed_scheduling_inputs(self):
         workflow = read("references/workflow-contract.md").lower()
