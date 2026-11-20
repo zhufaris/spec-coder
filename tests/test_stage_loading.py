@@ -12,7 +12,8 @@ TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Setup audit or mutation", "Reopened gate or mutation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
             "Interactions", "Architecture", "Shared mutable state", "Verification fallback",
-            "Workspace preparation", "Selected Task Playbook"}
+            "Workspace preparation", "Selected Task Playbook", "Gate transition",
+            "Dispatch assembly", "Executor handoff and recovery"}
 TRIGGERS |= {"Change sizing", "Domain language", "Behavior preservation",
              "Context pressure", "Completion", "Recurring instruction failure",
              "Repeated repair failure", "Reader load", "Measurement"}
@@ -181,7 +182,11 @@ class StageLoadingTests(unittest.TestCase):
         for stage in ("spec-coder", "grill-coder", "design-coder", "plan-coder",
                       "tdd-coder", "delivery-coder"):
             path = ROOT / "skills" / stage / "SKILL.md"
-            links = required_links(path)
+            links = (
+                required_links(path, {"Gate transition"})
+                if stage == "spec-coder"
+                else required_links(path)
+            )
             self.assertIn("../../references/workflow-contract.md#approval-gates", links)
             self.assertIn("../../references/workflow-contract.md#failure-transitions", links)
             if stage != "spec-coder":
@@ -198,7 +203,7 @@ class StageLoadingTests(unittest.TestCase):
         self.assertFalse(any("subagent-routing" in p for p in required_links(discovery)))
         orchestration = ROOT / "skills/spec-coder/SKILL.md"
         self.assertFalse(any("#worker-progress-heartbeat" in p for p in required_links(orchestration)))
-        active = required_links(orchestration, {"Delegation"})
+        active = required_links(orchestration, {"Dispatch assembly"})
         self.assertIn("../../references/subagent-routing-contract.md#worker-progress-heartbeat", active)
         self.assertFalse(any("approval-review" in p for p in active))
         design = ROOT / "skills/design-coder/SKILL.md"
@@ -210,7 +215,12 @@ class StageLoadingTests(unittest.TestCase):
 
     def test_every_dispatch_loads_owners_and_complete_brief(self):
         for stage in ("spec-coder", "tdd-coder", "delivery-coder"):
-            links = required_links(ROOT / "skills" / stage / "SKILL.md", {"Delegation"})
+            triggers = (
+                {"Delegation", "Dispatch assembly"}
+                if stage == "spec-coder"
+                else {"Delegation"}
+            )
+            links = required_links(ROOT / "skills" / stage / "SKILL.md", triggers)
             for anchor in ("authority", "delegation-eligibility-and-execution-mode",
                            "explicit-parallel-requests", "worker-progress-heartbeat",
                            "attempt-evidence-and-promotion", "result-integration"):
@@ -306,7 +316,7 @@ class StageLoadingTests(unittest.TestCase):
             )
             for stage in stages
         }
-        pre_compaction_all_trigger_limits = {
+        all_trigger_limits = {
             "spec-coder": 8489,
             "grill-coder": 5419,
             "design-coder": 6969,
@@ -317,7 +327,7 @@ class StageLoadingTests(unittest.TestCase):
 
         self.assertLessEqual(sum(normal.values()), 19000)
         self.assertLessEqual(normal["plan-coder"], 5200)
-        for stage, limit in pre_compaction_all_trigger_limits.items():
+        for stage, limit in all_trigger_limits.items():
             with self.subTest(stage=stage):
                 triggered = len(
                     instruction_text(ROOT / "skills" / stage / "SKILL.md").split()

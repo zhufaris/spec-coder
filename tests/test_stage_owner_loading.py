@@ -15,7 +15,7 @@ PUBLIC_STAGES = (
     "setup-coder",
     "show-me",
 )
-EXECUTOR_STAGES = ("spec-coder", "plan-coder", "tdd-coder", "delivery-coder")
+EXECUTOR_STAGES = ("plan-coder", "tdd-coder", "delivery-coder")
 
 
 def links(stage):
@@ -23,6 +23,16 @@ def links(stage):
 
 
 class StageOwnerLoadingTests(unittest.TestCase):
+    def test_router_normal_reading_is_only_the_common_runtime_envelope(self):
+        self.assertEqual(
+            set(links("spec-coder")),
+            {
+                "../../references/workflow-contract.md#stage-runtime-envelope",
+                "../../references/upstream-compatibility.md#compatibility-check",
+                "../../references/verification-contract.md#authority-and-lifecycle",
+            },
+        )
+
     def test_public_stages_load_the_compact_runtime_envelope(self):
         expected = "../../references/workflow-contract.md#stage-runtime-envelope"
         for stage in PUBLIC_STAGES:
@@ -41,13 +51,13 @@ class StageOwnerLoadingTests(unittest.TestCase):
                     any("implement-spec-execution-contract.md" in link for link in stage_links)
                 )
 
-        for stage in ("spec-coder", "plan-coder", "tdd-coder"):
+        for stage in ("plan-coder", "tdd-coder"):
             with self.subTest(stage=stage, owner="execution-waves"):
                 self.assertIn(
                     "../../references/subagent-routing-contract.md#execution-waves",
                     links(stage),
                 )
-        for stage in ("spec-coder", "tdd-coder"):
+        for stage in ("tdd-coder",):
             with self.subTest(stage=stage, owner="result-integration"):
                 self.assertIn(
                     "../../references/subagent-routing-contract.md#result-integration",
@@ -61,11 +71,33 @@ class StageOwnerLoadingTests(unittest.TestCase):
                     any("subagent-routing-contract.md" in link for link in links(stage))
                 )
 
-    def test_orchestrator_loads_the_recovery_owner_it_invokes(self):
-        self.assertIn(
-            "../../references/workflow-contract.md#recovery",
-            links("spec-coder"),
+    def test_router_executor_and_recovery_owners_load_only_for_executor_entry(self):
+        normal = links("spec-coder")
+        triggered = required_links(
+            ROOT / "skills/spec-coder/SKILL.md", {"Executor handoff and recovery"}
         )
+        for anchor in ("native-implement-spec-executor", "recovery"):
+            link = "../../references/workflow-contract.md#" + anchor
+            self.assertNotIn(link, normal)
+            self.assertIn(link, triggered)
+
+    def test_router_dispatch_and_isolation_owners_remain_trigger_specific(self):
+        normal = links("spec-coder")
+        dispatch = required_links(
+            ROOT / "skills/spec-coder/SKILL.md", {"Dispatch assembly"}
+        )
+        for anchor in ("execution-waves", "result-integration", "worker-progress-heartbeat"):
+            link = "../../references/subagent-routing-contract.md#" + anchor
+            self.assertNotIn(link, normal)
+            self.assertIn(link, dispatch)
+
+        isolation = required_links(
+            ROOT / "skills/spec-coder/SKILL.md", {"Isolation"}
+        )
+        self.assertFalse(any("using-git-worktrees/SKILL.md" in link for link in isolation))
+        self.assertIn("invoke bundled `using-git-worktrees`", skill_text(
+            ROOT / "skills/spec-coder/SKILL.md"
+        ))
 
     def test_plan_coder_reaches_verification_fallback_owners_conditionally(self):
         normal = links("plan-coder")
