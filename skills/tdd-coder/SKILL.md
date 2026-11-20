@@ -1,6 +1,6 @@
 ---
 name: tdd-coder
-description: Implement one executor-issued unblocked vertical ticket through an evidence-backed Red-Green loop, affected verification, atomic commit, and plan-state update. Use only from the native implement-spec executor with a validated or reconstructed executor-issued handoff.
+description: Implement one executor-issued unblocked vertical ticket through evidence-backed Red-Green or structural verification and return provisional evidence. Use only from the native implement-spec executor with a validated or reconstructed handoff.
 ---
 
 # TDD Coder
@@ -32,25 +32,27 @@ Every entry requires these owners, including standalone invocation and resume; r
 
 ## Input
 
-One executor-issued unblocked ticket whose dependencies are complete, its
-acceptance criteria, the approved or autonomously selected design and its
-testing seams, the selected safe workspace with accounted-for initial changes,
-and green baseline evidence. The handoff records Gate-3 approval, the durable
-wave/frontier, selected ticket identity, recorded wave base, and workspace
-decision. It identifies one approved or autonomously selected unblocked vertical
-ticket. A direct or resumed invocation must validate or reconstruct that
-executor-issued handoff from those records before work; it must not turn a plan
-authorization into a plan-to-TDD bypass. The workspace may be in place or
-isolated; autonomous selection does not relax ticket readiness or verification.
+One executor-issued unblocked ticket with complete dependencies, acceptance
+criteria, approved or autonomously selected design, testing seams, safe
+workspace, accounted initial changes, and green baseline evidence. The handoff
+identifies one approved or autonomously selected unblocked vertical ticket from
+the current planned wave and records Gate-3 approval, the approved or
+autonomously selected durable planned wave, frontier, ticket, recorded wave
+base, workspace, and build cache. Direct or resumed entry validates or
+reconstructs this handoff; plan authorization never bypasses the executor.
 
 ## Output
 
-Red-Green/structural evidence, affected checks, one ticket-only Conventional
-Commit, and synchronized plan state.
+Red-Green/structural evidence, affected checks, complete task-owned diff, exact
+commands and results, findings, and blockers; return provisional evidence to
+the native implement-spec executor.
 
 ## Process
 
-Execute the required SOP with validated input. Main may delegate under routing authority; children must not spawn.
+Execute the required SOP with validated input and return evidence. Main may
+delegate under routing authority; children must not spawn. Main owns acceptance,
+fresh integration verification, staging, commit, durable plan advancement, and
+completion.
 
 ## Stop Conditions
 
@@ -63,4 +65,5 @@ Stop and preserve evidence when:
 - an affected verification command fails after diagnosis;
 - the same blocking condition occurs three consecutive times.
 
-Do not mark the ticket complete or commit unless every ticket-level check is green.
+Stop without staging, committing, changing a durable checkbox, or claiming
+completion. Preserve and return evidence even when ticket-level checks are green.

@@ -12,7 +12,8 @@ TRIGGERS = {"Human review", "Delegation", "Model examples", "Isolation",
             "Setup audit or mutation", "Reopened gate or mutation",
             "Parallel worker allocation", "Domain behavior", "Persistence",
             "Interactions", "Architecture", "Shared mutable state", "Verification fallback",
-            "Workspace preparation", "Selected Task Playbook"}
+            "Workspace preparation", "Selected Task Playbook", "Gate transition",
+            "Workspace selection", "Dispatch assembly", "Executor handoff and recovery"}
 TRIGGERS |= {"Change sizing", "Domain language", "Behavior preservation",
              "Context pressure", "Completion", "Recurring instruction failure",
              "Repeated repair failure", "Reader load", "Measurement"}
@@ -181,7 +182,11 @@ class StageLoadingTests(unittest.TestCase):
         for stage in ("spec-coder", "grill-coder", "design-coder", "plan-coder",
                       "tdd-coder", "delivery-coder"):
             path = ROOT / "skills" / stage / "SKILL.md"
-            links = required_links(path)
+            links = (
+                required_links(path, {"Gate transition"})
+                if stage == "spec-coder"
+                else required_links(path)
+            )
             self.assertIn("../../references/workflow-contract.md#approval-gates", links)
             self.assertIn("../../references/workflow-contract.md#failure-transitions", links)
             if stage != "spec-coder":
@@ -198,7 +203,7 @@ class StageLoadingTests(unittest.TestCase):
         self.assertFalse(any("subagent-routing" in p for p in required_links(discovery)))
         orchestration = ROOT / "skills/spec-coder/SKILL.md"
         self.assertFalse(any("#worker-progress-heartbeat" in p for p in required_links(orchestration)))
-        active = required_links(orchestration, {"Delegation"})
+        active = required_links(orchestration, {"Dispatch assembly"})
         self.assertIn("../../references/subagent-routing-contract.md#worker-progress-heartbeat", active)
         self.assertFalse(any("approval-review" in p for p in active))
         design = ROOT / "skills/design-coder/SKILL.md"
@@ -210,7 +215,12 @@ class StageLoadingTests(unittest.TestCase):
 
     def test_every_dispatch_loads_owners_and_complete_brief(self):
         for stage in ("spec-coder", "tdd-coder", "delivery-coder"):
-            links = required_links(ROOT / "skills" / stage / "SKILL.md", {"Delegation"})
+            triggers = (
+                {"Delegation", "Dispatch assembly"}
+                if stage == "spec-coder"
+                else {"Delegation"}
+            )
+            links = required_links(ROOT / "skills" / stage / "SKILL.md", triggers)
             for anchor in ("authority", "delegation-eligibility-and-execution-mode",
                            "explicit-parallel-requests", "worker-progress-heartbeat",
                            "attempt-evidence-and-promotion", "result-integration"):
@@ -306,7 +316,7 @@ class StageLoadingTests(unittest.TestCase):
             )
             for stage in stages
         }
-        pre_compaction_all_trigger_limits = {
+        all_trigger_limits = {
             "spec-coder": 8489,
             "grill-coder": 5419,
             "design-coder": 6969,
@@ -315,18 +325,44 @@ class StageLoadingTests(unittest.TestCase):
             "delivery-coder": 11606,
         }
 
+        # The normal router entry stays compact; detailed owners load only on
+        # their named conditional triggers.  These are regression ceilings, not
+        # a demand that formatting preserve an exact word count.
+        self.assertLessEqual(normal["spec-coder"], 1268)
         self.assertLessEqual(sum(normal.values()), 19000)
         self.assertLessEqual(normal["plan-coder"], 5200)
-        for stage, limit in pre_compaction_all_trigger_limits.items():
+        for stage, limit in all_trigger_limits.items():
             with self.subTest(stage=stage):
                 triggered = len(
                     instruction_text(ROOT / "skills" / stage / "SKILL.md").split()
                 )
                 self.assertLessEqual(triggered, limit)
 
+    def test_compacted_task_and_implementation_owners_do_not_regrow(self):
+        task_contract = (ROOT / "references/task-playbook-contract.md").read_text()
+        task_files = sorted((ROOT / "playbooks/tasks").glob("*.md"))
+        task_words = sum(len(path.read_text().split()) for path in task_files)
+        implementation = (ROOT / "playbooks/stages/implementation.md").read_text()
+        workflow = (ROOT / "references/workflow-contract.md").read_text()
+
+        # The task contract owns the shared scaffold; individual routes retain
+        # only their deltas.  Caps preserve the measured reductions while
+        # allowing future wording to become shorter.
+        self.assertIn("## Shared task SOP scaffold", task_contract)
+        self.assertIn("### Completion scaffold", task_contract)
+        self.assertLessEqual(task_words, 1093)
+        for path in task_files:
+            with self.subTest(task=path.name):
+                self.assertNotIn("### Completion", path.read_text())
+
+        # The implementation SOP owns one ticket lifecycle; workflow owns
+        # executor entry and handoff rather than detailed delegation mechanics.
+        self.assertLessEqual(len(implementation.split()), 680)
+        self.assertLessEqual(len((workflow + implementation).split()), 3028)
+
     def test_selected_playbook_loading_is_direct_and_excludes_other_anchors(self):
         expected = {
-            "spec-coder": {"route-precedence-and-one-selection-rule", "conversational-todo-boundary"},
+            "spec-coder": {"shared-task-sop-scaffold", "route-precedence-and-one-selection-rule", "conversational-todo-boundary"},
             "grill-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
             "design-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
             "plan-coder": {"taskplaybookselection"},
@@ -351,10 +387,22 @@ class StageLoadingTests(unittest.TestCase):
             selection = select_playbook(request="change", facts=facts)
             selected_anchor = selection.conditional_references[0].rsplit("#", 1)[1]
             for path in stage_paths:
-                resolved = selected_instruction_text(path, selection, mode="standalone").lower()
+                resolved = " ".join(
+                    selected_instruction_text(path, selection, mode="standalone")
+                    .lower()
+                    .split()
+                )
                 with self.subTest(stage=path.parent.name, kind=kind):
                     if path.parent.name == "spec-coder":
                         self.assertIn("## " + selected_anchor.replace("-", " "), resolved)
+                        for shared_rule in (
+                            "fixed `grill-coder -> design-coder -> plan-coder -> tdd-coder -> delivery-coder` sequence",
+                            "a skip never removes a fixed stage",
+                            "returns to its stage owner",
+                            "no task step grants external effects or nested delegation",
+                            "complete the selected route only after",
+                        ):
+                            self.assertIn(shared_rule, resolved)
                     else:
                         self.assertNotIn("### Completion", resolved)
                         self.assertIn("- delivery proof:", resolved)

@@ -1,17 +1,19 @@
 # Subagent Routing Contract
 
-This contract governs default delegation eligibility, safe execution-wave
-selection, and model selection for direct subagents. It is normative for every
-spec-coder stage that delegates work. It does not create a workflow stage,
-bundled skill, persisted routing state, or permission boundary.
+Delegation/model routing owner; creates no stage, skill, state, or authority.
+
+## Detailed Executor and Delegation Authority
+
+Sole detailed owner of wave formation, delegation eligibility and
+execution mode, dispatch and capacity, child no-spawn, worker brief, heartbeat,
+promotion, result integration.
 
 ## Worker Progress Heartbeat
 
-Every suite-owned direct child must report a Host-neutral `ProgressSnapshot` as
-conversational observation evidence when proactive child-to-main messaging is
-available. This contract is the schema and authority owner; the worker brief
-only supplies its compact machine-copyable presentation. The snapshot has exactly these required
-nonempty string fields: `ticket_or_axis`, `worker_handle`, `phase`,
+With proactive messaging, every direct child reports a Host-neutral
+`ProgressSnapshot`. This section owns schema; worker brief supplies
+presentation. The snapshot requires
+exactly these nonempty string fields: `ticket_or_axis`, `worker_handle`, `phase`,
 `active_command`, `progress_evidence`, `verification_state`, `blocker`, and
 timezone-aware ISO `observed_at`. Valid phases are `starting`, `working`,
 `verifying`, `blocked`, and `completed`; valid verification states are
@@ -323,14 +325,13 @@ approval gate.
 
 ## Stage Responsibilities
 
-- `spec-coder` owns general classification, live Host compatibility, and
-  promotion.
-- `tdd-coder` delegates eligible work only within an approved or autonomously selected ticket and keeps
-  Red-Green, diff review, affected verification, attribution, and commit
-  ownership.
-- `delivery-coder` delegates eligible bounded evidence collection by default
-  but keeps final Standards/Spec findings, repair judgment, integration review,
-  and completion.
+- `spec-coder` owns classification, Host compatibility, promotion.
+- A `tdd-coder` lifecycle operates only within an approved or autonomously selected ticket,
+  consumes one handoff and returns provisional evidence; main owns selection,
+  dispatch, acceptance, integration, staging,
+  commits, plan advancement, and completion.
+- `delivery-coder` may delegate bounded evidence; it owns final Standards/Spec
+  findings, repair judgment, integration review, completion.
 - Other stages may consume advisory evidence but cannot weaken this contract's
   tier floors or main-only responsibilities.
 
@@ -380,16 +381,16 @@ repair judgment, fresh verification, aggregation, and completion.
 
 ## Result Integration
 
-For a parallel wave, every child starts from the recorded wave base and returns
-its base identity, complete task-owned diff, and verification evidence; main integrates one result at a time into the authoritative workspace. Advancement
-past the recorded base is acceptable only when every intervening change is an
-accepted sibling result with proven disjoint ownership. A base mismatch,
-transfer conflict, ownership overlap, unexplained diff, or failed fresh
-verification rejects that parallel result and leaves its ticket unchecked for
-later serialized execution from the authoritative base only when the explicit
-parallel request policy permits that recovery mode. Dependents do not
-unblock until the accepted ticket has passed fresh verification, updated its
-durable checkbox, and received its atomic commit.
+Parallel children start from the recorded wave base and return base identity,
+complete task-owned diff, and verification evidence; main integrates one result at a time. Intervening changes require accepted sibling results with disjoint
+ownership. Base mismatch, conflict, ownership overlap, unexplained diff, or
+failed fresh verification rejects the result and leaves its ticket unchecked
+for later serialized execution under the explicit-parallel policy.
+
+For every result—main-local, serialized direct, or parallel—main freshly
+verifies integration, accepts, creates its atomic commit, updates that ticket's
+durable checkbox, then recomputes the earliest incomplete ready frontier.
+Dependents remain blocked until this sequence finishes.
 
 ## Review Execution
 

@@ -19,7 +19,3 @@
 3. [Planning](../stages/planning.md#procedure): Record the comparison scope and deterministic prerequisites; no automatic promotion.
 4. [Implementation](../stages/implementation.md#procedure): Confirm deterministic Green before direct read-only runs; collect all outputs.
 5. [Delivery](../stages/delivery.md#procedure): Inspect raw evidence and blinded findings; inconclusive or conflicting evidence keeps Parent.
-
-### Completion
-
-The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.

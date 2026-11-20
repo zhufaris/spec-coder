@@ -47,7 +47,7 @@ class ThreeLayerArchitectureTests(unittest.TestCase):
                 self.assertTrue(task.is_file())
                 content = task.read_text()
                 self.assertIn("### Procedure", content)
-                self.assertIn("### Completion", content)
+                self.assertNotIn("### Completion", content)
                 self.assertEqual(len(re.findall(r"\]\(../stages/", content)), 5)
                 self.assertIn("principles/", content)
 

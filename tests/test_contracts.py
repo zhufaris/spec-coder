@@ -69,7 +69,7 @@ class PluginContractTests(unittest.TestCase):
     def test_manifest_is_minimal_and_complete(self) -> None:
         manifest = json.loads(read_text(ROOT / ".codex-plugin" / "plugin.json"))
         self.assertEqual(manifest["name"], "spec-coder")
-        self.assertEqual(manifest["version"], "0.8.0")
+        self.assertEqual(manifest["version"], "0.9.0")
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(manifest["interface"]["displayName"], "Spec Coder")
         self.assertNotIn("TO" + "DO", json.dumps(manifest))
@@ -455,6 +455,50 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, notice)
 
+    def test_public_docs_describe_the_compacted_owner_map(self) -> None:
+        """Keep one public summary and link compatibility readers to it."""
+        readme = read_text(ROOT / "README.md")
+        compatibility = read_text(ROOT / "references/upstream-compatibility.md")
+
+        normalized = " ".join(readme.split())
+        for phrase in (
+            "three common owners",
+            "conditional trigger",
+            "shared Task SOP scaffold",
+            "route-specific deltas",
+            "workflow contract owns executor entry and handoff",
+            "routing contract owns detailed executor and delegation",
+            "implementation stage owns one-ticket lifecycle",
+        ):
+            self.assertIn(phrase, normalized)
+
+        self.assertNotIn("three common owners", compatibility)
+        link = "../README.md#context-ownership-and-loading-bounds"
+        self.assertIn(f"]({link})", compatibility)
+        self.assertTrue((ROOT / "references" / link.split("#", 1)[0]).resolve().is_file())
+
+    def test_readme_assigns_ticket_commit_to_main(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        row = next(line for line in readme.splitlines() if line.startswith("| `tdd-coder` |"))
+        self.assertIn("evidence", row.lower())
+        self.assertIn("main", row.lower())
+        self.assertNotIn("局部验证和原子提交", row)
+
+    def test_readme_reports_current_router_context_measurements(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        router = ROOT / "skills" / "spec-coder" / "SKILL.md"
+        normal_words = len(instruction_text(router, frozenset()).split())
+        all_trigger_words = len(instruction_text(router).split())
+
+        self.assertIn(
+            f"| Normal `spec-coder` context | {normal_words} words | 1268 words |",
+            readme,
+        )
+        self.assertIn(
+            f"| All-trigger `spec-coder` context | {all_trigger_words} words | 8489 words |",
+            readme,
+        )
+
     def test_worktree_adapter_links_canonical_policy_without_copying_outcomes(self) -> None:
         skill = read_text(ROOT / "skills" / "using-git-worktrees" / "SKILL.md").lower()
         workflow = read_text(ROOT / "references" / "workflow-contract.md").lower()
@@ -756,24 +800,30 @@ class PluginContractTests(unittest.TestCase):
         )
         for phrase in (
             "earliest incomplete phase",
-            "current branch",
+            "workspace/mode and branch",
             "plan checkboxes",
             "git log",
             "fresh verification",
             "three consecutive",
-            "select a safe workspace",
         ):
             self.assertIn(phrase, text.lower())
         normalized = " ".join(text.lower().split())
         self.assertIn("prepared workspace", normalized)
-        selected = normalized.index("select a safe workspace")
-        grill = normalized.index("start `grill-coder`")
-        preparation = normalized.index("prepare dependencies")
-        baseline = normalized.index("establish the fresh green baseline")
-        target_write = normalized.index("target-project write", baseline)
-        self.assertLess(selected, grill)
-        self.assertLess(preparation, target_write)
-        self.assertLess(baseline, target_write)
+        router = read_text(ROOT / "skills" / "spec-coder" / "SKILL.md")
+        process = router.split("## Process\n", 1)[1].split("\n## ", 1)[0]
+        selected = process.index("**Workspace selection**")
+        for decision in ("in-place", "**Isolation**", "**Resume**"):
+            self.assertLess(selected, process.index(decision))
+        stages = tuple(process.index(f"`{stage}`") for stage in (
+            "grill-coder", "design-coder", "plan-coder", "tdd-coder", "delivery-coder"
+        ))
+        self.assertEqual(stages, tuple(sorted(stages)))
+        self.assertIn("start read-only", process)
+        preparation = process.index("prepare dependencies")
+        capture = process.index("verification-evidence.py capture")
+        target_write = process.index("before writes", capture)
+        self.assertLess(preparation, capture)
+        self.assertLess(capture, target_write)
         self.assertNotIn("state.yaml", text.lower())
 
     def test_required_scenarios_are_documented(self) -> None:
@@ -891,7 +941,7 @@ class PluginContractTests(unittest.TestCase):
             self.assertIn(f"`{skill}`", readme)
         self.assertEqual(len(EXPECTED_SKILLS), 9)
         for published_doc in (readme, install_guide, compatibility):
-            self.assertIn("0.8.0", published_doc)
+            self.assertIn("0.9.0", published_doc)
         for phrase in (
             "selected workspace",
             "read-only discovery",

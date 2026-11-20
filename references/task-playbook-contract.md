@@ -13,6 +13,22 @@ The selected playbook is conversational guidance for the current request. It
 does not create a scheduler, a loader manifest, generated source, a durable
 state file, or an alternate executor.
 
+## Shared task SOP scaffold
+
+Every selected Task SOP keeps the fixed `grill-coder -> design-coder ->
+plan-coder -> tdd-coder -> delivery-coder` sequence. Record an explicit skip
+reason only for inapplicable route work. A skip never removes a fixed stage,
+Gate, required verification, or another route's proof. The task owns step order
+and route-specific proof; stage playbooks own local actions. A failing task
+delta returns to its stage owner; invalid design returns to design. No task step
+grants external effects or nested delegation.
+
+### Completion scaffold
+
+Complete the selected route only after its five stage deltas preserve the fixed
+sequence and delivery records route-specific proof. Task files must not repeat
+this common scaffold.
+
 ## TaskPlaybookSelection
 
 Every coding request has exactly one `TaskPlaybookSelection`: `kind` is its

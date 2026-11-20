@@ -112,9 +112,13 @@ _OWNER_CHECKS = {
     "scripts/spec_coder_checks/evidence.py": (
         "test_verification_evidence",
         "test_workflow_tool_integration",
+        "test_architecture_assets",
     ),
     "scripts/validate-affected.py": ("test_affected_validation",),
     "scripts/spec_coder_checks/affected.py": ("test_affected_validation",),
+    "scripts/render-architecture.py": ("test_architecture_assets",),
+    "assets/spec-coder-architecture.html": ("test_architecture_assets",),
+    "assets/spec-coder-architecture.png": ("test_architecture_assets",),
     "scripts/workspace-policy.py": ("test_workspace_policy",),
     "scripts/spec_coder_checks/workspace_policy.py": ("test_workspace_policy",),
     "scripts/progress-snapshot.py": ("test_progress_snapshot",),

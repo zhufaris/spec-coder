@@ -2,7 +2,7 @@
 
 `spec-coder` 是一组面向 Codex 的组合式工程技能：从需求澄清开始，经由轻量 DDD、Clean Architecture、规格和任务拆分，以 TDD 实现，并在完整审查与验证后交付。
 
-当前版本为 `0.8.0`，插件包含九个 model-callable skills。
+当前版本为 `0.9.0`，插件包含九个 model-callable skills。
 
 它参考 Matt Pocock skills 的“小而可组合”结构。插件负责阶段编排、审批门禁、产物位置和 Git 安全策略；`plan-coder` 使用本插件维护的模板完成规格合成与任务拆分，其余阶段组合允许模型调用的上游能力。
 
@@ -30,6 +30,101 @@ Principles guide judgment; Contracts own precise boundaries.
 
 Hard boundaries constrain execution; design guidance requires contextual judgment.
 
+## Context ownership and loading bounds
+
+The normal `spec-coder` entry has three common owners: the workflow envelope,
+compatibility check, and verification lifecycle. Route selection, gates,
+delegation/dispatch, executor recovery, and workspace preparation load only at
+their named conditional trigger; the router does not carry those details on
+every entry.
+
+The shared Task SOP scaffold belongs to the Task Playbook contract, while Task
+files keep only route-specific deltas. The workflow contract owns executor entry
+and handoff; the routing contract owns detailed executor and delegation; the
+implementation stage owns one-ticket lifecycle evidence. These summaries point
+to their owners rather than copying the detailed rules into public guidance.
+
+Static loading measurements from the integrated `0.9.0` tree are guarded as
+upper bounds, so shorter wording remains valid while duplicated context cannot
+quietly return:
+
+| Surface | Measured current value | Regression ceiling |
+| --- | ---: | ---: |
+| Normal `spec-coder` context | 699 words | 1268 words |
+| All-trigger `spec-coder` context | 8484 words | 8489 words |
+| Task Playbook files | 1093 words; 378 repeated words removed | 1093 words |
+| Implementation stage | 680 words; 202 words removed | 680 words |
+| Workflow plus implementation stage | 3028 words; 213 words removed | 3028 words |
+
+## Architecture: request to verified delivery
+
+The following diagram shows how a coding request moves through the three-layer
+skill structure. `main` remains the authority for gates, scope, integration,
+commits, and completion; child agents only execute bounded work or read-only
+reviews.
+
+```mermaid
+flowchart TD
+    U[User request] --> R[spec-coder router]
+    R --> P[Task + Stage Playbooks]
+    P --> G1[Gate 1: design]
+    G1 --> G2[Gate 2: specification]
+    G2 --> G3[Gate 3: tickets + waves]
+    G3 --> E[Native implement-spec executor]
+    E --> T[TDD per ticket]
+    T --> M[Main review + integration]
+    M --> V[Fresh verification]
+    V --> D[Verified delivery]
+
+    PR[Principles\njudgment rules] -. guides .-> P
+    SK[Skills\ncapabilities + tools] -. supports .-> P
+    A[Main-only authority\ngates / scope / commits / completion] -. governs .-> G1
+    A -. governs .-> G2
+    A -. governs .-> G3
+    A -. governs .-> M
+    A -. governs .-> D
+```
+
+Rendered PNG: [`spec-coder-architecture.png`](./assets/spec-coder-architecture.png)
+
+Reproduce or verify it with local Chromium and the exact repository-local build
+cache recorded by Workspace Selection (never `/tmp`). Replace the example path
+with that reservation; the test suite derives it automatically when Chromium is
+available, so geometry checking does not require this environment variable:
+
+```bash
+SPEC_CODER_BUILD_CACHE='/absolute/physical/repo/.cache/<branch>/target'
+python3 scripts/render-architecture.py --render --chromium /usr/bin/chromium --browser-cache "$SPEC_CODER_BUILD_CACHE"
+python3 scripts/render-architecture.py --check --chromium /usr/bin/chromium --browser-cache "$SPEC_CODER_BUILD_CACHE"
+```
+
+ASCII fallback:
+
+```text
+User request
+     |
+     v
+spec-coder router --> Task + Stage Playbooks
+                           |
+              +------------+------------+
+              |                         |
+       Principles guide          capability Skills
+              |                         |
+              +------------+------------+
+                           v
+
+Gate 1: design
+    -> Gate 2: specification
+        -> Gate 3: tickets + durable waves
+            -> native implement-spec executor
+                -> TDD per ticket
+                    -> main review + integration
+                        -> fresh verification -> delivery
+
+Main-only: gates, scope, integration, commits, completion
+Child agents: bounded execution or read-only review; no spawn
+```
+
 Read the selected task once, then only the current stage and triggered
 Principles. A standalone stage reconstructs its supplied task handoff; it
 does not select a different route. No new scheduler, generated instructions,
@@ -50,7 +145,7 @@ model dependency, or public micro-action skill is introduced.
 | `grill-coder` | 组合 `grilling` + `domain-modeling` 以保守 frontier rounds 澄清，并惰性记录已确认的领域语言或 ADR |
 | `design-coder` | 保守分类并比较 2–3 个方案；bounded 任务合并为一次 Gate 1，架构任务保留两阶段设计评审 |
 | `plan-coder` | 重新验证已准备的 workspace，再生成规格和垂直 tickets |
-| `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证和原子提交 |
+| `tdd-coder` | 对单个 ticket 执行 Red–Green、局部验证并向 main 返回 evidence；由 main 原子提交 |
 | `delivery-coder` | 对照规格审查、修复问题并运行完整验证 |
 | `show-me` | 在每次 suite-owned human approval 前生成紧凑的 inline ASCII review map |
 | `using-git-worktrees` | 在选定隔离路径后复用或创建安全的可选 Git worktree |
@@ -95,7 +190,7 @@ codex plugin add spec-coder@spec-coder
 `design-coder` 原生负责意图映射、保守分类、方案比较和 Gate 路由，两种模式均不把
 `brainstorming` 作为必需能力；用户仍可在 spec-coder 编排之外手动调用它。
 
-`0.8.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 或 `implement-spec`。当前 Matt `implement-spec` 的 `disable-model-invocation: true` 表示它仅作为 provenance，不是 dependency；其他 manual-only skill 也不应被配置、改名包装或修改全局文件绕过。discovery 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用本地模板，Gate 3 后由 native implement-spec executor 执行已批准的计划。
+`0.9.0` 不依赖手动专用的 `grill-with-docs`、`grill-me-with-doc`、`to-spec`、`to-tickets` 或 `implement-spec`。当前 Matt `implement-spec` 的 `disable-model-invocation: true` 表示它仅作为 provenance，不是 dependency；其他 manual-only skill 也不应被配置、改名包装或修改全局文件绕过。discovery 直接组合可调用的 `grilling` + `domain-modeling`，原生 `plan-coder` 使用本地模板，Gate 3 后由 native implement-spec executor 执行已批准的计划。
 
 ## Task Playbooks
 
@@ -162,7 +257,7 @@ Heartbeat emitter：heartbeat-ready brief 必须携带 main 提供的绝对
 
 ## Optional subagent model routing
 
-`0.8.0` 为新建 subagent 提供三挡模型：`economy`、`standard`、`strong`。插件自带 trusted bundled defaults，因此 no initial configuration 也能使用 Luna/economy、Terra/standard、Sol/strong；实际委派仍以 live Host capability 为准。active main 始终使用 current Agent/session model，routing 不会切换它；Gate 解释、scope 变更、最终架构/安全决策、改动归属、commit、delivery 聚合和 completion claim 始终是 `main-only`。
+`0.9.0` 为新建 subagent 提供三挡模型：`economy`、`standard`、`strong`。插件自带 trusted bundled defaults，因此 no initial configuration 也能使用 Luna/economy、Terra/standard、Sol/strong；实际委派仍以 live Host capability 为准。active main 始终使用 current Agent/session model，routing 不会切换它；Gate 解释、scope 变更、最终架构/安全决策、改动归属、commit、delivery 聚合和 completion claim 始终是 `main-only`。
 
 完整 agent tree 固定为两层：第 1 层是 active main，第 2 层是它的 direct subagents；只有 active main 可以 spawn/delegate。每个 child brief 必须包含 `delegation_allowed = false`，子 agent 若需要进一步拆分或委派，必须把证据和 blocker 返回 main。main 可以创建新的第 2 层 sibling 完成一次 promotion，但 child 不能直接或间接创建替代者。Host 若支持禁用 child spawn tool，应作为 defense in depth 使用；这是契约约束，不代表 Host 层沙箱隔离，也不宣称跨 Host 的 sandbox enforcement。
 
@@ -197,7 +292,7 @@ minimum_tier = "standard"
 
 `setup-coder` 可以发现并报告仓库策略，但不会创建或修改用户/仓库 routing 配置；任何用户拥有的配置写入都需要单独展示 exact diff 并取得明确授权。
 
-`0.8.0` 的固定映射是 Luna/economy、Terra/standard、Sol/strong。已有配置仍由用户所有，不会被安装器或 workflow 自动重写；需要调整时由用户先审阅 exact diff 并明确授权。
+`0.9.0` 的固定映射是 Luna/economy、Terra/standard、Sol/strong。已有配置仍由用户所有，不会被安装器或 workflow 自动重写；需要调整时由用户先审阅 exact diff 并明确授权。
 
 ## Default routing
 
@@ -213,7 +308,7 @@ minimum_tier = "standard"
 
 ## Baseline evidence and artifact checks
 
-`0.8.0` 保持九个 skills；工具随插件的 `scripts/` 和
+`0.9.0` 保持九个 skills；工具随插件的 `scripts/` 和
 `scripts/spec_coder_checks/` 一起提供，依赖 Python 3.11+ 与 Git，无额外 Python 包。
 各 stage 在 standalone/resume 入口加载必需的共享规则；main 每次 dispatch 都组装
 [完整 worker brief](./references/worker-brief-template.md#assembly)。

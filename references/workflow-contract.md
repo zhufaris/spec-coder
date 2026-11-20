@@ -17,10 +17,15 @@ elaborate these common invariants.
 ## Native implement-spec executor
 
 Every Gate 3-approved or autonomously selected nonempty plan, including a
-singleton, enters the native implement-spec executor. It hands each ticket to
-a `tdd-coder` lifecycle and, after the accepted plan is complete, hands off to
-`delivery-coder`. It does not own frontier, integration, or worktree mechanics.
-The executor must not push, must not install, and must not delete worktrees.
+singleton, enters the native implement-spec executor. Under the
+[detailed executor and delegation authority](./subagent-routing-contract.md#detailed-executor-and-delegation-authority),
+it issues one `tdd-coder` [implementation-stage handoff](../playbooks/stages/implementation.md#scope-and-authority)
+per selected ticket. After the accepted plan is complete, it hands off to
+`delivery-coder`.
+
+This contract owns executor entry and handoff, not the detailed frontier,
+delegation, dispatch, promotion, integration, or worktree algorithm. The
+executor must not push, must not install, and must not delete worktrees.
 
 ## Phase Order
 
@@ -173,12 +178,10 @@ Worktree creation is optional. Inspect the user's preference, existing worktrees
 - During new-request workspace preflight, invoke the bundled `using-git-worktrees` only for the isolation path and prefer native tooling. Failure of optional isolation mechanics is not itself a blocker if orchestration can select safe in-place work consistently with user instructions. If isolation is necessary or explicitly required and unavailable, preserve state and report the blocker.
 - Preserve safe existing linked-worktree reuse before considering new allocation. For every newly created durable isolation workspace, derive source exactly as `<repo>/.worktrees/<branch>` and build cache exactly as `<repo>/.cache/<branch>/target`; preserve valid slash-separated branch segments but reject empty, absolute, traversal, backslash, whitespace/control, home-expansion, or repository-escaping branch paths. Both `/.worktrees/` and `/.cache/` must have exact Git ignore status `0`; either `1` is `blocked-local-policy-unignored` and any other result is `blocked-ignore-verification`. An unignored or uncertain root blocks allocation; do not select a new sibling or `/tmp` durable fallback.
 - Native isolation is compatible only when the live interface can pin both the recorded base and the exact repository-local source path. Otherwise use Git only when it can create that derived source at the recorded base; if that fallback is unsafe, return `blocked-no-compatible-isolation`. `/tmp` remains limited to disposable small files, never durable source, cache, workflow artifacts, verification evidence, or recovery state.
-- Worktree isolation remains optional for serial delegation. When the main
-  orchestrator requests a parallel mutation wave, however, each worker must
-  receive real Host/task isolation or a separately validated Git worktree at
-  the recorded wave base. File disjointness inside one shared checkout is not
-  isolation. Apply [Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests) before serial fallback;
-  do not make worktrees mandatory merely because delegation is used.
+- Worktree isolation remains optional until the detailed executor contract
+  requires it. [Explicit Parallel Requests](./subagent-routing-contract.md#explicit-parallel-requests)
+  owns parallel mutation isolation, capacity handling, and serial fallback;
+  this section owns only safe workspace selection and preparation mechanics.
 - Both modes require the same baseline, approvals, ownership checks, TDD and atomic commits. Do not delete or relocate an existing worktree merely because isolation is optional.
 
 Selected workspace evidence includes the absolute workspace, mode and

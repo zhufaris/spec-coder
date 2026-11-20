@@ -55,8 +55,44 @@ class RuntimeEnvelopeOwnerTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, executor.lower())
 
+        for owner in (
+            "./subagent-routing-contract.md#detailed-executor-and-delegation-authority",
+            "../playbooks/stages/implementation.md#scope-and-authority",
+        ):
+            with self.subTest(owner=owner):
+                self.assertIn(owner, executor.lower())
+
+        for duplicated_algorithm in (
+            "earliest incomplete",
+            "zero currently available",
+            "live dispatch batch",
+            "promotion sibling",
+            "one result at a time",
+        ):
+            with self.subTest(duplicated_algorithm=duplicated_algorithm):
+                self.assertNotIn(duplicated_algorithm, executor.lower())
+
     def test_routing_remains_the_only_frontier_and_result_owner(self):
         routing = (ROOT / "references/subagent-routing-contract.md").read_text().lower()
+        authority = " ".join(
+            section(
+                "references/subagent-routing-contract.md",
+                "Detailed Executor and Delegation Authority",
+            ).lower().split()
+        )
+        for responsibility in (
+            "sole detailed owner",
+            "wave formation",
+            "delegation eligibility and execution mode",
+            "dispatch and capacity",
+            "child no-spawn",
+            "worker brief",
+            "heartbeat",
+            "promotion",
+            "result integration",
+        ):
+            with self.subTest(responsibility=responsibility):
+                self.assertIn(responsibility, authority)
         for heading in ("## execution waves", "## result integration"):
             self.assertIn(heading, routing)
         for phrase in (
