@@ -19,7 +19,3 @@
 3. [Planning](../stages/planning.md#procedure): Record environment, measure, target and regression checks.
 4. [Implementation](../stages/implementation.md#procedure): Apply one bounded change; compare equivalent before/after measurements.
 5. [Delivery](../stages/delivery.md#procedure): Prove end-to-end improvement without correctness regression and report limitations.
-
-### Completion
-
-The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.

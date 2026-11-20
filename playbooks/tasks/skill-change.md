@@ -19,7 +19,3 @@
 3. [Planning](../stages/planning.md#procedure): Record loading, public compatibility and realistic behavioral acceptance.
 4. [Implementation](../stages/implementation.md#procedure): Observe deterministic contract Red, revise instructions, verify loading and consumers.
 5. [Delivery](../stages/delivery.md#procedure): After deterministic/artifact Green compare final anonymous outputs; accept only non-regression.
-
-### Completion
-
-The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.

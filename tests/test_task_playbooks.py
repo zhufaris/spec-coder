@@ -154,6 +154,33 @@ class TaskPlaybookContractTests(unittest.TestCase):
         todo_boundary = todo_boundary.split("\n## ", 1)[0]
         self.assertIn("must appear", todo_boundary)
 
+    def test_shared_task_sop_scaffold_has_one_contract_owner(self):
+        contract = (ROOT / "references/task-playbook-contract.md").read_text()
+        task_texts = [task.read_text() for task in (ROOT / "playbooks/tasks").glob("*.md")]
+        shared_sentence = "The task owns step order and route-specific proof"
+        self.assertEqual(
+            sum(text.count(shared_sentence) for text in [contract, *task_texts]),
+            1,
+            "the common completion scaffold must have one owner",
+        )
+        shared = contract.split("## Shared task SOP scaffold", 1)[1].split("\n## ", 1)[0]
+        normalized_shared = " ".join(shared.split())
+        for requirement in (
+            "grill-coder -> design-coder -> plan-coder -> tdd-coder -> delivery-coder",
+            "returns to its stage owner",
+            "explicit skip reason",
+            "No task step grants external effects or nested delegation",
+            "Completion scaffold",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, normalized_shared)
+
+        for task in (ROOT / "playbooks/tasks").glob("*.md"):
+            with self.subTest(task=task.name):
+                text = task.read_text()
+                self.assertNotIn("### Completion", text)
+                self.assertNotIn("The task owns step order and route-specific proof", text)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,3 @@
 3. [Planning](../stages/planning.md#procedure): Preserve acceptance and interfaces in the specification and vertical tasks.
 4. [Implementation](../stages/implementation.md#procedure): Prove a failing outcome, implement it and check affected consumers.
 5. [Delivery](../stages/delivery.md#procedure): Verify the actual entry path, compatibility and fresh full evidence.
-
-### Completion
-
-The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.

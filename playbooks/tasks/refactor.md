@@ -19,7 +19,3 @@
 3. [Planning](../stages/planning.md#procedure): Record preservation checks, dependency constraints and bounded increments.
 4. [Implementation](../stages/implementation.md#procedure): Keep pins green while simplifying; use structural evidence instead of outcome Red.
 5. [Delivery](../stages/delivery.md#procedure): Verify equivalent behavior and inspectable simplification plus fresh full checks.
-
-### Completion
-
-The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.

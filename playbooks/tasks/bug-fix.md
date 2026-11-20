@@ -20,7 +20,3 @@
 3. [Planning](../stages/planning.md#procedure): Carry the original reproduction identity into task acceptance and proof.
 4. [Implementation](../stages/implementation.md#procedure): Observe reproduction Red; minimally repair only the confirmed root cause and matching fault instances within approved scope, preserving legitimate validation and neighboring behavior without an unlimited sweep.
 5. [Delivery](../stages/delivery.md#procedure): Rerun the original public path on integrated code to verify the root cause repair; generic Green cannot replace it.
-
-### Completion
-
-The task owns step order and route-specific proof; stage playbooks own local actions. Preserve the fixed stages and approval contracts. A failing step returns to its stage owner; an invalid design returns to design. Record an explicit skip reason only for inapplicable task-specific work. No step grants external effects or nested delegation.
