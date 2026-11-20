@@ -15,25 +15,19 @@ state file, or an alternate executor.
 
 ## Shared task SOP scaffold
 
-Every selected Task SOP supplies exactly five short numbered stage deltas in
-the fixed `grill-coder -> design-coder -> plan-coder -> tdd-coder -> delivery-coder` sequence. Its route-specific entry/design evidence, phase
-proof, skip reason, Red or pin, delivery proof, and conditional Principle
-triggers refine that sequence; they do not replace a stage, Gate, verification
-requirement, or the native implement-spec executor.
-
-Record an explicit skip reason only for inapplicable route-specific work. A
-skip never removes a fixed stage, Gate, required verification, or another
-route's proof obligation. The task owns step order and route-specific proof;
-stage playbooks own local actions. A failing task delta returns to its stage
-owner; an invalid design returns to design. No task step grants external
-effects or nested delegation.
+Every selected Task SOP keeps the fixed `grill-coder -> design-coder ->
+plan-coder -> tdd-coder -> delivery-coder` sequence. Record an explicit skip
+reason only for inapplicable route work. A skip never removes a fixed stage,
+Gate, required verification, or another route's proof. The task owns step order
+and route-specific proof; stage playbooks own local actions. A failing task
+delta returns to its stage owner; invalid design returns to design. No task step
+grants external effects or nested delegation.
 
 ### Completion scaffold
 
-Complete the selected route only after its five stage deltas preserve the
-fixed sequence and its route-specific delivery proof is recorded at the
-delivery stage. This scaffold is common to every task; task files must not
-repeat it.
+Complete the selected route only after its five stage deltas preserve the fixed
+sequence and delivery records route-specific proof. Task files must not repeat
+this common scaffold.
 
 ## TaskPlaybookSelection
 

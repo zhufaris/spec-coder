@@ -159,7 +159,10 @@ class TaskPlaybookContractTests(unittest.TestCase):
         task_texts = [task.read_text() for task in (ROOT / "playbooks/tasks").glob("*.md")]
         shared_sentence = "The task owns step order and route-specific proof"
         self.assertEqual(
-            sum(text.count(shared_sentence) for text in [contract, *task_texts]),
+            sum(
+                " ".join(text.split()).count(shared_sentence)
+                for text in [contract, *task_texts]
+            ),
             1,
             "the common completion scaffold must have one owner",
         )

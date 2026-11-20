@@ -381,16 +381,16 @@ repair judgment, fresh verification, aggregation, and completion.
 
 ## Result Integration
 
-For a parallel wave, every child starts from the recorded wave base and returns
-its base identity, complete task-owned diff, and verification evidence; main integrates one result at a time into the authoritative workspace. Advancement
-past the recorded base is acceptable only when every intervening change is an
-accepted sibling result with proven disjoint ownership. A base mismatch,
-transfer conflict, ownership overlap, unexplained diff, or failed fresh
-verification rejects that parallel result and leaves its ticket unchecked for
-later serialized execution from the authoritative base only when the explicit
-parallel request policy permits that recovery mode. Dependents do not
-unblock until the accepted ticket has passed fresh verification, updated its
-durable checkbox, and received its atomic commit.
+Parallel children start from the recorded wave base and return base identity,
+complete task-owned diff, and verification evidence; main integrates one result at a time. Intervening changes require accepted sibling results with disjoint
+ownership. Base mismatch, conflict, ownership overlap, unexplained diff, or
+failed fresh verification rejects the result and leaves its ticket unchecked
+for later serialized execution under the explicit-parallel policy.
+
+For every result—main-local, serialized direct, or parallel—main freshly
+verifies integration, accepts, creates its atomic commit, updates that ticket's
+durable checkbox, then recomputes the earliest incomplete ready frontier.
+Dependents remain blocked until this sequence finishes.
 
 ## Review Execution
 

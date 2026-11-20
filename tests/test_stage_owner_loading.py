@@ -81,6 +81,17 @@ class StageOwnerLoadingTests(unittest.TestCase):
             self.assertNotIn(link, normal)
             self.assertIn(link, triggered)
 
+    def test_router_executor_only_entry_reaches_wave_and_result_owners(self):
+        triggered = required_links(
+            ROOT / "skills/spec-coder/SKILL.md", {"Executor handoff and recovery"}
+        )
+        for anchor in ("execution-waves", "result-integration"):
+            with self.subTest(anchor=anchor):
+                self.assertIn(
+                    "../../references/subagent-routing-contract.md#" + anchor,
+                    triggered,
+                )
+
     def test_router_dispatch_and_isolation_owners_remain_trigger_specific(self):
         normal = links("spec-coder")
         dispatch = required_links(

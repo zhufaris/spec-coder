@@ -362,7 +362,7 @@ class StageLoadingTests(unittest.TestCase):
 
     def test_selected_playbook_loading_is_direct_and_excludes_other_anchors(self):
         expected = {
-            "spec-coder": {"route-precedence-and-one-selection-rule", "conversational-todo-boundary"},
+            "spec-coder": {"shared-task-sop-scaffold", "route-precedence-and-one-selection-rule", "conversational-todo-boundary"},
             "grill-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
             "design-coder": {"taskplaybookselection", "empirical-facts-and-human-decisions"},
             "plan-coder": {"taskplaybookselection"},
@@ -387,10 +387,22 @@ class StageLoadingTests(unittest.TestCase):
             selection = select_playbook(request="change", facts=facts)
             selected_anchor = selection.conditional_references[0].rsplit("#", 1)[1]
             for path in stage_paths:
-                resolved = selected_instruction_text(path, selection, mode="standalone").lower()
+                resolved = " ".join(
+                    selected_instruction_text(path, selection, mode="standalone")
+                    .lower()
+                    .split()
+                )
                 with self.subTest(stage=path.parent.name, kind=kind):
                     if path.parent.name == "spec-coder":
                         self.assertIn("## " + selected_anchor.replace("-", " "), resolved)
+                        for shared_rule in (
+                            "fixed `grill-coder -> design-coder -> plan-coder -> tdd-coder -> delivery-coder` sequence",
+                            "a skip never removes a fixed stage",
+                            "returns to its stage owner",
+                            "no task step grants external effects or nested delegation",
+                            "complete the selected route only after",
+                        ):
+                            self.assertIn(shared_rule, resolved)
                     else:
                         self.assertNotIn("### Completion", resolved)
                         self.assertIn("- delivery proof:", resolved)

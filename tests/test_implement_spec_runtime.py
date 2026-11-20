@@ -79,6 +79,26 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         self.assertIn("approved `build cache`", implementation)
         self.assertIn("authoritative workspace", implementation)
 
+    def test_tdd_public_entry_returns_evidence_without_mutation_authority(self):
+        tdd = (ROOT / "skills/tdd-coder/SKILL.md").read_text().lower()
+        for phrase in (
+            "one executor-issued unblocked vertical ticket",
+            "red-green/structural evidence",
+            "return provisional evidence",
+            "main owns acceptance",
+            "durable plan advancement",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, tdd)
+        for contradiction in (
+            "atomic commit, and plan-state update",
+            "one ticket-only conventional commit",
+            "synchronized plan state",
+            "do not mark the ticket complete or commit unless",
+        ):
+            with self.subTest(contradiction=contradiction):
+                self.assertNotIn(contradiction, tdd)
+
     def test_delivery_preserves_the_approved_build_cache(self):
         delivery = read("skills/delivery-coder/SKILL.md").lower()
         self.assertIn("that workspace's approved canonical cache", delivery)
@@ -114,6 +134,27 @@ class ImplementSpecRuntimeContractTests(unittest.TestCase):
         ):
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, implementation)
+
+    def test_result_integration_orders_commit_checkbox_then_frontier(self):
+        routing = read("references/subagent-routing-contract.md").lower()
+        result_integration = routing.split("## result integration", 1)[1]
+        result_integration = result_integration.split("\n## ", 1)[0]
+        result_integration = " ".join(result_integration.split())
+        self.assertIn(
+            "for every result—main-local, serialized direct, or parallel",
+            result_integration,
+        )
+        commit = result_integration.index("creates its atomic commit")
+        checkbox = result_integration.index("updates that ticket's durable checkbox")
+        frontier = result_integration.index(
+            "recomputes the earliest incomplete ready frontier"
+        )
+        self.assertLess(commit, checkbox)
+        self.assertLess(checkbox, frontier)
+
+        implementation = read("playbooks/stages/implementation.md").lower()
+        self.assertNotIn("creates its atomic commit", implementation)
+        self.assertNotIn("updates that ticket's durable checkbox", implementation)
 
     def test_reopened_gate_three_revalidates_changed_scheduling_inputs(self):
         workflow = read("references/workflow-contract.md").lower()
