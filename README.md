@@ -50,8 +50,8 @@ quietly return:
 
 | Surface | Measured current value | Regression ceiling |
 | --- | ---: | ---: |
-| Normal `spec-coder` context | 1268 words | 1268 words |
-| All-trigger `spec-coder` context | 8488 words | 8489 words |
+| Normal `spec-coder` context | 1145 words | 1268 words |
+| All-trigger `spec-coder` context | 8455 words | 8489 words |
 | Task Playbook files | 1093 words; 378 repeated words removed | 1093 words |
 | Implementation stage | 680 words; 202 words removed | 680 words |
 | Workflow plus implementation stage | 3028 words; 213 words removed | 3028 words |

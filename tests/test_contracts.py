@@ -474,6 +474,21 @@ class PluginContractTests(unittest.TestCase):
                 ):
                     self.assertIn(phrase, normalized)
 
+    def test_readme_reports_current_router_context_measurements(self) -> None:
+        readme = read_text(ROOT / "README.md")
+        router = ROOT / "skills" / "spec-coder" / "SKILL.md"
+        normal_words = len(instruction_text(router, frozenset()).split())
+        all_trigger_words = len(instruction_text(router).split())
+
+        self.assertIn(
+            f"| Normal `spec-coder` context | {normal_words} words | 1268 words |",
+            readme,
+        )
+        self.assertIn(
+            f"| All-trigger `spec-coder` context | {all_trigger_words} words | 8489 words |",
+            readme,
+        )
+
     def test_worktree_adapter_links_canonical_policy_without_copying_outcomes(self) -> None:
         skill = read_text(ROOT / "skills" / "using-git-worktrees" / "SKILL.md").lower()
         workflow = read_text(ROOT / "references" / "workflow-contract.md").lower()
