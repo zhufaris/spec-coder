@@ -455,6 +455,25 @@ class PluginContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, notice)
 
+    def test_public_docs_describe_the_compacted_owner_map(self) -> None:
+        """Keep public summaries aligned without duplicating contract detail."""
+        readme = read_text(ROOT / "README.md")
+        compatibility = read_text(ROOT / "references/upstream-compatibility.md")
+
+        for document in (readme, compatibility):
+            with self.subTest(document=document[:30]):
+                normalized = " ".join(document.split())
+                for phrase in (
+                    "three common owners",
+                    "conditional trigger",
+                    "shared Task SOP scaffold",
+                    "route-specific deltas",
+                    "workflow contract owns executor entry and handoff",
+                    "routing contract owns detailed executor and delegation",
+                    "implementation stage owns one-ticket lifecycle",
+                ):
+                    self.assertIn(phrase, normalized)
+
     def test_worktree_adapter_links_canonical_policy_without_copying_outcomes(self) -> None:
         skill = read_text(ROOT / "skills" / "using-git-worktrees" / "SKILL.md").lower()
         workflow = read_text(ROOT / "references" / "workflow-contract.md").lower()

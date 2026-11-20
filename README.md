@@ -30,6 +30,32 @@ Principles guide judgment; Contracts own precise boundaries.
 
 Hard boundaries constrain execution; design guidance requires contextual judgment.
 
+## Context ownership and loading bounds
+
+The normal `spec-coder` entry has three common owners: the workflow envelope,
+compatibility check, and verification lifecycle. Route selection, gates,
+delegation/dispatch, executor recovery, and workspace preparation load only at
+their named conditional trigger; the router does not carry those details on
+every entry.
+
+The shared Task SOP scaffold belongs to the Task Playbook contract, while Task
+files keep only route-specific deltas. The workflow contract owns executor entry
+and handoff; the routing contract owns detailed executor and delegation; the
+implementation stage owns one-ticket lifecycle evidence. These summaries point
+to their owners rather than copying the detailed rules into public guidance.
+
+Static loading measurements from the integrated `0.9.0` tree are guarded as
+upper bounds, so shorter wording remains valid while duplicated context cannot
+quietly return:
+
+| Surface | Measured current value | Regression ceiling |
+| --- | ---: | ---: |
+| Normal `spec-coder` context | 1268 words | 1268 words |
+| All-trigger `spec-coder` context | 8488 words | 8489 words |
+| Task Playbook files | 1093 words; 378 repeated words removed | 1093 words |
+| Implementation stage | 680 words; 202 words removed | 680 words |
+| Workflow plus implementation stage | 3028 words; 213 words removed | 3028 words |
+
 ## Architecture: request to verified delivery
 
 The following diagram shows how a coding request moves through the three-layer

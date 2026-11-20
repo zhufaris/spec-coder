@@ -325,6 +325,10 @@ class StageLoadingTests(unittest.TestCase):
             "delivery-coder": 11606,
         }
 
+        # The normal router entry stays compact; detailed owners load only on
+        # their named conditional triggers.  These are regression ceilings, not
+        # a demand that formatting preserve an exact word count.
+        self.assertLessEqual(normal["spec-coder"], 1268)
         self.assertLessEqual(sum(normal.values()), 19000)
         self.assertLessEqual(normal["plan-coder"], 5200)
         for stage, limit in all_trigger_limits.items():
@@ -333,6 +337,28 @@ class StageLoadingTests(unittest.TestCase):
                     instruction_text(ROOT / "skills" / stage / "SKILL.md").split()
                 )
                 self.assertLessEqual(triggered, limit)
+
+    def test_compacted_task_and_implementation_owners_do_not_regrow(self):
+        task_contract = (ROOT / "references/task-playbook-contract.md").read_text()
+        task_files = sorted((ROOT / "playbooks/tasks").glob("*.md"))
+        task_words = sum(len(path.read_text().split()) for path in task_files)
+        implementation = (ROOT / "playbooks/stages/implementation.md").read_text()
+        workflow = (ROOT / "references/workflow-contract.md").read_text()
+
+        # The task contract owns the shared scaffold; individual routes retain
+        # only their deltas.  Caps preserve the measured reductions while
+        # allowing future wording to become shorter.
+        self.assertIn("## Shared task SOP scaffold", task_contract)
+        self.assertIn("### Completion scaffold", task_contract)
+        self.assertLessEqual(task_words, 1093)
+        for path in task_files:
+            with self.subTest(task=path.name):
+                self.assertNotIn("### Completion", path.read_text())
+
+        # The implementation SOP owns one ticket lifecycle; workflow owns
+        # executor entry and handoff rather than detailed delegation mechanics.
+        self.assertLessEqual(len(implementation.split()), 680)
+        self.assertLessEqual(len((workflow + implementation).split()), 3028)
 
     def test_selected_playbook_loading_is_direct_and_excludes_other_anchors(self):
         expected = {
