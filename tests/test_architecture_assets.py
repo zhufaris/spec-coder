@@ -1,12 +1,15 @@
 import hashlib
 import importlib.util
 import os
+import shutil
 import struct
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+from scripts.spec_coder_checks.evidence import validate_plan_build_cache
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,9 +33,20 @@ class ArchitectureAssetTests(unittest.TestCase):
         self.assertEqual(renderer.png_text(PNG)[renderer.SOURCE_SHA_KEY], expected)
 
     def test_live_browser_geometry_fits_capture(self):
+        chromium = shutil.which("chromium")
+        if not chromium:
+            self.skipTest("local Chromium is required for live geometry checks")
         cache = os.environ.get("SPEC_CODER_BUILD_CACHE")
         if not cache:
-            self.skipTest("set SPEC_CODER_BUILD_CACHE to run live Chromium geometry")
+            def git(*args):
+                return subprocess.check_output(
+                    ["git", "-C", str(ROOT), *args], text=True, timeout=10
+                ).strip()
+            common = Path(git("rev-parse", "--path-format=absolute", "--git-common-dir"))
+            physical = common.parent if common.name == ".git" else ROOT
+            branch = git("branch", "--show-current") or "detached-" + git("rev-parse", "--short", "HEAD")
+            cache = str(physical / ".cache" / branch / "target")
+        cache = validate_plan_build_cache(ROOT, cache)
         before = (HTML.read_bytes(), PNG.read_bytes())
         result = subprocess.run(
             (
@@ -43,7 +57,7 @@ class ArchitectureAssetTests(unittest.TestCase):
                 "--browser-cache",
                 cache,
                 "--chromium",
-                "/usr/bin/chromium",
+                chromium,
             ),
             cwd=ROOT,
             text=True,
@@ -65,7 +79,7 @@ class ArchitectureAssetTests(unittest.TestCase):
             handle.write(legacy)
             handle.flush()
             geometry = renderer.browser_geometry(
-                Path("/usr/bin/chromium"), Path(cache), Path(handle.name)
+                Path(chromium), Path(cache), Path(handle.name)
             )
         self.assertFalse(geometry["fits_capture"])
 

@@ -112,6 +112,7 @@ _OWNER_CHECKS = {
     "scripts/spec_coder_checks/evidence.py": (
         "test_verification_evidence",
         "test_workflow_tool_integration",
+        "test_architecture_assets",
     ),
     "scripts/validate-affected.py": ("test_affected_validation",),
     "scripts/spec_coder_checks/affected.py": ("test_affected_validation",),

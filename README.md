@@ -50,8 +50,8 @@ quietly return:
 
 | Surface | Measured current value | Regression ceiling |
 | --- | ---: | ---: |
-| Normal `spec-coder` context | 701 words | 1268 words |
-| All-trigger `spec-coder` context | 8486 words | 8489 words |
+| Normal `spec-coder` context | 699 words | 1268 words |
+| All-trigger `spec-coder` context | 8484 words | 8489 words |
 | Task Playbook files | 1093 words; 378 repeated words removed | 1093 words |
 | Implementation stage | 680 words; 202 words removed | 680 words |
 | Workflow plus implementation stage | 3028 words; 213 words removed | 3028 words |
@@ -88,7 +88,9 @@ flowchart TD
 Rendered PNG: [`spec-coder-architecture.png`](./assets/spec-coder-architecture.png)
 
 Reproduce or verify it with local Chromium and the exact repository-local build
-cache recorded by Workspace Selection (never `/tmp`):
+cache recorded by Workspace Selection (never `/tmp`). Replace the example path
+with that reservation; the test suite derives it automatically when Chromium is
+available, so geometry checking does not require this environment variable:
 
 ```bash
 SPEC_CODER_BUILD_CACHE='/absolute/physical/repo/.cache/<branch>/target'

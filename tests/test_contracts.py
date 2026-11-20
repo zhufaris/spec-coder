@@ -819,7 +819,11 @@ class PluginContractTests(unittest.TestCase):
         ))
         self.assertEqual(stages, tuple(sorted(stages)))
         self.assertIn("start read-only", process)
-        self.assertIn("prepare dependencies/baseline before writes", process)
+        preparation = process.index("prepare dependencies")
+        capture = process.index("verification-evidence.py capture")
+        target_write = process.index("before writes", capture)
+        self.assertLess(preparation, capture)
+        self.assertLess(capture, target_write)
         self.assertNotIn("state.yaml", text.lower())
 
     def test_required_scenarios_are_documented(self) -> None:
